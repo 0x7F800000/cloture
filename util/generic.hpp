@@ -44,7 +44,7 @@
 /**
 	clang-supported msvc extension
 */
-#define	__is_convertible_to(from, to)	is_convertible_to(from, to)
+#define	is_convertible_to(from, to)	__is_convertible_to(from, to)
 
 
 #define 	macroError(msg)		doPragma( GCC error STRINGIFY(msg) )
