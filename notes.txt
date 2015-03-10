@@ -1,0 +1,34 @@
+
+OPTIMAL TESTING CVARS:
+	r_motionblur 1
+	 r_damageblur 1
+	r_shadows 1
+	r_viewfbo 3
+	r_water 1
+	r_shadow_shadowmapping_filterquality 4
+	r_glsl_postprocess 1
+	mod_q3shader_force_terrain_alphaflag 1
+	r_glsl_vertextextureblend_usebothalphas 1
+	r_shadow_realtime_world 1
+	r_shadow_shadowmapping_depthbits 32
+	r_motionblur_maxblur 0.75
+	r_shadow_realtime_dlight_portalculling 1
+/*
+r_shadow_realtime_dlight_portalculling is "0" ["0"] enables portal optimization on dynamic lights (slow!)
+
+*/
+#define 	NO_SOFTWARE_RENDERER
+#define		EXCLUDE_D3D_CODEPATHS
+#define		NO_DEVELOPER_CVARS
+#define		NO_SILLY_CVARS
+
+#define		ENABLE_TIMEREPORT	0
+
+
+todo:
+	Eliminate vec3_t from structures in client.h
+
+
+r_shadow_realtime_world is linked to the problem with models
+
+r_refdef.scene.rtworld is the variable that gets set by r_shadow_realtime_world

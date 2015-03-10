@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0" moduleId="org.eclipse.cdt.core.settings" name="cl-Release">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ICCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="cloture" buildProperties="" description="Release build" id="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0" name="cl-Release" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1160486854_13.0.0" name="/" resourcePath="">
+						<toolChain id="intel.toolchain.linux.x86_64.exe.dbg.1772529769_14.0.0" name="Intel Toolchain for Executable on Intel(R) 64" resourceTypeBasedDiscovery="true" superClass="intel.toolchain.linux.x86_64.exe.dbg_14.0.0">
+							<targetPlatform archList="x86_64" binaryParser="org.eclipse.cdt.core.ELF" id="intel.platform.linux.x86_64.exe.dbg.987116804_14.0.0" name="Platform.Executable.Debug" osList="linux" superClass="intel.platform.linux.x86_64.exe.dbg_14.0.0"/>
+							<builder arguments="cl-release" buildPath="/home/radverbial/Desktop/Fedoranasty/cloture/cloture/" command="make" id="intel.builder.linux.x86_64.exe.dbg.1538461075_14.0.0" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Intel Builder" superClass="intel.builder.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.compilestep.linux.x86_64.exe.dbg.616893390_14.0.0" name="Intel Intel(R) 64 C++ Compiler " superClass="intel.cpp.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.cpp.compilestep.input.1973276680" superClass="intel.cpp.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.compilestep.linux.x86_64.exe.dbg.1751174251_14.0.0" name="Intel Intel(R) 64 C Compiler" superClass="intel.c.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.c.compilestep.input.105575753" superClass="intel.c.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.linkstep.linux.x86_64.exe.dbg.1785500126_14.0.0" name="Intel Intel(R) 64 C Linker" superClass="intel.c.linkstep.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.linkstep.linux.x86_64.exe.dbg.544009939_14.0.0" name="Intel Intel(R) 64 C++ Linker" superClass="intel.cpp.linkstep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.linkstep.input.319480225" superClass="intel.linkstep.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Debug_13.0.0|build-obj|Darkplaces.app|DPiOS.xcodeproj|renderer/rmain_before_optimization|renderer/r_shadow_before_optimization|ode" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091_13.0.0">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091_13.0.0" moduleId="org.eclipse.cdt.core.settings" name="cl-Debug">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ICCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="cloture" buildProperties="" description="Debug build" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091_13.0.0" name="cl-Debug" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091._13.0.0" name="/" resourcePath="">
+						<toolChain id="intel.toolchain.linux.x86_64.exe.dbg.1024292951_14.0.0" name="Intel Toolchain for Executable on Intel(R) 64" resourceTypeBasedDiscovery="true" superClass="intel.toolchain.linux.x86_64.exe.dbg_14.0.0" unusedChildren="intel.cpp.linkstep.linux.x86_64.exe.dbg_14.0.0">
+							<targetPlatform archList="x86_64" binaryParser="org.eclipse.cdt.core.ELF" id="intel.platform.linux.x86_64.exe.dbg.2040305761_14.0.0" name="Platform.Executable.Debug" osList="linux" superClass="intel.platform.linux.x86_64.exe.dbg_14.0.0"/>
+							<builder arguments="cl-release" buildPath="/home/radverbial/Desktop/Fedoranasty/cloture/cloture/" command="make" id="intel.builder.linux.x86_64.exe.dbg.1781377906_14.0.0" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Intel Builder" superClass="intel.builder.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.c.compilestep.linux.x86_64.exe.dbg.553334029_14.0.0" name="Intel Intel(R) 64 C Compiler" superClass="intel.c.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.c.compilestep.input.659937933" superClass="intel.c.compilestep.input"/>
+							</tool>
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="intel.cpp.compilestep.linux.x86_64.exe.dbg.1643795357_14.0.0" name="Intel Intel(R) 64 C++ Compiler " superClass="intel.cpp.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.cpp.compilestep.input.85179704" superClass="intel.cpp.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.linkstep.linux.x86_64.exe.dbg.1732744735_14.0.0" name="Intel Intel(R) 64 C Linker" superClass="intel.c.linkstep.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.1010037257" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker">
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1867746378" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Debug_13.0.0|build-obj|Darkplaces.app|DPiOS.xcodeproj|renderer/rmain_before_optimization|renderer/r_shadow_before_optimization|ode" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091.460286556_13.0.0">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091.460286556_13.0.0" moduleId="org.eclipse.cdt.core.settings" name="cl-Debug-FP-Precise">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ICCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="cloture" buildProperties="" description="Build with floats rounded in 64 bits" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091.460286556_13.0.0" name="cl-Debug-FP-Precise" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091.460286556._13.0.0" name="/" resourcePath="">
+						<toolChain id="intel.toolchain.linux.x86_64.exe.dbg.2129205047_14.0.0" name="Intel Toolchain for Executable on Intel(R) 64" resourceTypeBasedDiscovery="true" superClass="intel.toolchain.linux.x86_64.exe.dbg_14.0.0">
+							<targetPlatform archList="x86_64" binaryParser="org.eclipse.cdt.core.ELF" id="intel.platform.linux.x86_64.exe.dbg.1451436957_14.0.0" name="Platform.Executable.Debug" osList="linux" superClass="intel.platform.linux.x86_64.exe.dbg_14.0.0"/>
+							<builder arguments="cl-debug" buildPath="/home/radverbial/Desktop/Fedoranasty/cloture/cloture/" command="make" id="intel.builder.linux.x86_64.exe.dbg.939661463_14.0.0" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Intel Builder" superClass="intel.builder.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.compilestep.linux.x86_64.exe.dbg.1489446400_14.0.0" name="Intel Intel(R) 64 C++ Compiler " superClass="intel.cpp.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.cpp.compilestep.input.1894557413" superClass="intel.cpp.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.compilestep.linux.x86_64.exe.dbg.1226593997_14.0.0" name="Intel Intel(R) 64 C Compiler" superClass="intel.c.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.c.compilestep.input.417549377" superClass="intel.c.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.linkstep.linux.x86_64.exe.dbg.121047808_14.0.0" name="Intel Intel(R) 64 C Linker" superClass="intel.c.linkstep.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.linkstep.linux.x86_64.exe.dbg.1847568390_14.0.0" name="Intel Intel(R) 64 C++ Linker" superClass="intel.cpp.linkstep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.linkstep.input.651397297" superClass="intel.linkstep.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Debug_13.0.0|build-obj|Darkplaces.app|DPiOS.xcodeproj|renderer/rmain_before_optimization|renderer/r_shadow_before_optimization|ode" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="intel.toolchain.linux.x86_64.exe.dbg.462815987.919260684_13.0.0">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.919260684_13.0.0" moduleId="org.eclipse.cdt.core.settings" name="cl-Release-FP-Precise">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ICCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="cloture" buildProperties="" description="Release build with 64 bit rounding of float values" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.919260684_13.0.0" name="cl-Release-FP-Precise" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="intel.toolchain.linux.x86_64.exe.dbg.462815987.919260684._13.0.0" name="/" resourcePath="">
+						<toolChain id="intel.toolchain.linux.x86_64.exe.dbg.1754042398_14.0.0" name="Intel Toolchain for Executable on Intel(R) 64" resourceTypeBasedDiscovery="true" superClass="intel.toolchain.linux.x86_64.exe.dbg_14.0.0">
+							<targetPlatform archList="x86_64" binaryParser="org.eclipse.cdt.core.ELF" id="intel.platform.linux.x86_64.exe.dbg.1461125243_14.0.0" name="Platform.Executable.Debug" osList="linux" superClass="intel.platform.linux.x86_64.exe.dbg_14.0.0"/>
+							<builder arguments="cl-release" buildPath="/home/radverbial/Desktop/Fedoranasty/cloture/cloture/" command="make" id="intel.builder.linux.x86_64.exe.dbg.182315030_14.0.0" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Intel Builder" superClass="intel.builder.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.compilestep.linux.x86_64.exe.dbg.2096862546_14.0.0" name="Intel Intel(R) 64 C++ Compiler " superClass="intel.cpp.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.cpp.compilestep.input.80817069" superClass="intel.cpp.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.compilestep.linux.x86_64.exe.dbg.1065747668_14.0.0" name="Intel Intel(R) 64 C Compiler" superClass="intel.c.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.c.compilestep.input.1390549983" superClass="intel.c.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.linkstep.linux.x86_64.exe.dbg.554609830_14.0.0" name="Intel Intel(R) 64 C Linker" superClass="intel.c.linkstep.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.linkstep.linux.x86_64.exe.dbg.637728745_14.0.0" name="Intel Intel(R) 64 C++ Linker" superClass="intel.cpp.linkstep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.linkstep.input.486122187" superClass="intel.linkstep.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Debug_13.0.0|build-obj|Darkplaces.app|DPiOS.xcodeproj|renderer/rmain_before_optimization|renderer/r_shadow_before_optimization|ode" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1053503485_13.0.0">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1053503485_13.0.0" moduleId="org.eclipse.cdt.core.settings" name="cl-Release-profile">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ICCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="cloture" buildProperties="" description="Instrumented release build" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1053503485_13.0.0" name="cl-Release-profile" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1053503485._13.0.0" name="/" resourcePath="">
+						<toolChain id="intel.toolchain.linux.x86_64.exe.dbg.1457358462_14.0.0" name="Intel Toolchain for Executable on Intel(R) 64" resourceTypeBasedDiscovery="true" superClass="intel.toolchain.linux.x86_64.exe.dbg_14.0.0">
+							<targetPlatform archList="x86_64" binaryParser="org.eclipse.cdt.core.ELF" id="intel.platform.linux.x86_64.exe.dbg.840802247_14.0.0" name="Platform.Executable.Debug" osList="linux" superClass="intel.platform.linux.x86_64.exe.dbg_14.0.0"/>
+							<builder arguments="cl-release" buildPath="/home/radverbial/Desktop/Fedoranasty/cloture/cloture/" command="make" id="intel.builder.linux.x86_64.exe.dbg.636007805_14.0.0" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Intel Builder" superClass="intel.builder.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.compilestep.linux.x86_64.exe.dbg.1229064028_14.0.0" name="Intel Intel(R) 64 C++ Compiler " superClass="intel.cpp.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.cpp.compilestep.input.925252544" superClass="intel.cpp.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.compilestep.linux.x86_64.exe.dbg.1473065800_14.0.0" name="Intel Intel(R) 64 C Compiler" superClass="intel.c.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.c.compilestep.input.1798309083" superClass="intel.c.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.linkstep.linux.x86_64.exe.dbg.355008228_14.0.0" name="Intel Intel(R) 64 C Linker" superClass="intel.c.linkstep.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.linkstep.linux.x86_64.exe.dbg.581870432_14.0.0" name="Intel Intel(R) 64 C++ Linker" superClass="intel.cpp.linkstep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.linkstep.input.703236962" superClass="intel.linkstep.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Debug_13.0.0|build-obj|Darkplaces.app|DPiOS.xcodeproj|renderer/rmain_before_optimization|renderer/r_shadow_before_optimization|ode" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537_13.0.0">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537_13.0.0" moduleId="org.eclipse.cdt.core.settings" name="cl-Release-Asm-Only">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ICCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="cloture" buildProperties="" description="Does not link. Only for generating assembly" id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537_13.0.0" name="cl-Release-Asm-Only" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537._13.0.0" name="/" resourcePath="">
+						<toolChain id="intel.toolchain.linux.x86_64.exe.dbg.1586252787_14.0.0" name="Intel Toolchain for Executable on Intel(R) 64" resourceTypeBasedDiscovery="true" superClass="intel.toolchain.linux.x86_64.exe.dbg_14.0.0">
+							<targetPlatform archList="x86_64" binaryParser="org.eclipse.cdt.core.ELF" id="intel.platform.linux.x86_64.exe.dbg.1408471387_14.0.0" name="Platform.Executable.Debug" osList="linux" superClass="intel.platform.linux.x86_64.exe.dbg_14.0.0"/>
+							<builder arguments="cl-release" buildPath="/home/radverbial/Desktop/Fedoranasty/cloture/cloture/" command="make" id="intel.builder.linux.x86_64.exe.dbg.1782410230_14.0.0" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Intel Builder" superClass="intel.builder.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="intel.cpp.compilestep.linux.x86_64.exe.dbg.954489486_14.0.0" name="Intel Intel(R) 64 C++ Compiler " superClass="intel.cpp.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.cpp.compilestep.input.1768264219" superClass="intel.cpp.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.compilestep.linux.x86_64.exe.dbg.168459201_14.0.0" name="Intel Intel(R) 64 C Compiler" superClass="intel.c.compilestep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.c.compilestep.input.629100313" superClass="intel.c.compilestep.input"/>
+							</tool>
+							<tool id="intel.c.linkstep.linux.x86_64.exe.dbg.1776253620_14.0.0" name="Intel Intel(R) 64 C Linker" superClass="intel.c.linkstep.linux.x86_64.exe.dbg_14.0.0"/>
+							<tool id="intel.cpp.linkstep.linux.x86_64.exe.dbg.524699792_14.0.0" name="Intel Intel(R) 64 C++ Linker" superClass="intel.cpp.linkstep.linux.x86_64.exe.dbg_14.0.0">
+								<inputType id="intel.linkstep.input.120385595" superClass="intel.linkstep.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="Debug_13.0.0|build-obj|Darkplaces.app|DPiOS.xcodeproj|renderer/rmain_before_optimization|renderer/r_shadow_before_optimization|ode" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="cloture.null.162142184" name="cloture"/>
+	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/cloture"/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537._13.0.0;intel.c.compilestep.linux.x86_64.exe.dbg.168459201_14.0.0;intel.c.compilestep.input.629100313">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091._13.0.0;intel.cpp.compilestep.linux.x86_64.exe.dbg.1643795357_14.0.0;intel.cpp.compilestep.input.85179704">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1090102091._13.0.0;intel.c.compilestep.linux.x86_64.exe.dbg.553334029_14.0.0;intel.c.compilestep.input.659937933">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1160486854_13.0.0;intel.cpp.compilestep.linux.x86_64.exe.dbg.616893390_14.0.0;intel.cpp.compilestep.input.1973276680">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1160486854_13.0.0;intel.c.compilestep.linux.x86_64.exe.dbg.1814968542_13.0.0;intel.c.compilestep.input.1979504056">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1160486854_13.0.0;intel.cpp.compilestep.linux.x86_64.exe.dbg.945415967_13.0.0;intel.cpp.compilestep.input.1298778224">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1424851537._13.0.0;intel.cpp.compilestep.linux.x86_64.exe.dbg.954489486_14.0.0;intel.cpp.compilestep.input.1768264219">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="intel.toolchain.linux.x86_64.exe.dbg.462815987_13.0.0;intel.toolchain.linux.x86_64.exe.dbg.462815987.1160486854_13.0.0;intel.c.compilestep.linux.x86_64.exe.dbg.1751174251_14.0.0;intel.c.compilestep.input.105575753">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="com.intel.compiler.cdt.managedbuilder.ui.ICCManagedMakePerProjectProfile"/>
+		</scannerConfigBuildInfo>
+	</storageModule>
+</cproject>
