@@ -130,12 +130,6 @@ enum
 
 static_assert(type_is_pointer(void*), "ruh roh");
 
-/*
-	this is super handy
-	basically we can check the name of the provided argument
-*/
-
-#define		argIsName(arg, name)	(static_cast<bool>(""#arg"" == ""#name""))
 
 /*
 	size-1 for null character
