@@ -43,7 +43,7 @@ namespace cloture//::ctfe
 {
 namespace ctfe
 {
-#if 0
+#if hasExtendedConstexpr
 /**
 	ctfe::Array
 		compile-time array copyable array
