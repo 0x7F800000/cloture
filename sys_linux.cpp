@@ -150,11 +150,16 @@ void Sys_InitConsole (void)
 {
 }
 
+static int testresult = 0xFDEDFDED;
+
 int main (int argc, char **argv)
 {
 	signal(SIGFPE, SIG_IGN);
-	//int bb = 2;
-	//bitwise::test(&bb, 1);
+
+	__int64 test = 0;
+	testresult = __builtin_classify_type(test);
+
+
 	com_argc = argc;
 	com_argv = (const char **)argv;
 	Sys_ProvideSelfFD();

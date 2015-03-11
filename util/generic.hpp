@@ -56,7 +56,7 @@ enum
 {
 	no_type_class = -1,
 	void_type_class,
-	integer_type_class,
+	integer_type_class, //both int and long long int become this. probably short as well
 	char_type_class,
 	enumeral_type_class,
 	boolean_type_class,
@@ -90,7 +90,6 @@ enum
 #define 	type_is_pointer(type)					( type_is_typeclass(type, pointer_type_class) )
 #define 	type_is_array(type)						( type_is_typeclass(type, array_type_class) )
 
-#define 	deref_sizeof(pointer)					(sizeof(__typeof__(*pointer)))
 
 #define		assert_object_is_pointer(object, msg)	({static_assert(object_is_pointer(object), msg)})
 

@@ -169,7 +169,7 @@ CFLAGS_RELEASE_PROFILE=-fbranch-probabilities -gline-tables-only
 CFLAGS_SDL=$(SDLCONFIG_CFLAGS)
 #
 #matrixlib + unsafe math = crash
-CFLAGS_MAKEDEP+=$(CLOTURE_OPT) -opt-report-file=OPTIMIZATION_REPORT.txt -opt-report 3
+#CFLAGS_MAKEDEP+=$(CLOTURE_OPT) -opt-report-file=OPTIMIZATION_REPORT.txt -opt-report 3
 #-O0
 #-ffp-contract=fast -funroll-loops -Xclang -menable-unsafe-fp-math -Xclang -menable-no-nans -Xclang -menable-no-infs -Xclang -relaxed-aliasing -Xclang -vectorize-loops -ffast-math -fno-strict-aliasing $(CPUOPTIMIZATIONS)
 

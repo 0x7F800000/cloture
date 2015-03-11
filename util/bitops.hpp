@@ -1,6 +1,8 @@
 #pragma once
 
-#define		BITOPS_FIXED	1
+
+
+#define		BITOPS_FIXED	0
 
 #if BITOPS_FIXED
 
@@ -33,9 +35,9 @@ namespace util
 namespace bitwise
 {
 	using namespace cloture::util::common;
-	
+
 	template<typename T> __pure inline bool test( const register T *u, const register __typeof__(*u) b){}
-	
+
 	template<> __pure inline bool test( const register uint32* u, const register uint32 b)
 	{
 		volatile register bool result __asm__("al");
@@ -47,7 +49,7 @@ namespace bitwise
 		}
 		return result;
 	}
-	
+
 	template<> __pure inline bool test(const register int32 *u, const register int32 b)
 	{
 

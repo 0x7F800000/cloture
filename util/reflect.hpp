@@ -23,10 +23,24 @@
  * name conflicts.
 */
 
+
+#define		__has_member_checker(memberType, identifier, checker)		\
+		template<typename T> struct checker								\
+		{																\
+			struct fallback {	memberType identifier;	};				\
+			struct derived	:	T, fallback{};							\
+			template<typename C, C> struct chT;							\
+			template<typename C> static char 							\
+			(&f(chT<memberType fallback::*, &C::identifier>*))[1];		\
+			template<typename C> static char (&f(...))[2];				\
+			static constexpr bool value = sizeof(f<derived>(0)) == 2;	\
+}
+
 /*
 	if the value is true, then the typename is defined as an alias
 	of bool
 */
+
 #define		___CLOTURE_TYPE_TRAIT_true(name)					\
 			using name = bool
 /*
@@ -132,11 +146,13 @@
 #define		__DECLARE_TRAIT_CHECKER_DEFAULT___(name)	\
 	___DECLARE_TRAIT_CHECKER___(name, name)
 
+
+
 namespace cloture	{
 namespace util		{
 namespace reflect	{
-
-
+	//dbgFunctionMacro(__DECLARE_TRAIT_CHECKER_DEFAULT___(hasMempool));
+#if 0
 	__DECLARE_TRAIT_CHECKER_DEFAULT___(hasMempool)
 	__DECLARE_TRAIT_CHECKER_DEFAULT___(isStateObject)
 	__DECLARE_TRAIT_CHECKER_DEFAULT___(isPlane)
@@ -160,7 +176,7 @@ namespace reflect	{
 		isPlane<__TEST_REFLECT__>(),
 		"Uh oh, type traits in util/reflect.hpp are broken."
 	);
-
+#endif
 }//namespace reflect
 }//namespace util
 }//namespace cloture

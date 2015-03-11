@@ -5925,7 +5925,7 @@ static void R_Water_ProcessPlanes(int fbo, rtexture_t *depthtexture, rtexture_t 
 			if(r_water_scissormode.integer & 2)
 				R_View_UpdateWithScissor(&r_refdef, myscissor);
 			else
-				R_View_Update();
+				R_View_Update(&r_refdef);
 			R_AnimCache_CacheVisibleEntities();
 			if(r_water_scissormode.integer & 1)
 				GL_Scissor(myscissor[0], myscissor[1], myscissor[2], myscissor[3]);
@@ -5974,7 +5974,7 @@ static void R_Water_ProcessPlanes(int fbo, rtexture_t *depthtexture, rtexture_t 
 			if(r_water_scissormode.integer & 2)
 				R_View_UpdateWithScissor(&r_refdef, myscissor);
 			else
-				R_View_Update();
+				R_View_Update(&r_refdef);
 			R_AnimCache_CacheVisibleEntities();
 			if(r_water_scissormode.integer & 1)
 				GL_Scissor(myscissor[0], myscissor[1], myscissor[2], myscissor[3]);
@@ -6029,7 +6029,7 @@ static void R_Water_ProcessPlanes(int fbo, rtexture_t *depthtexture, rtexture_t 
 
 			R_ResetViewRendering3D(p->fbo_camera, r_fb.water.depthtexture, p->texture_camera);
 			R_ClearScreen(r_refdef.fogenabled);
-			R_View_Update();
+			R_View_Update(&r_refdef);
 			R_AnimCache_CacheVisibleEntities();
 			R_RenderScene(&r_refdef, p->fbo_camera, r_fb.water.depthtexture, p->texture_camera);
 

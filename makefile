@@ -385,13 +385,34 @@ EXTRA_INCLUDES=
 EXTRA_DEFINES=
 
 ##### Extra CFLAGS #####
+CXXSTANDARD=
 
+ifeq ($(CXX), clang)
+	CXXSTANDARD+=-std=gnu++1z
+endif
 
-CFLAGS_MAKEDEP?=-x c++ -ggdb -msse3 -m3dnow -DCONFIG_MENU -DCONFIG_CD $(EXTRA_DEFINES) $(EXTRA_INCLUDES) -MMD -fno-rtti -fno-exceptions -fomit-frame-pointer -fms-extensions -std=gnu++0x -Wfatal-errors -w -fpermissive
+ifeq ($(CXX), clang++)
+	CXXSTANDARD+=-std=gnu++1z
+endif
+
+ifeq ($(CXX), gcc)
+	CXXSTANDARD+=-std=gnu++14
+endif
+
+ifeq ($(CXX), g++)
+	CXXSTANDARD+=-std=gnu++14
+endif
+
+ifeq ($(CXX), icc)
+	CXXSTANDARD+=-std=gnu++0x
+endif
+ifndef CLOTURE_OPT
+	CLOTURE_OPT=-02
+endif
+CFLAGS_MAKEDEP?=-x c++ -ggdb -msse3 -m3dnow $(CLOTURE_OPT) -DCONFIG_MENU -DCONFIG_CD $(EXTRA_DEFINES) $(EXTRA_INCLUDES) -MMD -fno-rtti -fno-exceptions -fomit-frame-pointer -fms-extensions $(CXXSTANDARD) -Wfatal-errors -w -fpermissive
 CFLAGS_NOSYSHEADERS=
 ifeq ($(CXX), icc)
 	CFLAGS_NOSYSHEADERS+=-fms-dialect=10 -use-msasm
-	#-gcc-sys
 endif
 #-gcc-version=450 
 CFLAGS_MAKEDEP+=$(CFLAGS_NOSYSHEADERS)
@@ -417,10 +438,12 @@ endif
 
 ifeq ($(CXX), icc)
 ifeq ($(CLOTURE_PRECISION), precise)
-	#CFLAGS_MAKEDEP+=-mp1
-	CFLAGS_MAKEDEP+=-fp-model extended
+	CFLAGS_MAKEDEP+=-fp-model extended $(CLOTURE_OPT) -opt-report-file=OPTIMIZATION_REPORT.txt -opt-report 3
+	
 endif
 endif
+
+
 ##### GNU Make specific definitions #####
 
 DO_LD=$(CC) -o ../../../$@ $^ $(LDFLAGS)
