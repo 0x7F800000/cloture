@@ -41,14 +41,72 @@ template<> struct statif<true>	{using isTrue = void;};
 
 namespace cloture
 {
+namespace util
+{
 namespace ctfe
 {
 #if hasExtendedConstexpr
+	/**
+	 * The majority of this code I wrote a few months ago when I was attempting to create
+	 * a metacompiler using constexpr.
+	 * 
+	 * it failed miserably, but here some of it LIVES ON
+	 * 
+	*/
+	static constexpr int charToInt(const char c)
+	{
+		return c - '0';
+	}
+	
+	static constexpr bool isWhitespace(const char c)
+	{
+		return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
+	}
+
+	static constexpr size_t skipLeadingWhitespace(const char* buffer, const size_t position = 0)
+	{
+		size_t i = 0;
+
+		if( !isWhitespace( buffer[position] ) )
+			return 0;
+
+		for(; isWhitespace(buffer[ i + position ]); ++i )
+			if(!buffer[ i + position ])
+				return unone;
+
+		return i + position;
+	}
+
+
+	static constexpr size_t whitespaceEnd(const char* buffer)
+	{
+		size_t i = 0;
+		if(isWhitespace(buffer[i]))
+		{
+			while( isWhitespace( buffer[i] ) )
+				++i;
+		}
+		return i;
+	}
+
+	static constexpr size_t nextWhitespaceEnd(const char* buffer, const size_t start = 0)
+	{
+		size_t i = start;
+		while( !isWhitespace(buffer[i]) && buffer[i])
+			++i;
+		while(isWhitespace(buffer[i]))
+			++i;
+		return i;
+	}
+
 /**
 	ctfe::Array
 		compile-time array copyable array
 		has *all* of the bells and whistles
 		all of them
+	
+	i think there's something wrong with this class. I can't recall what exactly the issue is, but...
+	i guess we'll find out!
 */
 template<typename T, size_t sz = 0>
 class Array
@@ -134,6 +192,241 @@ public:
 	explicit constexpr operator const T*()	{return data;}
 };
 
+	namespace parser
+	{
+		using cs::charToInt;
+		template<typename T> constexpr auto		parse(		const char* text	){	return nullptr;	}
+		template<typename T> constexpr bool		parseable(	const char* text	){	return false;	}
+		template<typename T> constexpr size_t	skip(		const char* text	){	return unone;	}
+	
+	
+		template<> constexpr auto
+			parse<	int32	>(	const char* text	)
+		{
+			size_t i 		=	0;
+			bool negative 	=	false;
+			int32 value		=	0;
+	
+			if(	text[i] is '-'	)
+			{
+				negative = true;
+				++i;
+			}
+			/*
+				read each digit
+			*/
+			bool firstIteration = true;
+			for(char c = 0; 0 <= (c = charToInt( text[i] ) ) && c <= 9; ++i)
+			{
+				if(!firstIteration)
+					value *= 10;
+				value += c;
+				if(firstIteration)
+					firstIteration = false;
+			}
+	
+			return negative ? -value : value;
+		}
+		static_assert
+		(
+				parse<int32>("-1000")	is	-1000
+			and	parse<int32>("530395")	is 	530395
+			and parse<int32>("45")		is	45
+			and parse<int32>("20000")	is	20000,
+			"parser::parse<int32> is not returning correct results"
+		);
+	
+		template<> constexpr bool
+			parseable<real32>(const char* text)
+		{
+			size_t i = 0;
+	
+			if( isWhitespace(text[i]) || !text[i])
+				return false;
+	
+			char c = charToInt(text[i]);
+			const bool negative		=	text[i] == '-';
+	
+			/*	not the sign, not a decimal point, not a number	*/
+			if(!negative && text[i] != '.' && (0 > c || c > 9))
+				return false;
+	
+			bool foundPoint		=	false;
+			size_t numDigits	=	0;
+			if(negative)	++i;
+			while(true)
+			{
+				if( text[i] == '.' )
+				{
+	
+					if(foundPoint)	/*	two decimal points? that aint right	*/
+						return false;
+	
+					foundPoint = true;
+	
+					++i;
+					continue;
+				}
+	
+				c = charToInt(text[i]);
+	
+				if(isWhitespace(text[i]) || (0 > c || c > 9) && !isIdentifierChar(text[i]))
+					return numDigits != 0;
+	
+				++i, ++numDigits;
+			}
+			return false;
+		}
+	
+		static_assert
+		(
+				parseable<real32>("-200.056932")
+			and	parseable<real32>("3.141592654")
+			and parseable<real32>("2.718281828")
+			and parseable<real32>("666.666666"),
+			"parser::parseable<real32> incorrectly returned false."
+		);
+	
+		template<> constexpr size_t
+			skip<	real32	>(	const char* text	)
+		{
+			if(!parseable<real32>(text))
+				return unone;
+			size_t i = 0;
+			for(; !isWhitespace(text[i]) && (text[i] == '-' || text[i] == '.' || (text[i] >= '0' && text[i] <= '9')); ++i )
+				;
+			return i;
+		}
+	
+	
+	
+		template<> constexpr auto
+			parse<	real32	>(const char* text)
+		{
+			size_t i 		=	0;
+			bool negative 	=	false;
+			real32 integral	=	.0f;
+	
+			if(text[i] == '-')
+			{
+				negative = true;
+				++i;
+			}
+			/*
+				read the integral part
+			*/
+			bool firstIteration = true;
+	
+			for(char c = 0; text[i] != '.' && (0 <= (c = charToInt( text[i] ) ) && c <= 9); ++i)
+			{
+				if(!firstIteration)
+					integral *= 10.0f;
+				integral += static_cast<real32>(c);
+				if(firstIteration)
+					firstIteration = false;
+			}
+			if(text[i] != '.')
+				return negative ? -integral : integral;
+	
+			const size_t fractionalStart	=	i;
+			real32 fractional = .0f;
+			++i;
+			/*
+				seek to the end
+			*/
+			{
+			char c = 0;
+			while( 0 <= (c = charToInt(text[i])) && c <= 9)
+				++i;
+			}
+	
+			firstIteration = true;
+			/*	read the fractional portion	*/
+			for(char c = 0; i > fractionalStart; --i)
+			{
+				c	=	charToInt(text[i]);
+				if( 0 > c || c > 9)
+					continue;
+	
+				fractional	+=	static_cast<real32>(c);
+				fractional	/=	10.0f;
+	
+			}
+	
+			/*	unify the fractional and integral parts	*/
+			const real32 value = fractional + integral;
+			return negative ? -value : value;
+		}
+	
+		static_assert
+		(
+				parse<real32>("666.666") 		is	666.666f
+			and	parse<real32>("3.141592654")	is 	3.141592654f
+			and parse<real32>("2.718281828")	is	2.718281828f,
+			"parser::parse<real32> is fuckt."
+		);
+	
+		template<int32 value>
+		static constexpr size_t calcRepresentationLen()
+		{
+			size_t totalLength = 0;
+	
+			if(value < 0)
+				++totalLength;
+			int32 shifter = value;
+			do
+			{
+				++totalLength;
+				shifter /= 10;
+			}
+			while(shifter);
+			return totalLength;
+		}
+	
+		template<int32 val>
+		struct toStringHelper_int32
+		{
+			charStream<	calcRepresentationLen<val>() + 1, true> b = {};
+	
+			constexpr toStringHelper_int32()
+			{
+				int32 i = val;
+				if (i >= 0)
+				{
+					do
+					{
+						b << static_cast<char>('0' + static_cast<char>(i % 10));
+	
+						i /= 10;
+					}
+					while (i != 0);
+				}
+				else
+				{
+					b << '-';
+					do
+					{
+						b << static_cast<char>('0' - (i % 10));
+						i /= 10;
+					}
+					while (i != 0);
+				}
+			}
+	
+			explicit constexpr operator decltype(b) () const	{	return b;	}
+		};
+	
+		template<int32 value> static constexpr
+		CString<	calcRepresentationLen<value>() + 1	> toString =	toStringHelper_int32<value>().b;
+	
+		static_assert(toString<3>[0] == '3', "weird");
+		static_assert((static_cast<const char*>(toString<40>))[1] == '4', "?");
+		static_assert(toString<994>.size() == 4, "uhhh");
+		static_assert(toString<1055>[4] == 0, "ruh roh");
+	
+	};
+
 #endif //#if hasExtendedConstexpr
-}
-};
+}//namespace ctfe
+}//namespace util
+}//namespace cloture
