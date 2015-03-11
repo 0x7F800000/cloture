@@ -45,6 +45,21 @@ namespace util
 {
 namespace ctfe
 {
+	/**
+		basic pair class
+	*/
+	template<typename t1, typename t2>
+	struct pair
+	{
+		t1 first;
+		t2 second;
+
+		constexpr __pure pair() : first(), second()
+		{}
+
+		constexpr __pure pair(t1 f, t2 s) : first(f), second(s)
+		{}
+	};
 #if hasExtendedConstexpr
 	/**
 	 * The majority of this code I wrote a few months ago when I was attempting to create
