@@ -28,6 +28,7 @@ namespace common
 	template<typename T> constexpr
 	size_t popcnt(const T inputVal)
 	{
+		__import_make_unsigned();
 		static_assert(is_integral(T), "popcnt requires an integral type.");
 
 		/*

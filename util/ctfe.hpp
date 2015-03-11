@@ -45,6 +45,8 @@ namespace util
 {
 namespace ctfe
 {
+	using common::unone;
+	using common::none;
 	/**
 		basic pair class
 	*/
@@ -77,7 +79,10 @@ namespace ctfe
 	{
 		return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
 	}
-
+	static constexpr bool isIdentifierChar(const char c)
+	{
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+	}
 	static constexpr size_t skipLeadingWhitespace(const char* buffer, const size_t position = 0)
 	{
 		size_t i = 0;
@@ -129,19 +134,17 @@ namespace ctfe
 	public:
 		T data[sz + 1];
 	
-		constexpr size_t __size() const
+		constexpr size_t size() const
 		{
 			return sz;
 		}
 		constexpr bool empty() const
 		{
-			return __size() == 0;
+			return size() == 0;
 		}
 		
-		__msvc_property(false, __size) size_t 	size;
-		__msvc_property(false, empty) bool 		isEmpty;
 		
-		constexpr Array() : data({}){}
+		constexpr Array() : data(){}
 	
 		constexpr auto& operator[](const size_t index)
 		{
@@ -152,15 +155,15 @@ namespace ctfe
 		{
 			return data[index];
 		}
-		constexpr Array(const Array<T, sz>& other) : data({})
+		constexpr Array(const Array<T, sz>& other) : data()
 		{
-			for(size_t i = 0; i < size; ++i)
+			for(size_t i = 0; i < sz; ++i)
 				data[i]		=		other[i];
 		}
 	
-		constexpr Array(const T* other) : data({})
+		constexpr Array(const T* other) : data()
 		{
-			for(size_t i = 0; i < size; ++i)
+			for(size_t i = 0; i < sz; ++i)
 				data[i]		=		other[i];
 		}
 	
@@ -168,7 +171,7 @@ namespace ctfe
 	
 		constexpr bool operator==(const Array<T, sz>& other) const
 		{
-			for(size_t i = 0; i < size; ++i)
+			for(size_t i = 0; i < sz; ++i)
 			{
 				if(other[i] != (*this)[i])
 					return false;
@@ -178,7 +181,7 @@ namespace ctfe
 	
 		constexpr bool operator==(const T* const cmp) const
 		{
-			for(size_t i = 0; i < size; ++i)
+			for(size_t i = 0; i < sz; ++i)
 			{
 				if(cmp[i] != this->data[i])
 					return false;
@@ -193,13 +196,13 @@ namespace ctfe
 	
 		constexpr Array<T, sz>& operator=(const T* const RESTRICT rhs)
 		{
-			for(size_t i = 0; i < size; ++i)
+			for(size_t i = 0; i < sz; ++i)
 				data[i]		=	rhs[i];
 			return (*this);
 		}
 		constexpr Array<T, sz>& operator=(const Array<T, sz>& rhs)
 		{
-			for(size_t i = 0; i < size; ++i)
+			for(size_t i = 0; i < sz; ++i)
 				data[i]		=	rhs[i];
 			return (*this);
 		}
@@ -242,56 +245,56 @@ namespace ctfe
 	template<size_t sz>
 	class charStream<sz, false> : public CString<sz>
 	{
-			size_t position;
-    	public:
-    		constexpr charStream() : CString<sz>::CString(), position(0)		{}
+		size_t position;
+	public:
+		constexpr charStream() : CString<sz>::CString(), position(0)
+		{}
 
-    		constexpr const bool endReached() const
-    		{
-    			return position >= sz;
-    		}
+		constexpr const bool endReached() const
+		{
+			return position >= sz;
+		}
+		constexpr char operator<<(const char c)
+		{
+			if( !endReached() )
+			{
+				(*this)[position]	=	c;
+				++position;
+			}
+			return c;
+		}
 
-    		constexpr char operator<<(const char c)
-    		{
-    			if( not endReached() )
-    			{
-    				(*this)[position]	=	c;
-    				++position;
-    			}
-    			return c;
-    		}
+		constexpr char operator>>(char& c)
+		{
+			c = -1;
+			if( !endReached() )
+			{
+				c	=	(*this)[position];
+				++position;
+			}
+			return c;
+		}
 
-    		constexpr char operator>>(char& c)
-    		{
-    			c = -1;
-    			if( not endReached() )
-    			{
-    				c	=	(*this)[position];
-    				++position;
-    			}
-    			return c;
-    		}
+		constexpr const bool operator!() const
+		{
+			return endReached();
+		}
 
-    		constexpr const bool operator!() const
-    		{
-    			return endReached();
-    		}
-
-    		constexpr operator bool() const
-    		{
-    			return !endReached();
-    		}
-    		constexpr void reset()
-    		{
-    			position = 0;
-    		}
+		constexpr operator bool() const
+		{
+			return !endReached();
+		}
+		constexpr void reset()
+		{
+			position = 0;
+		}
 	};
 
 
 	template<size_t sz>
 	class charStream<sz, true> : public CString<sz>
 	{
-		size_t position;
+		mutable size_t position;
 	public:
 		constexpr charStream() : CString<sz>::CString(), position(sz - 1)	{}
 
@@ -311,7 +314,7 @@ namespace ctfe
 		constexpr char operator>>(char& c)
 		{
 			c = -1;
-			if( not endReached() )
+			if( !endReached() )
 			{
 				c	=	(*this)[position];
 				--position;
@@ -348,7 +351,7 @@ namespace ctfe
 			bool negative 	=	false;
 			int32 value		=	0;
 	
-			if(	text[i] is '-'	)
+			if(	text[i] == '-'	)
 			{
 				negative = true;
 				++i;
@@ -370,10 +373,10 @@ namespace ctfe
 		}
 		static_assert
 		(
-				parse<int32>("-1000")	is	-1000
-			and	parse<int32>("530395")	is 	530395
-			and parse<int32>("45")		is	45
-			and parse<int32>("20000")	is	20000,
+				parse<int32>("-1000")	==	-1000
+			&&	parse<int32>("530395")	== 	530395
+			&& parse<int32>("45")		==	45
+			&& parse<int32>("20000")	==	20000,
 			"parser::parse<int32> is not returning correct results"
 		);
 	
@@ -422,9 +425,9 @@ namespace ctfe
 		static_assert
 		(
 				parseable<real32>("-200.056932")
-			and	parseable<real32>("3.141592654")
-			and parseable<real32>("2.718281828")
-			and parseable<real32>("666.666666"),
+			&&	parseable<real32>("3.141592654")
+			&& parseable<real32>("2.718281828")
+			&& parseable<real32>("666.666666"),
 			"parser::parseable<real32> incorrectly returned false."
 		);
 	
@@ -501,9 +504,9 @@ namespace ctfe
 	
 		static_assert
 		(
-				parse<real32>("666.666") 		is	666.666f
-			and	parse<real32>("3.141592654")	is 	3.141592654f
-			and parse<real32>("2.718281828")	is	2.718281828f,
+				parse<real32>("666.666") 		==	666.666f
+			&&	parse<real32>("3.141592654")	== 	3.141592654f
+			&& parse<real32>("2.718281828")	==	2.718281828f,
 			"parser::parse<real32> is fuckt."
 		);
 	
@@ -527,7 +530,10 @@ namespace ctfe
 		template<int32 val>
 		struct toStringHelper_int32
 		{
-			charStream<	calcRepresentationLen<val>() + 1, true> b = {};
+			static constexpr size_t sLen = calcRepresentationLen<val>() + 1;
+			using sType = charStream< sLen, false>;
+			//static constexpr
+			sType b;// = sType();
 	
 			constexpr toStringHelper_int32()
 			{
@@ -536,18 +542,26 @@ namespace ctfe
 				{
 					do
 					{
-						b << static_cast<char>('0' + static_cast<char>(i % 10));
-	
+						const char c = static_cast<char>('0' + static_cast<char>(i % 10));
+						//clang is complaining and thinks this is a bit shift...
+						//worked fine in GCC
+
+						//b << c;
+
+						b.operator<<(c);
 						i /= 10;
 					}
 					while (i != 0);
 				}
 				else
 				{
-					b << '-';
+					//b << '-';
+					b.operator<<('-');
 					do
 					{
-						b << static_cast<char>('0' - (i % 10));
+						const char c = static_cast<char>('0' - (i % 10));
+					//	b << c;
+						b.operator<<(c);
 						i /= 10;
 					}
 					while (i != 0);
@@ -556,16 +570,28 @@ namespace ctfe
 	
 			explicit constexpr operator decltype(b) () const	{	return b;	}
 		};
-	
+		static_assert(calcRepresentationLen<20>() == 2, "woops");
+
 		template<int32 value> static constexpr
 		CString<	calcRepresentationLen<value>() + 1	> toString =	toStringHelper_int32<value>().b;
-	
-		static_assert(toString<3>[0] == '3', "weird");
+
+		static_assert(toString<3>[0] == '3',
+		"weird");
 		static_assert((static_cast<const char*>(toString<40>))[1] == '4', "?");
 		static_assert(toString<994>.size() == 4, "uhhh");
 		static_assert(toString<1055>[4] == 0, "ruh roh");
 	
-	};
+	}//namespace parser
+
+	/*
+	 * even though the compiler can determine the result of calling standard math functions with constant
+	 * arguments at compile time it is invalid to do that in constexpr functions,
+	 * as those functions are not declared constexpr
+	 */
+	namespace math
+	{
+
+	}
 
 #endif //#if hasExtendedConstexpr
 }//namespace ctfe

@@ -193,19 +193,6 @@ template<> struct __make_signed__<uint64>
 	typedef int64 ___type___;
 };
 
-template<typename T = void> struct __is_integral__
-{
-	static constexpr bool value = false;
-};
-template<> struct __is_integral__<int64>
-{
-	static constexpr bool value = true;
-};
-template<> struct __is_integral__<uint64>
-{
-	static constexpr bool value = true;
-};
-
 template<typename T> struct __is_float32__
 {
 	static constexpr bool value = false;
@@ -240,7 +227,10 @@ template<> struct __is_float64__<double>
 
 //probably compiles faster than templates
 #define 	is_integral(type)		\
-(type_is_integer(type) || type_is_char(type) || type_is_enumeral(type) || type_is_boolean(type) || __is_integral__<type>::value)
+(type_is_integer(type) || type_is_char(type) || type_is_enumeral(type) || type_is_boolean(type) )
+
+#define		__import_make_unsigned()	using cloture::util::generic::__make_unsigned__
+#define		__import_make_signed()		using cloture::util::generic::__make_signed__
 
 /*
 	not sure if this one works with clang.
@@ -249,5 +239,7 @@ template<> struct __is_float64__<double>
 	not very useful. 
 */
 #define 	__coerce_constexpr(expr)	(__builtin_constant_p(expr) ? expr : expr)
+
+
 
 constexpr int* coerceConstexprTest = __coerce_constexpr((int*)0xFF);

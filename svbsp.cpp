@@ -5,18 +5,13 @@
 
 #include <math.h>
 #include <string.h>
-#include "compiler_features.hpp"
+
+#include "util/stl.hpp"
+
 #include "qtypes.h"
 #include "svbsp.h"
 #include "polygon.h"
 
-
-#include "util/common.hpp"
-#include "util/ctfe.hpp"
-#include "util/bitops.hpp"
-
-#include "util/vector.hpp"
-#include "util/math.hpp"
 
 using namespace cloture::util;
 using namespace common;

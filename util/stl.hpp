@@ -1,5 +1,11 @@
 #pragma once
 
+__if_not_exists(ptrdiff_t)
+{
+	//needed for some files that don't include quakedef.h
+	#include "stddef.h"
+}
+
 /**
  	 Cloture STL headers.
 */
@@ -22,17 +28,19 @@
 #include	"basic_types.hpp"
 
 /*
-	common routines
-*/
-#include	"common.hpp"
-
-/*
 	wrappers for compiler type-checking extensions
 	provides macros for type checking. minimal use of templates.
 	most compiler-specific extensions used can be easily replaced with templates
 	if needed
 */
 #include	"generic.hpp"
+
+/*
+	common routines
+*/
+#include	"common.hpp"
+
+
 
 /*
 	templates/macros for implementing custom type traits that can be used

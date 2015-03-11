@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #if defined(_MSVC_VER) || defined(__INTEL_COMPILER)
 		#include <immintrin.h>
 #endif
-
+#include "stddef.h"
 #if defined(__INTEL_COMPILER)
 #undef _MSVC_VER
 #undef _MSC_VER
