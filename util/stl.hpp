@@ -4,6 +4,12 @@
  	 Cloture STL headers.
 */
 
+#if defined(__clang__)
+	#define	hasExtendedConstexpr 1
+#else
+	#define hasExtendedConstexpr 0
+#endif
+
 /*
 	common compiler extensions
 	mostly wraps compiler attributes like __declspec and __attribute__
