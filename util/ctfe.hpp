@@ -39,7 +39,7 @@ template<> struct statif<true>	{using isTrue = void;};
 */
 #define		constant_p(value)				__builtin_constant_p(value)
 
-namespace cloture//::ctfe
+namespace cloture
 {
 namespace ctfe
 {
@@ -134,6 +134,6 @@ public:
 	explicit constexpr operator const T*()	{return data;}
 };
 
-#endif //#if 0
+#endif //#if hasExtendedConstexpr
 }
 };
