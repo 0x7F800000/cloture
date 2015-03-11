@@ -28,6 +28,8 @@ namespace common  {
   using real64 = double;
   using real128 = long double;
 
+	static constexpr ptrdiff_t 	none	=  -1;
+	static constexpr size_t 	unone	= (none);
 }//namespace common
 }//namespace util
 }//namespace cloture
