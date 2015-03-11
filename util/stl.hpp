@@ -19,6 +19,11 @@
 /*
 	basic types	(uint8, int8, int32, int64, real32, real64, etc)
 */
+#include	"basic_types.hpp"
+
+/*
+	common routines
+*/
 #include	"common.hpp"
 
 /*
