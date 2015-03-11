@@ -98,103 +98,229 @@ namespace ctfe
 			++i;
 		return i;
 	}
-
-/**
-	ctfe::Array
-		compile-time array copyable array
-		has *all* of the bells and whistles
-		all of them
 	
-	i think there's something wrong with this class. I can't recall what exactly the issue is, but...
-	i guess we'll find out!
-*/
-template<typename T, size_t sz = 0>
-class Array
-{
-public:
-	T data[sz + 1];
-
-	constexpr size_t __size() const
+	/**
+		ctfe::Array
+			compile-time array copyable array
+			has *all* of the bells and whistles
+			all of them
+		
+		i think there's something wrong with this class. I can't recall what exactly the issue is, but...
+		i guess we'll find out!
+	*/
+	template<typename T, size_t sz = 0>
+	class Array
 	{
-		return sz;
-	}
-	constexpr bool empty() const
-	{
-		return __size() == 0;
-	}
+	public:
+		T data[sz + 1];
 	
-	__msvc_property(false, __size) size_t 	size;
-	__msvc_property(false, empty) bool 		isEmpty;
-	
-	constexpr Array() : data({}){}
-
-	constexpr auto& operator[](const size_t index)
-	{
-		return data[index];
-	}
-
-	constexpr auto operator[](const size_t index) const
-	{
-		return data[index];
-	}
-	constexpr Array(const Array<T, sz>& other) : data({})
-	{
-		for(size_t i = 0; i < size; ++i)
-			data[i]		=		other[i];
-	}
-
-	constexpr Array(const T* other) : data({})
-	{
-		for(size_t i = 0; i < size; ++i)
-			data[i]		=		other[i];
-	}
-
-
-
-	constexpr bool operator==(const Array<T, sz>& other) const
-	{
-		for(size_t i = 0; i < size; ++i)
+		constexpr size_t __size() const
 		{
-			if(other[i] != (*this)[i])
-				return false;
+			return sz;
 		}
-		return true;
-	}
-
-	constexpr bool operator==(const T* const cmp) const
-	{
-		for(size_t i = 0; i < size; ++i)
+		constexpr bool empty() const
 		{
-			if(cmp[i] != this->data[i])
-				return false;
+			return __size() == 0;
 		}
-		return true;
-	}
+		
+		__msvc_property(false, __size) size_t 	size;
+		__msvc_property(false, empty) bool 		isEmpty;
+		
+		constexpr Array() : data({}){}
+	
+		constexpr auto& operator[](const size_t index)
+		{
+			return data[index];
+		}
+	
+		constexpr auto operator[](const size_t index) const
+		{
+			return data[index];
+		}
+		constexpr Array(const Array<T, sz>& other) : data({})
+		{
+			for(size_t i = 0; i < size; ++i)
+				data[i]		=		other[i];
+		}
+	
+		constexpr Array(const T* other) : data({})
+		{
+			for(size_t i = 0; i < size; ++i)
+				data[i]		=		other[i];
+		}
+	
+	
+	
+		constexpr bool operator==(const Array<T, sz>& other) const
+		{
+			for(size_t i = 0; i < size; ++i)
+			{
+				if(other[i] != (*this)[i])
+					return false;
+			}
+			return true;
+		}
+	
+		constexpr bool operator==(const T* const cmp) const
+		{
+			for(size_t i = 0; i < size; ++i)
+			{
+				if(cmp[i] != this->data[i])
+					return false;
+			}
+			return true;
+		}
+	
+		constexpr bool operator!=(const Array<T, sz>& other) const
+		{
+			return !((*this) == other);
+		}
+	
+		constexpr Array<T, sz>& operator=(const T* const RESTRICT rhs)
+		{
+			for(size_t i = 0; i < size; ++i)
+				data[i]		=	rhs[i];
+			return (*this);
+		}
+		constexpr Array<T, sz>& operator=(const Array<T, sz>& rhs)
+		{
+			for(size_t i = 0; i < size; ++i)
+				data[i]		=	rhs[i];
+			return (*this);
+		}
+		explicit constexpr operator T*()		{return data;}
+		explicit constexpr operator const T*()	{return data;}
+	};
 
-	constexpr bool operator!=(const Array<T, sz>& other) const
+	template<size_t sz>
+	class CString : public Array<char, sz>
 	{
-		return !((*this) == other);
-	}
+	public:
+		constexpr size_t length() const
+		{
+			size_t i = 0;
+			for(; i < sz && ((*this)[i]) != 0; ++i)	;
+			return i;
+		}
 
-	constexpr Array<T, sz>& operator=(const T* const RESTRICT rhs)
+		explicit constexpr operator const char*() const	{return this->data;}
+		constexpr CString() : Array<char, sz>::Array()	{}
+		constexpr CString(const char* s) : Array<char, sz>::Array(s){}
+
+		constexpr const char operator[](const size_t idx) const
+		{
+			return this->data[idx];
+		}
+
+		constexpr char& operator[](const size_t idx)
+		{
+			return this->data[idx];
+		}
+	};
+
+	template<size_t sz, bool reverse = false>
+	class charStream : public CString<sz>
 	{
-		for(size_t i = 0; i < size; ++i)
-			data[i]		=	rhs[i];
-		return (*this);
-	}
-	constexpr Array<T, sz>& operator=(const Array<T, sz>& rhs)
+
+	};
+
+	template<size_t sz>
+	class charStream<sz, false> : public CString<sz>
 	{
-		for(size_t i = 0; i < size; ++i)
-			data[i]		=	rhs[i];
-		return (*this);
-	}
-	explicit constexpr operator T*()		{return data;}
-	explicit constexpr operator const T*()	{return data;}
-};
+			size_t position;
+    	public:
+    		constexpr charStream() : CString<sz>::CString(), position(0)		{}
+
+    		constexpr const bool endReached() const
+    		{
+    			return position >= sz;
+    		}
+
+    		constexpr char operator<<(const char c)
+    		{
+    			if( not endReached() )
+    			{
+    				(*this)[position]	=	c;
+    				++position;
+    			}
+    			return c;
+    		}
+
+    		constexpr char operator>>(char& c)
+    		{
+    			c = -1;
+    			if( not endReached() )
+    			{
+    				c	=	(*this)[position];
+    				++position;
+    			}
+    			return c;
+    		}
+
+    		constexpr const bool operator!() const
+    		{
+    			return endReached();
+    		}
+
+    		constexpr operator bool() const
+    		{
+    			return !endReached();
+    		}
+    		constexpr void reset()
+    		{
+    			position = 0;
+    		}
+	};
+
+
+	template<size_t sz>
+	class charStream<sz, true> : public CString<sz>
+	{
+		size_t position;
+	public:
+		constexpr charStream() : CString<sz>::CString(), position(sz - 1)	{}
+
+		constexpr const bool endReached() const
+		{
+			return static_cast<ptrdiff_t>( position ) < 0;
+		}
+
+		constexpr char operator<<(const char c)
+		{
+			if( endReached() )
+				return c;
+			(*this)[position]		=	c;
+			--position;
+			return c;
+		}
+		constexpr char operator>>(char& c)
+		{
+			c = -1;
+			if( not endReached() )
+			{
+				c	=	(*this)[position];
+				--position;
+			}
+			return c;
+		}
+		constexpr const bool operator!() const
+		{
+			return endReached();
+		}
+
+		constexpr operator bool() const
+		{
+			return !endReached();
+		}
+		constexpr void reset()
+		{
+			position = sz - 1;
+		}
+	};
 
 	namespace parser
 	{
-		using cs::charToInt;
+		using namespace cloture::util::common;
 		template<typename T> constexpr auto		parse(		const char* text	){	return nullptr;	}
 		template<typename T> constexpr bool		parseable(	const char* text	){	return false;	}
 		template<typename T> constexpr size_t	skip(		const char* text	){	return unone;	}
