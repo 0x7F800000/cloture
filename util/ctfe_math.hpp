@@ -13,9 +13,6 @@ namespace math
 {
 	using namespace cloture::util::common;
 
-	template<typename T> constexpr T positiveInf = 0;
-	template<> constexpr float positiveInf<float> = 1.0f / 0.0f;
-
 	template<typename T>
 	static constexpr bool isNaN(const T n)
 	{
@@ -24,7 +21,7 @@ namespace math
 	template<typename T>
 	static constexpr bool isFinite(const T n)
 	{
-		return minValue<T> <= n && value <= maxValue<T>;
+		return minValue<T> <= n && n <= maxValue<T>;
 	}
 	template<typename T> struct fpRaw
 	{
@@ -42,13 +39,13 @@ namespace math
 	};
 
 	template<typename T>
-	static constexpr fpRaw<T>::type rawBits(const T n)
+	static constexpr typename fpRaw<T>::type rawBits(const T n)
 	{
 		return -1;
 	}
-
+	//from http://www.merlyn.demon.co.uk/js-exact.htm#IEEE
 	template<>
-	static constexpr int rawBits(const float n)
+	static constexpr int rawBits<float>(const float n)
 	{
 		if (isNaN(n))
 			return 0x7F800001;
@@ -83,6 +80,11 @@ namespace math
 		const uint32 mantissa = static_cast<uint32>(n2 * static_cast<float>(0x00800000));
 		return sign | exponent << 23 | mantissa;
 	}
+
+	static_assert(
+			rawBits<float>(1.0f) == 0x3f800000,
+			"rawBits<float> is incorrect."
+			);
 
 
 	//http://www.gamedev.net/topic/329991-i-need-floor-function-implementation/
@@ -204,19 +206,58 @@ namespace math
 	template<typename T>
 	static constexpr T pow(const T base, const T exponent)
 	{
-		//ehehehehe
-		//shit
-		int i = static_cast<int>(exponent)- 1;
+		constexpr T ZERO 	= static_cast<T>(0);
+		constexpr T ONE 	= static_cast<T>(1);
+		//need the absolute value of the exponent
+		const T absExponent = abs(exponent);
+
+		//right now, only integer exponent is supported
+		int i = static_cast<int>(absExponent) - 1;
+
+		//base^0 = 1
+		if(!i)
+			return ONE;
+
 		T result = base;
 		while(i)
 		{
 			result = result * base;
 			i--;
 		}
-		return result;
+		//return the inverse of base^absExponent if exponent was negative
+		//this accurately handles negative exponents
+		return (	exponent < ZERO		)
+		? ONE / result
+		: result;
 	}
 	static_assert(pow<double>(8.5, 6.0) == 377149.515625);
 
+	template<typename T>
+	static constexpr T fromRaw(typename fpRaw<T>::type raw)
+	{
+	}
+
+	template<>
+	static constexpr float fromRaw<float>(int raw)
+	{
+		unsigned sign		= (raw >> 31) & 1;
+		unsigned exponent	= (raw >> 23) & 0xFF;
+
+		signed mantissa 	= raw & 0x007FFFFF;
+		//they check for an invalid exponent, but we cant return NaN
+		if(exponent != 0)
+		{
+			exponent -= 127;
+			mantissa |= 0x00800000;
+		}
+		else
+			exponent = -126;
+
+		const float f = static_cast<float>(mantissa) *
+		pow<float>(2.0f, static_cast<float>(exponent - 23));
+
+		return sign != 0 ? -f : f;
+	}
 
 } //namespace math
 }//namespace ctfe
