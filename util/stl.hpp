@@ -41,6 +41,13 @@ __if_not_exists(ptrdiff_t)
 #include	"common.hpp"
 
 
+/*
+	CTFE stuff for compile-time tricks
+*/
+#include	"ctfe.hpp"
+
+#include 	"ctfe_math.hpp"
+#include	"extended_types.hpp"
 
 /*
 	templates/macros for implementing custom type traits that can be used
@@ -50,12 +57,6 @@ __if_not_exists(ptrdiff_t)
 
 #include	"reflect.hpp"
 
-/*
-	CTFE stuff for compile-time tricks
-	unfortunately very limited right now due to lack of support for c++14
-	constexpr
-*/
-#include	"ctfe.hpp"
 
 /*
 	generic integer bitwise operations

@@ -11,10 +11,84 @@ namespace util {
 namespace ctfe {
 namespace math
 {
+	using namespace cloture::util::common;
+
+	template<typename T> constexpr T positiveInf = 0;
+	template<> constexpr float positiveInf<float> = 1.0f / 0.0f;
+
+	template<typename T>
+	static constexpr bool isNaN(const T n)
+	{
+		return n != n;
+	}
+	template<typename T>
+	static constexpr bool isFinite(const T n)
+	{
+		return minValue<T> <= n && value <= maxValue<T>;
+	}
+	template<typename T> struct fpRaw
+	{
+
+	};
+
+	template<> struct fpRaw<float>
+	{
+		using type = int32;
+	};
+
+	template<> struct fpRaw<double>
+	{
+		using type = int64;
+	};
+
+	template<typename T>
+	static constexpr fpRaw<T>::type rawBits(const T n)
+	{
+		return -1;
+	}
+
+	template<>
+	static constexpr int rawBits(const float n)
+	{
+		if (isNaN(n))
+			return 0x7F800001;
+		uint32 sign = 0;
+		float n2 = n;
+
+		if (sign = ((n + 1.0f/n) < .0f) << 31)
+			n2 = -n2;
+
+		if (!n2)
+			return sign;
+
+		if (!isFinite(n2))
+			return sign | 0x7F800000;
+
+		n2 = static_cast<double>(n2) * (1.0 + 2.9802322387695312e-8);
+		uint32 exponent = 127;
+
+		while (exponent < 254 && n2 >= 2.0f)
+		{
+			exponent++;
+			n2 /= 2.0f;
+		}
+		if (n2 >= 2.0f)
+			return sign | 0x7F800000;
+		while (exponent > .0f && n2 <  1.0f)
+		{
+			exponent--;
+			n2 *= 2.0f;
+		}
+		exponent ? n2-- : n2 /= 2.0f;
+		const uint32 mantissa = static_cast<uint32>(n2 * static_cast<float>(0x00800000));
+		return sign | exponent << 23 | mantissa;
+	}
+
+
 	//http://www.gamedev.net/topic/329991-i-need-floor-function-implementation/
 	using arithDefault = double;
 
-	using namespace cloture::util::common;
+
 	constexpr uint32 SngFwd(const uint32 sign, const uint32 exponent, const float mt)
 	{
 		const uint32 b = static_cast<uint32>(8388608.0 * static_cast<double>(mt) + .5);
@@ -142,6 +216,8 @@ namespace math
 		return result;
 	}
 	static_assert(pow<double>(8.5, 6.0) == 377149.515625);
+
+
 } //namespace math
 }//namespace ctfe
 }//namespace util
