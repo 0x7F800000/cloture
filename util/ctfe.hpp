@@ -590,6 +590,7 @@ namespace ctfe
 	 */
 	namespace math
 	{
+		//http://www.gamedev.net/topic/329991-i-need-floor-function-implementation/
 		using arithDefault = double;
 
 		using namespace cloture::util::common;
@@ -676,7 +677,7 @@ namespace ctfe
 		hypot<double>(50.0, 119.0) == 129.07749610214788);
 
 		template<typename T>
-		T ceil(const T x)
+		static constexpr T ceil(const T x)
 		{
 			using iType = int64;
 
@@ -690,7 +691,7 @@ namespace ctfe
 
 		}
 		template<typename T>
-		T cbrt(const T x)
+		static constexpr T cbrt(const T x)
 		{
 			constexpr T FOUR = static_cast<T>(4);
 			constexpr T THREE = static_cast<T>(3);
@@ -705,8 +706,21 @@ namespace ctfe
 			}
 			return result;
 		}
-		constexpr __int128 ruhroh = 0;
-
+		template<typename T>
+		static constexpr T pow(const T base, const T exponent)
+		{
+			//ehehehehe
+			//shit
+			int i = static_cast<int>(exponent)- 1;
+			T result = base;
+			while(i)
+			{
+				result = result * base;
+				i--;
+			}
+			return result;
+		}
+		static_assert(pow<double>(8.5, 6.0) == 377149.515625);
 	}
 
 #endif //#if hasExtendedConstexpr
