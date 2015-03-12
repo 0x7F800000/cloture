@@ -91,21 +91,6 @@ namespace math
 	using arithDefault = double;
 
 
-	constexpr uint32 SngFwd(const uint32 sign, const uint32 exponent, const float mt)
-	{
-		const uint32 b = static_cast<uint32>(8388608.0 * static_cast<double>(mt) + .5);
-		return
-		(0xFF & b)
-		|
-		(0xFF00 & b)
-		|
-		((0x7F0000 & b)
-		|
-		((exponent & 1) << 23))
-		|
-		((sign << 31) | ((exponent >> 1) << 24));
-	}
-
 	/*
 	 * ctfe::math::abs
 	 * calculates the absolute value of x
