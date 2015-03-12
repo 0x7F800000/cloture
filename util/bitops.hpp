@@ -86,6 +86,15 @@ namespace bitwise
 		return _bittestandcomplement64(u, b);
 	}
 #endif
-}
-}
-};
+}//namespace bitwise
+
+namespace ctfe		{
+namespace bitwise	{
+
+
+
+}//namespace bitwise
+}//namespace ctfe
+
+}//namespace util
+}//namespace cloture

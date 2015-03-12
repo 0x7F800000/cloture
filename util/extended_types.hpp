@@ -29,6 +29,9 @@ namespace common	{
 		constexpr uint128 TEN 		= static_cast<uint128>(10);
 		constexpr uint128 SIXTEEN	= static_cast<uint128>(16);
 		constexpr uint128 SIGN		= static_cast<uint128>(0x8000000000000000ULL) << 64;
+
+		constexpr char digitSeperator = '\'';
+
 		uint128 result = ZERO;
 		size_t pos = 0;
 		//hexadecimal literal
@@ -40,6 +43,9 @@ namespace common	{
 				const unsigned char c = static_cast<unsigned char>(s[pos++]);
 				if(!c)
 					return result;
+
+				if(c == digitSeperator)
+					continue;
 
 				uint128 digit = ZERO;
 
@@ -63,6 +69,8 @@ namespace common	{
 				const char c = s[pos++];
 				if(!c)
 					return result;
+				if(c == digitSeperator)
+					continue;
 				const uint128 bit = static_cast<uint128>(c - '0');
 				result <<= 1;
 				result |= bit;
@@ -81,6 +89,8 @@ namespace common	{
 			{
 				if(!first)
 					result *= TEN;
+				if(c == digitSeperator)
+					continue;
 				uint128 c128 = static_cast<uint128>(c);
 				result += c128;
 				if(first)

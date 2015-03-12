@@ -86,6 +86,50 @@ namespace math
 			"rawBits<float> is incorrect."
 			);
 
+	/*
+	 * based on rawBits<float>. All that was needed was to change the constants
+	 * to work with double
+	 */
+	template<>
+	static constexpr int64 rawBits<double>(const double n)
+	{
+		if (isNaN(n))
+			return 0x7FF0000000000001LL;
+		uint64 sign = 0ULL;
+		double n2 = n;
+
+		if (sign = static_cast<uint64>((n + 1.0/n) < .0) << 63ULL)
+			n2 = -n2;
+
+		if (!n2)
+			return sign;
+
+		if (!isFinite(n2))
+			return sign | 0x7FF0000000000000LL;
+
+		int64 exponent = 1023ULL;
+
+		while (exponent < 2046 && n2 >= 2.0)
+		{
+			exponent++;
+			n2 /= 2.0;
+		}
+		if (n2 >= 2.0)
+			return sign | 0x7FF0000000000000LL;
+		while (exponent > 0LL && n2 < 1.0)
+		{
+			exponent--;
+			n2 *= 2.0;
+		}
+		exponent ? n2-- : n2 /= 2.0;
+		const uint64 mantissa = static_cast<uint64>(n2 * static_cast<double>(1LL << 52LL));
+		return sign | exponent << 52LL | mantissa;
+	}
+
+	static_assert(
+	rawBits<double>(3.14159265358979323846) == 0x400921FB54442D18LL,
+	"rawBits<double> is fukt?"
+	);
 
 	//http://www.gamedev.net/topic/329991-i-need-floor-function-implementation/
 	using arithDefault = double;
@@ -226,7 +270,7 @@ namespace math
 	static constexpr float fromRaw<float>(int raw)
 	{
 		unsigned sign		= (raw >> 31) & 1;
-		unsigned exponent	= (raw >> 23) & 0xFF;
+		signed exponent	= (raw >> 23) & 0xFF;
 
 		signed mantissa 	= raw & 0x007FFFFF;
 		//they check for an invalid exponent, but we cant return NaN
@@ -240,8 +284,20 @@ namespace math
 
 		const float f = static_cast<float>(mantissa) *
 		pow<float>(2.0f, static_cast<float>(exponent - 23));
-
 		return sign != 0 ? -f : f;
+	}
+	static_assert(fromRaw<float>(1062668861) == 0.84f);
+
+
+
+	template<typename T>
+	static constexpr T floor(const T x)
+	{
+		constexpr T POINTNINE = static_cast<T>(0.9999999999999999);
+		constexpr T ZERO = static_cast<T>(0);
+		if(x > ZERO)
+			return static_cast<int>(x);
+		return static_cast<int>(x - POINTNINE);
 	}
 
 } //namespace math
