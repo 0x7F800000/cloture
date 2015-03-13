@@ -1,4 +1,5 @@
 // NEED to reset startst after calling this! startst may or may not be clobbered!
+#if 0
 #define ADVANCE_PROFILE_BEFORE_JUMP() \
 	prog->xfunction->profile += (st - startst); \
 	if (prvm_statementprofiling.integer || (prvm_coverage.integer & 4)) { \
@@ -9,6 +10,10 @@
 		} \
 		/* Observe: startst now is clobbered (now at st+1)! */ \
 	}
+#else
+#define ADVANCE_PROFILE_BEFORE_JUMP() \
+	prog->xfunction->profile += (st - startst)
+#endif
 
 #ifdef PRVMTIMEPROFILING
 #define PRE_ERROR() \
@@ -19,10 +24,10 @@
 	startst = st; \
 	starttm = tm
 #else
-#define PRE_ERROR() \
-	ADVANCE_PROFILE_BEFORE_JUMP(); \
-	prog->xstatement = st - cached_statements; \
-	startst = st
+#define PRE_ERROR() //\
+	//ADVANCE_PROFILE_BEFORE_JUMP(); \
+	//prog->xstatement = st - cached_statements; \
+	//startst = st
 #endif
 
 // This code isn't #ifdef/#define protectable, don't try.
@@ -138,9 +143,19 @@
 		}
 #endif
 
+		#define		NICER_OUTPUT	1
 		while (1)
 		{
 			st++;
+			#if NICER_OUTPUT
+				auto opa = OPA;
+				auto opb = OPB;
+				auto opc = OPC;
+
+				#define OPA opa
+				#define OPB opb
+				#define OPC opc
+			#endif
 #endif // USE_COMPUTED_GOTOS
 
 #if !USE_COMPUTED_GOTOS
@@ -576,6 +591,15 @@
 #endif
 		}
 #endif // !USE_COMPUTED_GOTOS
+
+#if NICER_OUTPUT
+		//#pragma pop_macro("OPA")
+		//#pragma pop_macro("OPB")
+		//#pragma pop_macro("OPC")
+		#define OPA ((prvm_eval_t *)&prog->globals.fp[st->operand[0]])
+		#define OPB ((prvm_eval_t *)&prog->globals.fp[st->operand[1]])
+		#define OPC ((prvm_eval_t *)&prog->globals.fp[st->operand[2]])
+#endif
 
 #undef DISPATCH_OPCODE
 #undef HANDLE_OPCODE

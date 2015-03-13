@@ -159,6 +159,7 @@ const char *ConBuffer_GetLine(conbuffer_t *buf, int i);
 namespace cloture	{
 namespace console	{
 
-
+	extern util::stream::ostream<&Con_Printf> 	con;
+	extern util::stream::ostream<&Con_DPrintf> 	dbgout;
 }//namespace console
 }//namespace cloture

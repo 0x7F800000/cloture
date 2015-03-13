@@ -2311,10 +2311,19 @@ static void PRVM_Prog_CopyGlobals(
 
 static void PRVM_Prog_FinishLoad(prvm_prog_t* prog)
 {
+	using console::dbgout;
+	using console::con;
+
 	const size_t numGlobalDefs = prog->numglobaldefs;
+
+	auto print_invalid_autocvar_message = [prog](const char* name)
+	{
+		con << "PRVM_Prog_FinishLoad: invalid type of autocvar global " << name << " in " << prog->name << "\n";
+	};
 	for (size_t i = 0; i < numGlobalDefs; i++)
 	{
-		const char *name = PRVM_GetString(prog, prog->globaldefs[i].s_name);
+		ddef_t* globalDef = &prog->globaldefs[i];
+		const char *name = PRVM_GetString(prog, globalDef->s_name);
 		const bool loopCondition =
 				name
 				&& !strncmp(name, "autocvar_", 9)
@@ -2328,14 +2337,14 @@ static void PRVM_Prog_FinishLoad(prvm_prog_t* prog)
 		if(!loopCondition)
 			continue;
 
-		prvm_eval_t *val = PRVM_GLOBALFIELDVALUE(prog->globaldefs[i].ofs);
+		prvm_eval_t *val = PRVM_GLOBALFIELDVALUE(globalDef->ofs);
 		cvar_t *cvar = Cvar_FindVar(name + 9);
-		if(!cvar)
+		if(cvar == nullptr)
 		{
 			const char *value;
 			char buf[64];
-			Con_DPrintf("PRVM_LoadProgs: no cvar for autocvar global %s in %s, creating...\n", name, prog->name);
-			switch(prog->globaldefs[i].type & ~DEF_SAVEGLOBAL)
+			dbgout << "PRVM_Prog_FinishLoad: no cvar for autocvar global " << name << " in " << prog->name << ", creating...\n";
+			switch(globalDef->type & ~DEF_SAVEGLOBAL)
 			{
 				case ev_float:
 					if((float)((int)(val->_float)) == val->_float)
@@ -2345,17 +2354,18 @@ static void PRVM_Prog_FinishLoad(prvm_prog_t* prog)
 					value = buf;
 					break;
 				case ev_vector:
-					dpsnprintf(buf, sizeof(buf), "%.9g %.9g %.9g", val->vector[0], val->vector[1], val->vector[2]); value = buf;
+					dpsnprintf(buf, sizeof(buf), "%.9g %.9g %.9g", val->vector[0], val->vector[1], val->vector[2]);
+					value = buf;
 					break;
 				case ev_string:
 					value = PRVM_GetString(prog, val->string);
 					break;
 				default:
-					Con_Printf("PRVM_LoadProgs: invalid type of autocvar global %s in %s\n", name, prog->name);
+					print_invalid_autocvar_message(name);
 					goto fail;
 			}
 			cvar = Cvar_Get(name + 9, value, 0, nullptr);
-			if((prog->globaldefs[i].type & ~DEF_SAVEGLOBAL) == ev_string)
+			if((globalDef->type & ~DEF_SAVEGLOBAL) == ev_string)
 			{
 				val->string = PRVM_SetEngineString(prog, cvar->string);
 				cvar->globaldefindex_stringno[prog - prvm_prog_list] = val->string;
@@ -2368,17 +2378,16 @@ static void PRVM_Prog_FinishLoad(prvm_prog_t* prog)
 		else if((cvar->flags & CVAR_PRIVATE) == 0)
 		{
 			// MUST BE SYNCED WITH cvar.c Cvar_Set
-			int j;
-			const char *s;
-			switch(prog->globaldefs[i].type & ~DEF_SAVEGLOBAL)
+			switch(globalDef->type & ~DEF_SAVEGLOBAL)
 			{
 				case ev_float:
 					val->_float = cvar->value;
 					break;
 				case ev_vector:
-					s = cvar->string;
+				{
+					const char *s = cvar->string;
 					VectorClear(val->vector);
-					for (j = 0;j < 3;j++)
+					for (size_t j = 0; j < 3; j++)
 					{
 						while (*s && ISWHITESPACE(*s))
 							s++;
@@ -2390,21 +2399,21 @@ static void PRVM_Prog_FinishLoad(prvm_prog_t* prog)
 						if (!*s)
 							break;
 					}
+				}
 					break;
 				case ev_string:
 					val->string = PRVM_SetEngineString(prog, cvar->string);
 					cvar->globaldefindex_stringno[prog - prvm_prog_list] = val->string;
 					break;
 				default:
-					Con_Printf("PRVM_LoadProgs: invalid type of autocvar global %s in %s\n", name, prog->name);
+					print_invalid_autocvar_message(name);
 					goto fail;
 			}
 			cvar->globaldefindex_progid[prog - prvm_prog_list] = prog->id;
 			cvar->globaldefindex[prog - prvm_prog_list] = i;
 		}
 		else
-			Con_Printf("PRVM_LoadProgs: private cvar for autocvar global %s in %s\n", name, prog->name);
-
+			con << "PRVM_Prog_FinishLoad: private cvar for autocvar global " << name << " in " << prog->name << "\n";
 fail:
 		;
 	}
@@ -2430,7 +2439,7 @@ void PRVM_Prog_Load(
 	prvm_required_field_t 	*required_global
 )
 {
-	int i;
+	using console::dbgout;
 	dprograms_t *dprograms;
 
 	fs_offset_t filesize;
@@ -2458,21 +2467,17 @@ void PRVM_Prog_Load(
 
 	// TODO bounds check header fields (e.g. numstatements), they must never go behind end of file
 
-	prog->profiletime	= Sys_DirtyTime();
+	prog->profiletime	= system::dirtyTime();
 	prog->starttime		= realtime;
 
-	Con_DPrintf(
-		"%s programs occupy %iK.\n",
-		prog->name,
-		static_cast<int>(filesize / 1024)
-	);
+	dbgout << prog->name << " programs occupy " << filesize / 1024 << "K.\n";
 
 	size_t requiredglobalspace = 0;
-	for (i = 0; i < numrequiredglobals; i++)
+
+	for (size_t i = 0; i < numrequiredglobals; i++)
 		requiredglobalspace += required_global[i].type == ev_vector ? 3 : 1;
 
 	prog->filecrc = CRC::CRCBlock(dprograms, filesize);
-	//CRC_Block((unsigned char *)dprograms, filesize);
 
 // byte swap the header
 	prog->progs_version = LittleLong(dprograms->version);
@@ -2529,10 +2534,10 @@ void PRVM_Prog_Load(
 	PRVM_Remap_And_Check(prog, instatements);
 	const opcode_t lastOp =  prog->statements[prog->numstatements - 1].op;
 
-	if(prog->numstatements < 1)
+	if(unlikely(prog->numstatements < 1))
 		prog->error_cmd("PRVM_LoadProgs: empty program in %s", prog->name);
 
-	else if(lastOp != OP_RETURN && lastOp != OP_GOTO && lastOp != OP_DONE)
+	else if(unlikely(lastOp != OP_RETURN && lastOp != OP_GOTO && lastOp != OP_DONE))
 		prog->error_cmd(
 			"PRVM_LoadProgs: program may fall off"
 			"the edge (does not end with RETURN, GOTO or DONE) in %s",
@@ -2544,8 +2549,8 @@ void PRVM_Prog_Load(
 	dprograms = nullptr;
 
 	// check required functions
-	for(i=0 ; i < numrequiredfunc ; i++)
-		if(PRVM_ED_FindFunction(prog, required_func[i]) == 0)
+	for(size_t i = 0; i < numrequiredfunc; i++)
+		if(unlikely(PRVM_ED_FindFunction(prog, required_func[i]) == 0))
 			prog->error_cmd("%s: %s not found in %s",prog->name, required_func[i], filename);
 
 	PRVM_LoadLNO(prog, filename);
@@ -2556,7 +2561,7 @@ void PRVM_Prog_Load(
 
 	PRVM_Prog_FinishLoad(prog);
 
-	prog->loaded = TRUE;
+	prog->loaded = true;
 
 	PRVM_UpdateBreakpoints(prog);
 

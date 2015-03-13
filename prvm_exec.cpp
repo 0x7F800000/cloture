@@ -582,43 +582,45 @@ static int PRVM_EnterFunction (prvm_prog_t *prog, mfunction_t *f)
 {
 	if (unlikely(!f))
 		prog->error_cmd("PRVM_EnterFunction: NULL function in %s", prog->name);
+	{
+		const size_t progDepth = prog->depth;
 
-	const size_t progDepth = prog->depth;
-	
-	prog->stack[progDepth].s = prog->xstatement;
-	prog->stack[progDepth].f = prog->xfunction;
-	
-	prog->stack[progDepth].profile_acc = -f->profile;
-	prog->stack[progDepth].tprofile_acc = -f->tprofile + -f->tbprofile;
-	prog->stack[progDepth].builtinsprofile_acc = -f->builtinsprofile;
-	
+		prog->stack[progDepth].s = prog->xstatement;
+		prog->stack[progDepth].f = prog->xfunction;
+
+		prog->stack[progDepth].profile_acc = -f->profile;
+		prog->stack[progDepth].tprofile_acc = -f->tprofile + -f->tbprofile;
+		prog->stack[progDepth].builtinsprofile_acc = -f->builtinsprofile;
+	}
 	prog->depth++;
 	
-	if (unlikely(prog->depth >=PRVM_MAX_STACK_DEPTH))
+	if (unlikely(prog->depth >= PRVM_MAX_STACK_DEPTH))
 		prog->error_cmd("stack overflow");
 
 	// save off any locals that the new function steps on
-	const size_t c = static_cast<size_t>(f->locals);
-	
-	if (prog->localstack_used + c > PRVM_LOCALSTACK_SIZE)
-		prog->error_cmd("PRVM_ExecuteProgram: locals stack overflow in %s", prog->name);
-
-	for (size_t i = 0 ; i < c ; i++)
-		prog->localstack[prog->localstack_used + i] = prog->globals.ip[f->parm_start + i];
-		
-	prog->localstack_used += c;
-
-	// copy parameters
-	size_t o = f->parm_start;
-	for (size_t i = 0 ; i < f->numparms; i++)
 	{
-		for (size_t j = 0; j < static_cast<size_t>(f->parm_size[i]); j++)
+		const size_t c = static_cast<size_t>(f->locals);
+
+		if (unlikely(prog->localstack_used + c > PRVM_LOCALSTACK_SIZE))
+			prog->error_cmd("PRVM_ExecuteProgram: locals stack overflow in %s", prog->name);
+	
+		for (size_t i = 0 ; i < c ; i++)
+			prog->localstack[prog->localstack_used + i] = prog->globals.ip[f->parm_start + i];
+
+		prog->localstack_used += c;
+	}
+	// copy parameters
+	{
+		size_t o = f->parm_start;
+		for (size_t i = 0 ; i < f->numparms; i++)
 		{
-			prog->globals.ip[o] = prog->globals.ip[ OFS_PARM0 + i * 3 + j ];
-			o++;
+			for (size_t j = 0; j < static_cast<size_t>(f->parm_size[i]); j++)
+			{
+				prog->globals.ip[o] = prog->globals.ip[ OFS_PARM0 + i * 3 + j ];
+				o++;
+			}
 		}
 	}
-
 	++f->recursion;
 	prog->xfunction = f;
 	return f->first_statement - 1;	// offset the s++
@@ -722,7 +724,7 @@ static void PRVM_StatementCoverageEvent(prvm_prog_t *prog, mfunction_t *func, in
 }
 
 #ifdef __GNUC__
-#define HAVE_COMPUTED_GOTOS 1
+//#define HAVE_COMPUTED_GOTOS 1
 #endif
 
 #define OPA ((prvm_eval_t *)&prog->globals.fp[st->operand[0]])
@@ -734,6 +736,377 @@ extern bool prvm_runawaycheck;
 
 #ifdef PROFILING
 #ifdef CONFIG_MENU
+
+
+void VM_Execute(
+	prvm_prog_t* 	prog,
+	mstatement_t** 	stptr,
+	mstatement_t* 	startst,
+	float& 			tempfloat,
+	prvm_vec_t *&	cached_edictsfields,
+	unsigned int &	cached_entityfields,
+	unsigned int &	cached_entityfields_3,
+	unsigned int &	cached_entityfieldsarea,
+	unsigned int &	cached_entityfieldsarea_entityfields,
+	unsigned int &	cached_entityfieldsarea_3,
+	unsigned int &	cached_entityfieldsarea_entityfields_3,
+	unsigned int &	cached_max_edicts,
+	mstatement_t *	cached_statements,
+	bool 			cached_allowworldwrites,
+	unsigned int 	cached_flag,
+	int				cachedpr_trace,
+	int				exitdepth
+)
+{
+	prvm_edict_t	*ed;
+	prvm_eval_t	*ptr;
+	mstatement_t* st = *stptr;
+	int jumpcount = 0;
+	mfunction_t* newf;
+	//int exitdepth = prog->depth;
+chooseexecprogram:
+	cachedpr_trace = prog->trace;
+	while(true)
+	{
+		st++;
+		auto opa = ((prvm_eval_t *)&prog->globals.fp[st->operand[0]]);
+		auto opb = ((prvm_eval_t *)&prog->globals.fp[st->operand[1]]);
+		auto opc = ((prvm_eval_t *)&prog->globals.fp[st->operand[2]]);
+		switch (st->op)
+		{
+		case OP_ADD_F:
+			opc->_float = opa->_float + opb->_float;
+			break;
+		case OP_ADD_V:
+			opc->vector[0] = opa->vector[0] + opb->vector[0];
+			opc->vector[1] = opa->vector[1] + opb->vector[1];
+			opc->vector[2] = opa->vector[2] + opb->vector[2];
+			break;
+		case OP_SUB_F:
+			opc->_float = opa->_float - opb->_float;
+			break;
+		case OP_SUB_V:
+			opc->vector[0] = opa->vector[0] - opb->vector[0];
+			opc->vector[1] = opa->vector[1] - opb->vector[1];
+			opc->vector[2] = opa->vector[2] - opb->vector[2];
+			break;
+		case OP_MUL_F:
+			opc->_float = opa->_float * opb->_float;
+			break;
+		case OP_MUL_V:
+			opc->_float = opa->vector[0]*opb->vector[0] + opa->vector[1]*opb->vector[1] + opa->vector[2]*opb->vector[2];
+			break;
+		case OP_MUL_FV:
+			tempfloat = opa->_float;
+			opc->vector[0] = tempfloat * opb->vector[0];
+			opc->vector[1] = tempfloat * opb->vector[1];
+			opc->vector[2] = tempfloat * opb->vector[2];
+			break;
+		case OP_MUL_VF:
+			tempfloat = opb->_float;
+			opc->vector[0] = tempfloat * opa->vector[0];
+			opc->vector[1] = tempfloat * opa->vector[1];
+			opc->vector[2] = tempfloat * opa->vector[2];
+			break;
+		case OP_DIV_F:
+			if( opb->_float != 0.0f )
+				opc->_float = opa->_float / opb->_float;
+			else
+			{
+				if (developer.integer)
+					VM_Warning(prog, "Attempted division by zero in %s\n", prog->name );
+
+				opc->_float = 0.0f;
+			}
+			break;
+		case OP_BITAND:
+			opc->_float = (prvm_int_t)opa->_float & (prvm_int_t)opb->_float;
+			break;
+		case OP_BITOR:
+			opc->_float = (prvm_int_t)opa->_float | (prvm_int_t)opb->_float;
+			break;
+		case OP_GE:
+		opc->_float = opa->_float >= opb->_float;
+		break;
+		case OP_LE:
+			opc->_float = opa->_float <= opb->_float;
+			break;
+		case OP_GT:
+			opc->_float = opa->_float > opb->_float;
+			break;
+		case OP_LT:
+			opc->_float = opa->_float < opb->_float;
+			break;
+		case OP_AND:
+			opc->_float = ((opa->_int) & 0x7FFFFFFF) && ((opb->_int) & 0x7FFFFFFF);
+			break;
+		case OP_OR:
+			opc->_float = ((opa->_int) & 0x7FFFFFFF) || ((opb->_int) & 0x7FFFFFFF);
+			break;
+		case OP_NOT_F:
+			opc->_float = !((opa->_int) & 0x7FFFFFFF);
+			break;
+		case OP_NOT_V:
+			opc->_float = !opa->vector[0] && !opa->vector[1] && !opa->vector[2];
+			break;
+		case OP_NOT_S:
+			opc->_float = !opa->string || !*PRVM_GetString(prog, opa->string);
+			break;
+		case OP_NOT_FNC:
+			opc->_float = !opa->function;
+			break;
+		case OP_NOT_ENT:
+			opc->_float = (opa->edict == 0);
+			break;
+		case OP_EQ_F:
+			opc->_float = opa->_float == opb->_float;
+			break;
+		case OP_EQ_V:
+			opc->_float = (opa->vector[0] == opb->vector[0]) && (opa->vector[1] == opb->vector[1]) && (opa->vector[2] == opb->vector[2]);
+			break;
+		case OP_EQ_S:
+			opc->_float = !strcmp(PRVM_GetString(prog, opa->string),PRVM_GetString(prog, opb->string));
+			break;
+		case OP_EQ_E:
+			opc->_float = opa->_int == opb->_int;
+			break;
+		case OP_EQ_FNC:
+			opc->_float = opa->function == opb->function;
+			break;
+		case OP_NE_F:
+			opc->_float = opa->_float != opb->_float;
+			break;
+		case OP_NE_V:
+			opc->_float = (opa->vector[0] != opb->vector[0]) || (opa->vector[1] != opb->vector[1]) || (opa->vector[2] != opb->vector[2]);
+			break;
+		case OP_NE_S:
+			opc->_float = strcmp(PRVM_GetString(prog, opa->string),PRVM_GetString(prog, opb->string));
+			break;
+		case OP_NE_E:
+			opc->_float = opa->_int != opb->_int;
+			break;
+		case OP_NE_FNC:
+			opc->_float = opa->function != opb->function;
+			break;
+		case OP_STORE_F:
+		case OP_STORE_ENT:
+		case OP_STORE_FLD:
+		case OP_STORE_S:
+		case OP_STORE_FNC:
+			opb->_int = opa->_int;
+			break;
+		case OP_STORE_V:
+			opb->ivector[0] = opa->ivector[0];
+			opb->ivector[1] = opa->ivector[1];
+			opb->ivector[2] = opa->ivector[2];
+			break;
+		case OP_STOREP_F:
+		case OP_STOREP_ENT:
+		case OP_STOREP_FLD:
+		case OP_STOREP_S:
+		case OP_STOREP_FNC:
+			if ((prvm_uint_t)opb->_int - cached_entityfields >= cached_entityfieldsarea_entityfields)
+			{
+				if ((prvm_uint_t)opb->_int >= cached_entityfieldsarea)
+				{
+					prog->error_cmd("%s attempted to write to an out of bounds edict (%i)", prog->name, (int)opb->_int);
+					goto cleanup;
+				}
+				if ((prvm_uint_t)opb->_int < cached_entityfields && !cached_allowworldwrites)
+					VM_Warning(prog, "assignment to world.%s (field %i) in %s\n", PRVM_GetString(prog, PRVM_ED_FieldAtOfs(prog, opb->_int)->s_name), (int)opb->_int, prog->name);
+			}
+			ptr = (prvm_eval_t *)(cached_edictsfields + opb->_int);
+			ptr->_int = opa->_int;
+			break;
+		case OP_STOREP_V:
+			if ((prvm_uint_t)opb->_int - cached_entityfields > (prvm_uint_t)cached_entityfieldsarea_entityfields_3)
+			{
+				if ((prvm_uint_t)opb->_int > cached_entityfieldsarea_3)
+				{
+					prog->error_cmd("%s attempted to write to an out of bounds edict (%i)", prog->name, (int)opb->_int);
+					goto cleanup;
+				}
+				if ((prvm_uint_t)opb->_int < cached_entityfields && !cached_allowworldwrites)
+					VM_Warning(prog, "assignment to world.%s (field %i) in %s\n", PRVM_GetString(prog, PRVM_ED_FieldAtOfs(prog, opb->_int)->s_name), (int)opb->_int, prog->name);
+
+			}
+			ptr = (prvm_eval_t *)(cached_edictsfields + opb->_int);
+			ptr->ivector[0] = opa->ivector[0];
+			ptr->ivector[1] = opa->ivector[1];
+			ptr->ivector[2] = opa->ivector[2];
+			break;
+		case OP_ADDRESS:
+			if ((prvm_uint_t)opa->edict >= cached_max_edicts)
+			{
+				prog->error_cmd("%s Progs attempted to address an out of bounds edict number", prog->name);
+				goto cleanup;
+			}
+			if ((prvm_uint_t)opb->_int >= cached_entityfields)
+			{
+				prog->error_cmd("%s attempted to address an invalid field (%i) in an edict", prog->name, (int)opb->_int);
+				goto cleanup;
+			}
+			opc->_int = opa->edict * cached_entityfields + opb->_int;
+			break;
+		case OP_LOAD_F:
+		case OP_LOAD_FLD:
+		case OP_LOAD_ENT:
+		case OP_LOAD_S:
+		case OP_LOAD_FNC:
+			if ((prvm_uint_t)opa->edict >= cached_max_edicts)
+			{
+				prog->error_cmd("%s Progs attempted to read an out of bounds edict number", prog->name);
+				goto cleanup;
+			}
+			if ((prvm_uint_t)opb->_int >= cached_entityfields)
+			{
+				prog->error_cmd("%s attempted to read an invalid field in an edict (%i)", prog->name, (int)opb->_int);
+				goto cleanup;
+			}
+			ed = ((prog->edicts + static_cast<size_t>(opa->edict)));
+			opc->_int = ((prvm_eval_t *)(ed->fields.ip + opb->_int))->_int;
+			break;
+		case OP_LOAD_V:
+			if ((prvm_uint_t)opa->edict >= cached_max_edicts)
+			{
+				prog->error_cmd("%s Progs attempted to read an out of bounds edict number", prog->name);
+				goto cleanup;
+			}
+			if ((prvm_uint_t)opb->_int > cached_entityfields_3)
+			{
+				prog->error_cmd("%s attempted to read an invalid field in an edict (%i)", prog->name, (int)opb->_int);
+				goto cleanup;
+			}
+			ed = ((prog->edicts + static_cast<size_t>(opa->edict)));
+			ptr = (prvm_eval_t *)(ed->fields.ip + opb->_int);
+			opc->ivector[0] = ptr->ivector[0];
+			opc->ivector[1] = ptr->ivector[1];
+			opc->ivector[2] = ptr->ivector[2];
+			break;
+		case OP_IFNOT:
+			if(!((opa->_int) & 0x7FFFFFFF))
+			{
+				prog->xfunction->profile += (st - startst);
+				st = cached_statements + st->jumpabsolute - 1;
+				startst = st;
+				if (++jumpcount == 10000000 && prvm_runawaycheck)
+				{
+					prog->xstatement = st - cached_statements;
+					PRVM_Profile(prog, 1<<30, 1000000, 0);
+					prog->error_cmd("%s runaway loop counter hit limit of %d jumps\ntip: read above for list of most-executed functions", prog->name, jumpcount);
+				}
+			}
+			break;
+		case OP_IF:
+			if(((opa->_int) & 0x7FFFFFFF))
+			{
+				prog->xfunction->profile += (st - startst);
+				st = cached_statements + st->jumpabsolute - 1;
+				startst = st;
+				if (++jumpcount == 10000000 && prvm_runawaycheck)
+				{
+				prog->xstatement = st - cached_statements;
+				PRVM_Profile(prog, 1<<30, 0.01, 0);
+				prog->error_cmd("%s runaway loop counter hit limit of %d jumps\ntip: read above for list of most-executed functions", prog->name, jumpcount);
+				}
+			}
+			break;
+		case OP_GOTO:
+			prog->xfunction->profile += (st - startst);
+			st = cached_statements + st->jumpabsolute - 1;
+			startst = st;
+			if (++jumpcount == 10000000 && prvm_runawaycheck)
+			{
+				prog->xstatement = st - cached_statements;
+				PRVM_Profile(prog, 1<<30, 0.01, 0);
+				prog->error_cmd("%s runaway loop counter hit limit of %d jumps\ntip: read above for list of most-executed functions", prog->name, jumpcount);
+			}
+			break;
+		case OP_CALL0:
+		case OP_CALL1:
+		case OP_CALL2:
+		case OP_CALL3:
+		case OP_CALL4:
+		case OP_CALL5:
+		case OP_CALL6:
+		case OP_CALL7:
+		case OP_CALL8:
+			prog->xfunction->profile += (st - startst);
+			startst = st;
+			prog->xstatement = st - cached_statements;
+			prog->argc = st->op - OP_CALL0;
+			if (!opa->function)
+			{
+				prog->error_cmd("NULL function in %s", prog->name);
+			}
+			if(!opa->function || opa->function < 0 || opa->function >= prog->numfunctions)
+			{
+				prog->error_cmd("%s CALL outside the program", prog->name);
+				goto cleanup;
+			}
+			newf = &prog->functions[opa->function];
+			if (newf->callcount++ == 0 && (prvm_coverage.integer & 1))
+				PRVM_FunctionCoverageEvent(prog, newf);
+			if (newf->first_statement < 0)
+			{
+				int builtinnumber = -newf->first_statement;
+				prog->xfunction->builtinsprofile++;
+				if (builtinnumber < prog->numbuiltins && prog->builtins[builtinnumber])
+				{
+					prog->builtins[builtinnumber](prog);
+					cached_edictsfields = prog->edictsfields;
+					cached_entityfields = prog->entityfields;
+					cached_entityfields_3 = prog->entityfields - 3;
+					cached_entityfieldsarea = prog->entityfieldsarea;
+					cached_entityfieldsarea_entityfields = prog->entityfieldsarea - prog->entityfields;
+					cached_entityfieldsarea_3 = prog->entityfieldsarea - 3;
+					cached_entityfieldsarea_entityfields_3 = prog->entityfieldsarea - prog->entityfields - 3;
+					cached_max_edicts = prog->max_edicts;
+					if (prog->trace != cachedpr_trace)
+						goto chooseexecprogram;
+				}
+				else
+					prog->error_cmd("No such builtin #%i in %s; most likely cause: outdated engine build. Try updating!", builtinnumber, prog->name);
+			}
+			else
+				st = cached_statements + PRVM_EnterFunction(prog, newf);
+			startst = st;
+			break;
+		case OP_DONE:
+		case OP_RETURN:
+			prog->xfunction->profile += (st - startst);
+			prog->xstatement = st - cached_statements;
+			prog->globals.ip[1 ] = prog->globals.ip[st->operand[0] ];
+			prog->globals.ip[1 +1] = prog->globals.ip[st->operand[0]+1];
+			prog->globals.ip[1 +2] = prog->globals.ip[st->operand[0]+2];
+			st = cached_statements + PRVM_LeaveFunction(prog);
+			startst = st;
+			if (prog->depth <= exitdepth)
+				goto cleanup;
+			break;
+		case OP_STATE:
+			if(cached_flag & 1)
+			{
+				ed = ((prog->edicts + static_cast<size_t>(((((prvm_eval_t *)(prog->globals.fp + prog->globaloffsets.self))->edict)))));
+				((((prvm_eval_t *)(ed->fields.fp + prog->fieldoffsets.nextthink))->_float)) = ((((prvm_eval_t *)(prog->globals.fp + prog->globaloffsets.time))->_float)) + 0.1;
+				((((prvm_eval_t *)(ed->fields.fp + prog->fieldoffsets.frame))->_float)) = opa->_float;
+				((((prvm_eval_t *)(ed->fields.fp + prog->fieldoffsets.think))->function)) = opb->function;
+			}
+			else
+			{
+				prog->xstatement = st - cached_statements;
+				prog->error_cmd("OP_STATE not supported by %s", prog->name);
+			}
+			break;
+		default:
+			prog->error_cmd("Bad opcode %i in %s", st->op, prog->name);
+			goto cleanup;
+	}
+	}
+cleanup:
+	*stptr = st;
+}
+
 /*
 ====================
 MVM_ExecuteProgram
@@ -798,42 +1171,70 @@ void MVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessag
 
 chooseexecprogram:
 	cachedpr_trace = prog->trace;
-	if (prog->trace || prog->watch_global_type != ev_void || prog->watch_field_type != ev_void || prog->break_statement >= 0)
-	{
-#define PRVMSLOWINTERPRETER 1
-		if (prvm_timeprofiling.integer)
+	#if 0
+	#if !disableProfiling
+		if (prog->trace || prog->watch_global_type != ev_void || prog->watch_field_type != ev_void || prog->break_statement >= 0)
 		{
-#define PRVMTIMEPROFILING 1
-#include "prvm_execprogram.h"
-#undef PRVMTIMEPROFILING
-		}
-		else
-		{
-#include "prvm_execprogram.h"
-		}
-#undef PRVMSLOWINTERPRETER
-	}
-	else
-	{
-		if (prvm_timeprofiling.integer)
-		{
-#define PRVMTIMEPROFILING 1
-#include "prvm_execprogram.h"
-#undef PRVMTIMEPROFILING
-		}
-		else
-		{
-#include "prvm_execprogram.h"
-		}
-	}
 
+			#define PRVMSLOWINTERPRETER 1
+			if (prvm_timeprofiling.integer)
+			{
+				#define PRVMTIMEPROFILING 1
+					#include "prvm_execprogram.h"
+				#undef PRVMTIMEPROFILING
+			}
+			else
+			{
+				#include "prvm_execprogram.h"
+			}
+			#undef PRVMSLOWINTERPRETER
+		}
+		else
+		{
+			if (prvm_timeprofiling.integer)
+			{
+				#define PRVMTIMEPROFILING 1
+					#include "prvm_execprogram.h"
+				#undef PRVMTIMEPROFILING
+			}
+			else
+			{
+				#include "prvm_execprogram.h"
+			}
+		}
+	#else
+		{
+			#include "prvm_execprogram.h"
+		}
+	#endif
+	#endif
+	VM_Execute(prog,
+			&st,
+			startst,
+			tempfloat,
+			cached_edictsfields,
+			cached_entityfields,
+			cached_entityfields_3,
+			cached_entityfieldsarea,
+			cached_entityfieldsarea_entityfields,
+			cached_entityfieldsarea_3,
+			cached_entityfieldsarea_entityfields_3,
+			cached_max_edicts,
+			cached_statements,
+			cached_allowworldwrites,
+			cached_flag,
+			cachedpr_trace,
+			exitdepth
+		);
 cleanup:
 	if (developer_insane.integer && prog->tempstringsbuf.cursize > restorevm_tempstringsbuf_cursize)
 		Con_DPrintf("MVM_ExecuteProgram: %s used %i bytes of tempstrings\n", PRVM_GetString(prog, prog->functions[fnum].s_name), prog->tempstringsbuf.cursize - restorevm_tempstringsbuf_cursize);
 	// delete tempstrings created by this function
 	prog->tempstringsbuf.cursize = restorevm_tempstringsbuf_cursize;
 
-	tm = Sys_DirtyTime() - calltime;if (tm < 0 || tm >= 1800) tm = 0;
+	tm = Sys_DirtyTime() - calltime;
+	if (tm < 0 || tm >= 1800)
+		tm = 0;
 	f->totaltime += tm;
 
 	if (prog == SVVM_prog)
@@ -900,38 +1301,26 @@ void CLVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessa
 	if (prog->xfunction->callcount++ == 0 && (prvm_coverage.integer & 1))
 		PRVM_FunctionCoverageEvent(prog, prog->xfunction);
 
-chooseexecprogram:
 	int cachedpr_trace = prog->trace;
-	if (prog->trace || prog->watch_global_type != ev_void || prog->watch_field_type != ev_void || prog->break_statement >= 0)
-	{
-#define PRVMSLOWINTERPRETER 1
-		if (prvm_timeprofiling.integer)
-		{
-#define PRVMTIMEPROFILING 1
-#include "prvm_execprogram.h"
-#undef PRVMTIMEPROFILING
-		}
-		else
-		{
-#include "prvm_execprogram.h"
-		}
-#undef PRVMSLOWINTERPRETER
-	}
-	else
-	{
-		if (prvm_timeprofiling.integer)
-		{
-#define PRVMTIMEPROFILING 1
-#include "prvm_execprogram.h"
-#undef PRVMTIMEPROFILING
-		}
-		else
-		{
-#include "prvm_execprogram.h"
-		}
-	}
 
-cleanup:
+	VM_Execute(prog,
+			&st,
+			startst,
+			tempfloat,
+			cached_edictsfields,
+			cached_entityfields,
+			cached_entityfields_3,
+			cached_entityfieldsarea,
+			cached_entityfieldsarea_entityfields,
+			cached_entityfieldsarea_3,
+			cached_entityfieldsarea_entityfields_3,
+			cached_max_edicts,
+			cached_statements,
+			cached_allowworldwrites,
+			cached_flag,
+			cachedpr_trace,
+			exitdepth
+		);
 	if (developer_insane.integer && prog->tempstringsbuf.cursize > restorevm_tempstringsbuf_cursize)
 		Con_DPrintf("CLVM_ExecuteProgram: %s used %i bytes of tempstrings\n", PRVM_GetString(prog, prog->functions[fnum].s_name), prog->tempstringsbuf.cursize - restorevm_tempstringsbuf_cursize);
 	// delete tempstrings created by this function
@@ -1012,38 +1401,24 @@ void PRVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessa
 	// add one to the callcount of this function because otherwise engine-called functions aren't counted
 	if (prog->xfunction->callcount++ == 0 && (prvm_coverage.integer & 1))
 		PRVM_FunctionCoverageEvent(prog, prog->xfunction);
-
-chooseexecprogram:
-	cachedpr_trace = prog->trace;
-	if (prog->trace || prog->watch_global_type != ev_void || prog->watch_field_type != ev_void || prog->break_statement >= 0)
-	{
-#define PRVMSLOWINTERPRETER 1
-		if (prvm_timeprofiling.integer)
-		{
-#define PRVMTIMEPROFILING 1
-#include "prvm_execprogram.h"
-#undef PRVMTIMEPROFILING
-		}
-		else
-		{
-#include "prvm_execprogram.h"
-		}
-#undef PRVMSLOWINTERPRETER
-	}
-	else
-	{
-		if (prvm_timeprofiling.integer)
-		{
-#define PRVMTIMEPROFILING 1
-#include "prvm_execprogram.h"
-#undef PRVMTIMEPROFILING
-		}
-		else
-		{
-#include "prvm_execprogram.h"
-		}
-	}
-
+	VM_Execute(prog,
+		&st,
+		startst,
+		tempfloat,
+		cached_edictsfields,
+		cached_entityfields,
+		cached_entityfields_3,
+		cached_entityfieldsarea,
+		cached_entityfieldsarea_entityfields,
+		cached_entityfieldsarea_3,
+		cached_entityfieldsarea_entityfields_3,
+		cached_max_edicts,
+		cached_statements,
+		cached_allowworldwrites,
+		cached_flag,
+		cachedpr_trace,
+		exitdepth
+	);
 cleanup:
 	if (unlikely(developer_insane.integer != 0) && prog->tempstringsbuf.cursize > restorevm_tempstringsbuf_cursize)
 		Con_DPrintf("SVVM_ExecuteProgram: %s used %i bytes of tempstrings\n", PRVM_GetString(prog, prog->functions[fnum].s_name), prog->tempstringsbuf.cursize - restorevm_tempstringsbuf_cursize);

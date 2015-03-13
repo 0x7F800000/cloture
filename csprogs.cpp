@@ -7,6 +7,8 @@
 #include "clvm_cmds.h"
 #include "prvm_cmds.h"
 
+using namespace cloture;
+
 //============================================================================
 // Client prog handling
 //[515]: omg !!! optimize it ! a lot of hacks here and there also :P
@@ -962,18 +964,18 @@ bool MakeDownloadPacket(const char *filename, unsigned char *data, size_t len, i
 extern cvar_t csqc_usedemoprogs;
 void CL_VM_Init ()
 {
+	using console::dbgout;
 	prvm_prog_t *prog = CLVM_prog;
 	const char* csprogsfn = nullptr;
 	unsigned char *csprogsdata = nullptr;
 	fs_offset_t csprogsdatasize = 0;
-	int csprogsdatacrc, requiredcrc;
-	int requiredsize;
+	int csprogsdatacrc;
 	char vabuf[1024];
 
 	// reset csqc_progcrc after reading it, so that changing servers doesn't
 	// expect csqc on the next server
-	requiredcrc = csqc_progcrc.integer;
-	requiredsize = csqc_progsize.integer;
+	int requiredcrc = csqc_progcrc.integer;
+	int requiredsize = csqc_progsize.integer;
 	Cvar_SetValueQuick(&csqc_progcrc, -1);
 	Cvar_SetValueQuick(&csqc_progsize, -1);
 
@@ -985,9 +987,10 @@ void CL_VM_Init ()
 	if (!cls.demoplayback || csqc_usedemoprogs.integer)
 	{
 		csprogsfn = va(vabuf, sizeof(vabuf), "dlcache/%s.%i.%i", csqc_progname.string, requiredsize, requiredcrc);
-		if(cls.caughtcsprogsdata && cls.caughtcsprogsdatasize == requiredsize && CRC_Block(cls.caughtcsprogsdata, (size_t)cls.caughtcsprogsdatasize) == requiredcrc)
+		if(cls.caughtcsprogsdata && cls.caughtcsprogsdatasize == requiredsize
+		&& CRC_Block(cls.caughtcsprogsdata, (size_t)cls.caughtcsprogsdatasize) == requiredcrc)
 		{
-			Con_DPrintf("Using buffered \"%s\"\n", csprogsfn);
+			dbgout << "Using buffered \"" << csprogsfn << "\"\n";
 			csprogsdata = cls.caughtcsprogsdata;
 			csprogsdatasize = cls.caughtcsprogsdatasize;
 			cls.caughtcsprogsdata = nullptr;

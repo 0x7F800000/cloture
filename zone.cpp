@@ -1002,6 +1002,12 @@ void operator delete[](void* v)
 	free(v);
 }
 
+extern "C" void __cxa_pure_virtual()
+{
+	exit(1);
+}//
+
+//#if 0
 void* __gxx_personality_v0;
 
 extern "C" void* __cxa_begin_catch(void* exceptionObject)
@@ -1014,10 +1020,7 @@ extern "C" void __clang_call_terminate(void* )
 	exit(1);
 }
 
-extern "C" void __cxa_pure_virtual()
-{
-	exit(1);
-}
+
 
 extern "C" void __cxa_rethrow()
 {
@@ -1030,10 +1033,10 @@ extern "C" void __cxa_call_unexpected(void*)
 
 namespace std
 {
-	[[noreturn]] void terminate()
+	/*[[noreturn]] void terminate()
 	{
 		exit(1);
-	}
+	}*/
 	void __throw_bad_alloc(){exit(1);}
 	void __throw_length_error(char const*)
 	{
@@ -1052,3 +1055,4 @@ namespace __cxxabiv1
 	};
 };
 
+//#endif

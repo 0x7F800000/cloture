@@ -41,19 +41,19 @@ public:
 		const uint32 exponent 	= (raw >> 23) & 0xFF;
 
 		//exponent underflows
-		if(e < 103)
+		if(exponent < 103)
 		{
 			h = bits;	//signed zero
 		}
 		//NaN or Inf
-		else if(e > 142)
+		else if(exponent > 142)
 		{
 			bits |= 0x7C00;
 			bits |= exponent == 255 && (raw & 0x007fffff);
 			h = bits;
 		}
 		//denormal
-		else if(e < 113)
+		else if(exponent < 113)
 		{
 			mantissa |= 0x0800;
 			bits |= (mantissa >> (114 - exponent)) + ((mantissa >> (113 - exponent)) & 1);

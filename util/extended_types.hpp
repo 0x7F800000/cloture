@@ -17,6 +17,7 @@ namespace common	{
 		/*
 		 * include some header here containing a class to emulate __int128
 		 */
+		 #include "int128.hpp"
 	#endif
 
 	/*
@@ -118,6 +119,13 @@ namespace common	{
 	"hexadecimal int128/uint128 literals are fuckt"
 	);
 
+	//fixed point types
+	#include	"fixed.hpp"
+
+	//half-precision float type
+	#include	"half.hpp"
+
+	//quad-precision float type
 	#include	"quad.hpp"
 
 }//namespace common

@@ -99,8 +99,15 @@ int rcon_redirect_bufferpos = 0;
 char rcon_redirect_buffer[1400];
 bool rcon_redirect_proquakeprotocol = false;
 
-// generic functions for console buffers
-
+namespace cloture
+{
+namespace console
+{
+	cloture::util::stream::ostream<&Con_Printf> 	con;
+	cloture::util::stream::ostream<&Con_DPrintf> 	dbgout;
+	// generic functions for console buffers
+}//namespace console
+}//namespace cloture
 void ConBuffer_Init(conbuffer_t *buf, int textsize, int maxlines, mempool_t *mempool)
 {
 	buf->active = true;

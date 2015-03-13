@@ -150,14 +150,10 @@ void Sys_InitConsole (void)
 {
 }
 
-static int testresult = 0xFDEDFDED;
 
 int main (int argc, char **argv)
 {
 	signal(SIGFPE, SIG_IGN);
-	double test = cloture::util::ctfe::math::pow<double>(8.5, 6.0);
-
-
 
 	com_argc = argc;
 	com_argv = (const char **)argv;

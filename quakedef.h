@@ -21,6 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #pragma once
 //#define BUILD_CLOTURE_GAME
+
+#define		disableProfiling	1
+
 #define USE_QUAKEC
 #ifdef __APPLE__
 # include <TargetConditionals.h>

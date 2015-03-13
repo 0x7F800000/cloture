@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef __clang__
+	extern char *gets (char *__s) __wur __attribute_deprecated__;
+#endif
+#include <stdexcept>
+
+
 __if_not_exists(ptrdiff_t)
 {
 	//needed for some files that don't include quakedef.h
@@ -78,3 +84,14 @@ using vec_t = float;
 
 /*	cmath replacement. mostly inline wrappers around __builtin versions	*/
 #include	"math.hpp"
+
+/*
+ * input-output streams
+ */
+#include	"io.hpp"
+
+#include 	"endian.hpp"
+/*
+ * simple wrapper around a c-style string
+ */
+#include	"CString.hpp"
