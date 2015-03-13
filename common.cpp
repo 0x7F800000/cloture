@@ -106,6 +106,7 @@ void StoreBigLong (unsigned char *buffer, unsigned int i)
 	buffer[2] = (i >>  8) & 0xFF;
 	buffer[3] = i         & 0xFF;
 }
+//se the keys at init time
 
 void StoreBigShort (unsigned char *buffer, unsigned short i)
 {
@@ -178,7 +179,7 @@ static unsigned short crctable[256] =
 	0x6e17,	0x7e36,	0x4e55,	0x5e74,	0x2e93,	0x3eb2,	0x0ed1,	0x1ef0
 };
 
-unsigned short CRC_Block(const unsigned char *data, size_t size)
+unsigned short CRC_Block(const unsigned char *RESTRICT data, size_t size)
 {
 	unsigned short crc = CRC_INIT_VALUE;
 	while (size--)

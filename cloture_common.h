@@ -77,12 +77,12 @@ void COM_Init_Commands();
  */
 
 // unaligned memory access crashes on some platform, so always read bytes...
-#define BigShort(l) BuffBigShort((unsigned char *)&(l))
-#define LittleShort(l) BuffLittleShort((unsigned char *)&(l))
-#define BigLong(l) BuffBigLong((unsigned char *)&(l))
-#define LittleLong(l) BuffLittleLong((unsigned char *)&(l))
-#define BigFloat(l) BuffBigFloat((unsigned char *)&(l))
-#define LittleFloat(l) BuffLittleFloat((unsigned char *)&(l))
+#define BigShort(l) BuffBigShort((const unsigned char *)&(l))
+#define LittleShort(l) BuffLittleShort((const unsigned char *)&(l))
+#define BigLong(l) BuffBigLong((const unsigned char *)&(l))
+#define LittleLong(l) BuffLittleLong((const unsigned char *)&(l))
+#define BigFloat(l) BuffBigFloat((const unsigned char *)&(l))
+#define LittleFloat(l) BuffLittleFloat((const unsigned char *)&(l))
 
 /// Extract a big endian 32bit float from the given \p buffer.
 float BuffBigFloat (const unsigned char *buffer);
@@ -381,3 +381,16 @@ char **XPM_DecodeString(const char *in);
 size_t base64_encode(unsigned char *buf, size_t buflen, size_t outbuflen);
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
+#define		CRC_INLINE		inline
+
+namespace cloture 	{
+namespace CRC		{
+
+	template<typename T>
+	CRC_INLINE __pseudopure util::common::uint16 CRCBlock(const T* data, const size_t size)
+	{
+		return CRC_Block(reinterpret_cast<const unsigned char*>(data), size);
+	}
+}//namespace CRC
+}//namespace cloture

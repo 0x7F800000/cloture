@@ -155,3 +155,10 @@ const char *ConBuffer_GetLine(conbuffer_t *buf, int i);
 };	//extern "C"
 #endif
 
+
+namespace cloture	{
+namespace console	{
+
+
+}//namespace console
+}//namespace cloture

@@ -240,10 +240,17 @@ namespace FS		{
 		{
 			return f;
 		}
+	};//struct File
 
-
-
-	};
-
+	template<typename T> FS_INLINE
+	static T* loadFile(
+		const char 		*path,
+		mempool_t 		*pool,
+		bool 			quiet,
+		fs_offset_t 	*filesizepointer
+	)
+	{
+		return reinterpret_cast<T*>(FS_LoadFile(path, pool, quiet, filesizepointer));
+	}
 }//namespace FS
 }//namespace cloture

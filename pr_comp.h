@@ -205,7 +205,8 @@ mstatement_t;
 
 
 constexpr int PROG_VERSION = 6;
-typedef struct dprograms_s
+
+struct dprograms_t
 {
 	int		version;
 	int		crc;			// check of header file
@@ -229,6 +230,48 @@ typedef struct dprograms_s
 	int		numglobals;
 
 	int		entityfields;
-}
-dprograms_t;
+
+	inline dstatement_t* getStatementPointer()
+	{
+		return reinterpret_cast<dstatement_t*>
+		(
+			reinterpret_cast<size_t>(	this	)	+	static_cast<size_t>(	LittleLong(ofs_statements)	)
+		);
+	}
+	inline ddef_t* getGlobalDefsPointer()
+	{
+		return reinterpret_cast<ddef_t*>
+		(
+				reinterpret_cast<size_t>(this) + static_cast<size_t>(	LittleLong(ofs_globaldefs)	)
+		);
+	}
+	inline ddef_t* getFieldDefsPointer()
+	{
+		return reinterpret_cast<ddef_t*>
+		(
+				reinterpret_cast<size_t>(this) + static_cast<size_t>(	LittleLong(ofs_fielddefs)	)
+		);
+	}
+	inline dfunction_t* getFunctionsPointer()
+	{
+		return reinterpret_cast<dfunction_t*>
+		(
+				reinterpret_cast<size_t>(this) + static_cast<size_t>(	LittleLong(ofs_functions)	)
+		);
+	}
+	inline char* getStringsPointer()
+	{
+		return reinterpret_cast<char*>
+		(
+				reinterpret_cast<size_t>(this) + static_cast<size_t>(	LittleLong(ofs_strings)	)
+		);
+	}
+	inline int* getGlobalsPointer()
+	{
+		return reinterpret_cast<int*>
+		(
+				reinterpret_cast<size_t>(this) + static_cast<size_t>(	LittleLong(ofs_globals)	)
+		);
+	}
+};
 

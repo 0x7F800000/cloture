@@ -19,6 +19,30 @@ public:
 	static constexpr uint128 absMask	= ~signMask;
 	static constexpr int128 posInf		= 0x7fff0000000000000000000000000000_i128;
 	static constexpr int128 negInf		= 0xffff0000000000000000000000000000_i128;
+	static constexpr uint128 significandMask	=	~negInf;
+	//
+	static constexpr size_t fractionalBits	= 112;
+	static constexpr size_t exponentBits	= 15;
+
+	static constexpr size_t exponentBias	= 16383;
+	static constexpr size_t exponentMax		= 32767;
+	static constexpr size_t floatRebias		= 16256;
+	constexpr real128(const float f) : v(0_i128)
+	{
+		using cloture::util::ctfe::math::rawBits;
+
+		const int raw				= rawBits(f);
+		uint128 fmantissa 	= raw & 0x7FFFFF;
+		unsigned exponent		= static_cast<uint8>(raw >> 23) & 0x7Fu;
+		exponent += floatRebias;
+
+		fmantissa <<= 89;
+		uint128 exponent128 = exponent;
+		exponent128 <<= fractionalBits;
+
+		const int128 calcval = exponent128 | fmantissa;
+		v = (f < .0f) ? calcval | signMask : calcval;
+	}
 
 	#if 0
 	struct s0 {
@@ -86,7 +110,7 @@ public:
 				r11d0 = -i;
 			}
 
-			ecx9 = (int32)(r10_7 + 31);
+			ecx9 = (int32)(r10_7 + 31__stdcall);
 			rdx3 = rdx3 << *(unsigned char*)&ecx9;
 			*(int32*)&rax5 = -ecx9 + 1;
 		}

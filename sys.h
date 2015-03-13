@@ -75,7 +75,7 @@ void Sys_PrintfToTerminal(const char *fmt, ...);
 
 /// INFO: This is only called by Host_Shutdown so we dont need testing for recursion
 void Sys_Shutdown ();
-void Sys_Quit (int returnvalue);
+void Sys_Quit (int returnvalue) __noreturn;
 
 /*! on some build/platform combinations (such as Linux gcc with the -pg
  * profiling option) this can turn on/off profiling, used primarily to limit
@@ -116,3 +116,70 @@ void Sys_SDL_Delay (unsigned int milliseconds); // wrapper to call SDL_Delay
 void Sys_InitProcessNice ();
 void Sys_MakeProcessNice ();
 void Sys_MakeProcessMean ();
+
+#define		SYSTEM_INLINE	inline
+
+namespace cloture	{
+namespace system	{
+
+	SYSTEM_INLINE
+	static bool loadLibrary(const char** dllnames, dllhandle_t* handle, const dllfunction_t *fcts)
+	{
+		return Sys_LoadLibrary(dllnames, handle, fcts);
+	}
+	SYSTEM_INLINE
+	static void unloadLibrary(dllhandle_t* handle)
+	{
+		Sys_UnloadLibrary(handle);
+	}
+
+	template<typename T>
+	SYSTEM_INLINE
+	static T getExportAddress(dllhandle_t handle, const char* name)
+	{
+		static_assert(
+		type_is_pointer(T),
+		"getExportAddress requires a pointer typename parameter."
+		);
+		return reinterpret_cast<T>(Sys_GetProcAddress(handle, name));
+	}
+
+
+	namespace console
+	{
+		__forceinline
+		static void init()
+		{
+			Sys_InitConsole();
+		}
+	}//namespace console
+
+	SYSTEM_INLINE
+	static double dirtyTime()
+	{
+		return Sys_DirtyTime();
+	}
+	SYSTEM_INLINE
+	static void sleep(const int microseconds)
+	{
+		Sys_Sleep(microseconds);
+	}
+	__noreturn SYSTEM_INLINE
+	static void quit(const int returnval)
+	{
+		Sys_Quit(returnval);
+	}
+
+	SYSTEM_INLINE
+	static void shutdown()
+	{
+		Sys_Shutdown();
+	}
+
+	template<typename... types> __noreturn SYSTEM_INLINE
+	static void error(const char* format, types... params)
+	{
+		Sys_Error(format, params...);
+	}
+}//namespace system
+}//namespace cloture
