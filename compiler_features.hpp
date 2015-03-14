@@ -104,3 +104,27 @@
 #else
 	#define		vectorizeLoop
 #endif
+/**
+	choose_expr
+
+	GCC extension. sort of like a compile time ternary.
+	different from __if_exists and __if_not_exists in that it takes uses a constant expression
+	rather than an identifier
+
+	on its own it isn't too powerful. combined with __if_exists, __if_not_exists, templates and constexpr functions
+	it can be useful
+*/
+#if HAS_CHOOSE_EXPR
+	#define 	choose_expr(const_expr, if_true, if_false)	__builtin_choose_expr(const_expr, if_true, if_false)
+#else
+	#define		choose_expr(const_expr, if_true, if_false)	((const_expr) ? (if_true) : (if_false))
+#endif
+/**
+	constant_p
+
+	GCC extension. returns true if value is known at compile time
+	i'm not 100% sure, but I think this can be used in constexpr functions to
+	determine if they are being evaluated at compile time
+
+*/
+#define		constant_p(value)				__builtin_constant_p(value)

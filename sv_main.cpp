@@ -3816,7 +3816,7 @@ static void SV_VM_InitCallbacks(Program prog)
 
 static void SV_VM_Setup()
 {
-	Program prog = SVVM_prog;
+	Program prog = Program(SVVM_prog);
 	PRVM_Prog_Init(prog.getPtr());
 
 	// allocate the mempools

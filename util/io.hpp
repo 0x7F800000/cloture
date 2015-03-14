@@ -5,32 +5,43 @@ namespace cloture		{
 namespace util			{
 namespace stream		{
 
+using templates::variadic::isValidVArg;
+
 enum class Radix : common::uint8
 {
 	decimal,
 	hex
 };
 
-template<void (*output_func)(const char*, ...), typename userDataType = void>
+#define		ostreamFlexible		0
+
+#if ostreamFlexible
+	template<void (*outputFunc)(const char*, ...), typename... userDataTypes>
+#else
+	template<void (*output_func)(const char*, ...)>
+#endif
+//
 class ostream
 {
 	Radix rad;
-	template<typename TT> struct isUdataVoid
-	{
-		static constexpr bool value = false;
-	};
-	template<> struct isUdataVoid<void>
-	{
-	};
 
-	__if_exists(isUdataVoid<typename userDataType>::value)
-	{
-		userDataType udata;
-	}
-
+	#if ostreamFlexible
+	using udata1 = getNthTypename(1, userDataTypes);
+	udata1 ud1;
+	#endif
 public:
-
-
+	#if ostreamFlexible
+		template<typename... args>
+		void output_func(const char* s, args... Args)
+		{
+		choose_expr
+		(
+			isValidVArg<udata1>,
+			outputFunc(ud1, s, Args...),
+			outputFunc(s, Args...)
+		);
+		}
+	#endif
 	ostream& operator <<(const bool b)
 	{
 		if(b)

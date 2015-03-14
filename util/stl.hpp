@@ -41,6 +41,8 @@ __if_not_exists(ptrdiff_t)
 */
 #include	"generic.hpp"
 
+#include	"va_template.hpp"
+
 /*
 	common routines
 */

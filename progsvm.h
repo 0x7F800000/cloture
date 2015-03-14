@@ -1153,11 +1153,12 @@ public:
 };//class Program
 #else
 
-class Program : public util::pointers::wrapped_ptr<prvm_prog_t>
+using util::pointers::wrapped_ptr;
+
+class Program : public wrapped_ptr<prvm_prog_t>
 {
 public:
-	__pseudopure inline Program(prvm_prog_t* p) : wrapped_ptr<prvm_prog_t>(p)
-	{}
+	using wrapped_ptr::wrapped_ptr;
 };
 
 #endif
