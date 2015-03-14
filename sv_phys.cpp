@@ -464,8 +464,8 @@ trace_t SV_TraceBox(const vec3_t start, const vec3_t mins, const vec3_t maxs, co
 		// LordHavoc: modified this, was = -15, now -= 15
 		for (i = 0;i < 3;i++)
 		{
-			clipmins2[i] -= 15;
-			clipmaxs2[i] += 15;
+			clipmins2[i] -= 15.0f;
+			clipmaxs2[i] += 15.0f;
 		}
 	}
 
@@ -488,8 +488,8 @@ trace_t SV_TraceBox(const vec3_t start, const vec3_t mins, const vec3_t maxs, co
 	// debug override to test against everything
 	if (sv_debugmove.integer)
 	{
-		clipboxmins[0] = clipboxmins[1] = clipboxmins[2] = -999999999;
-		clipboxmaxs[0] = clipboxmaxs[1] = clipboxmaxs[2] =  999999999;
+		clipboxmins[0] = clipboxmins[1] = clipboxmins[2] = -999999999.0f;
+		clipboxmaxs[0] = clipboxmaxs[1] = clipboxmaxs[2] =  999999999.0f;
 	}
 
 	// if the passedict is world, make it nullptr (to avoid two checks each time)
@@ -723,7 +723,7 @@ void SV_LinkEdict_TouchAreaGrid(prvm_edict_t *ent)
 	// build a list of edicts to touch, because the link loop can be corrupted
 	// by IncreaseEdicts called during touch functions
 	numtouchedicts = SV_EntitiesInBox(ent->priv.server->areamins, ent->priv.server->areamaxs, MAX_EDICTS, touchedicts);
-	if (numtouchedicts > MAX_EDICTS)
+	if (unlikely(numtouchedicts > MAX_EDICTS))
 	{
 		// this never happens
 		Con_Printf("SV_EntitiesInBox returned %i edicts, max was %i\n", numtouchedicts, MAX_EDICTS);
@@ -1181,7 +1181,7 @@ void SV_CheckVelocity (prvm_edict_t *ent)
 	float wishspeed = DotProduct(PRVM_serveredictvector(ent, velocity), PRVM_serveredictvector(ent, velocity));
 	if (wishspeed > sv_maxvelocity.value * sv_maxvelocity.value)
 	{
-		wishspeed = sv_maxvelocity.value / sqrt(wishspeed);
+		wishspeed = sv_maxvelocity.value / sqrtf(wishspeed);
 		PRVM_serveredictvector(ent, velocity)[0] *= wishspeed;
 		PRVM_serveredictvector(ent, velocity)[1] *= wishspeed;
 		PRVM_serveredictvector(ent, velocity)[2] *= wishspeed;
@@ -2419,8 +2419,8 @@ static void SV_WalkMove (prvm_edict_t *ent)
 		// check for stuckness, possibly due to the limited precision of floats
 		// in the clipping hulls
 		if (clip
-		 && fabs(originalmove_origin[1] - PRVM_serveredictvector(ent, origin)[1]) < 0.03125
-		 && fabs(originalmove_origin[0] - PRVM_serveredictvector(ent, origin)[0]) < 0.03125)
+		 && fabsf(originalmove_origin[1] - PRVM_serveredictvector(ent, origin)[1]) < 0.03125
+		 && fabsf(originalmove_origin[0] - PRVM_serveredictvector(ent, origin)[0]) < 0.03125)
 		{
 			// stepping up didn't make any progress, revert to original move
 			VectorCopy(originalmove_origin, PRVM_serveredictvector(ent, origin));
@@ -2937,9 +2937,7 @@ static void SV_Physics_ClientEntity_PreThink(prvm_edict_t *ent)
 
 	// don't run physics here if running asynchronously
 	if (host_client->clmovement_inputtimeout <= 0)
-	{
 		SV_ClientThink();
-	}
 
 	// make sure the velocity is still sane (not a NaN)
 	SV_CheckVelocity(ent);
@@ -3088,7 +3086,7 @@ void SV_Physics()
 //
 
 	// if force_retouch, relink all the entities
-	if (PRVM_serverglobalfloat(force_retouch) > 0)
+	if (PRVM_serverglobalfloat(force_retouch) > .0f)
 		for (i = 1, ent = PRVM_EDICT_NUM(i);i < prog->num_edicts;i++, ent = PRVM_NEXT_EDICT(ent))
 			if (!ent->priv.server->free)
 				SV_LinkEdict_TouchAreaGrid(ent); // force retouch even for stationary

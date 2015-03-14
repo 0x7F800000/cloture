@@ -25,6 +25,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "csprogs.h"
 #include "thread.h"
 
+using namespace cloture;
+using namespace util::common;
+using namespace console;
+using namespace vm;
+
 static void SV_SaveEntFile_f();
 static void SV_StartDownload_f();
 static void SV_Download_f();
@@ -3668,33 +3673,134 @@ static bool SVVM_load_edict(prvm_prog_t *prog, prvm_edict_t *ent)
 	return true;
 }
 
-static void SV_VM_Setup()
+static void SV_VM_InitOffsets(Program prog)
 {
-	prvm_prog_t *prog = SVVM_prog;
-	PRVM_Prog_Init(prog);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, modelindex);
 
-	// allocate the mempools
-	// TODO: move the magic numbers/constants into #defines [9/13/2006 Black]
-	prog->progs_mempool = Mem_AllocPool("Server Progs", 0, nullptr);
-	prog->builtins = vm_sv_builtins;
-	prog->numbuiltins = vm_sv_numbuiltins;
-	prog->max_edicts = 512;
-	if (sv.protocol == PROTOCOL_QUAKE)
-		prog->limit_edicts = 640; // before quake mission pack 1 this was 512
-	else if (sv.protocol == PROTOCOL_QUAKEDP)
-		prog->limit_edicts = 2048; // guessing
-	else if (sv.protocol == PROTOCOL_NEHAHRAMOVIE)
-		prog->limit_edicts = 2048; // guessing!
-	else if (sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-		prog->limit_edicts = 4096; // guessing!
-	else
-		prog->limit_edicts = MAX_EDICTS;
-	prog->reserved_edicts = svs.maxclients;
-	prog->edictprivate_size = sizeof(edict_engineprivate_t);
-	prog->name = "server";
-	prog->extensionstring = vm_sv_extensions;
-	prog->loadintoworld = true;
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, absmin);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, absmax);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ltime);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, movetype);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, solid);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, origin);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, oldorigin);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, velocity);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, angles);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, avelocity);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, punchangle);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, classname);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, model);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, frame);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, skin);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, effects);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, mins);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, maxs);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, size);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, touch);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, use);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, think);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, blocked);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, nextthink);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, groundentity);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, health);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, frags);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, weapon);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, weaponmodel);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, weaponframe);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, currentammo);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_shells);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_nails);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_rockets);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_cells);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, items);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, takedamage);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, chain);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, deadflag);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, view_ofs);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, button0);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, button1);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, button2);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, impulse);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, fixangle);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, v_angle);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, idealpitch);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, netname);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, enemy);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, flags);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, colormap);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, team);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, max_health);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, teleport_time);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, armortype);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, armorvalue);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, waterlevel);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, watertype);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ideal_yaw);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, yaw_speed);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, aiment);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, goalentity);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, spawnflags);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, target);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, targetname);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, dmg_take);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, dmg_save);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, dmg_inflictor);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, owner);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, movedir);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, message);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, sounds);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise1);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise2);
+	PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise3);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, self);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, other);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, world);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, time);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, frametime);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, force_retouch);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, mapname);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, deathmatch);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, coop);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, teamplay);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, serverflags);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, total_secrets);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, total_monsters);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, found_secrets);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, killed_monsters);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm1);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm2);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm3);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm4);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm5);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm6);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm7);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm8);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm9);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm10);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm11);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm12);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm13);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm14);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm15);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm16);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, v_forward);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, v_up);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, v_right);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_allsolid);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_startsolid);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_fraction);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_endpos);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_plane_normal);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_plane_dist);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_ent);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_inopen);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_inwater);
+	PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, msg_entity);
+}
 
+static void SV_VM_InitCallbacks(Program prog)
+{
 	// all callbacks must be defined (pointers are not checked before calling)
 	prog->begin_increase_edicts = SVVM_begin_increase_edicts;
 	prog->end_increase_edicts   = SVVM_end_increase_edicts;
@@ -3706,138 +3812,36 @@ static void SV_VM_Setup()
 	prog->reset_cmd             = SVVM_reset_cmd;
 	prog->error_cmd             = Host_Error;
 	prog->ExecuteProgram        = SVVM_ExecuteProgram;
+}
 
-	PRVM_Prog_Load(prog, sv_progs.string, nullptr, 0, SV_REQFUNCS, sv_reqfuncs, SV_REQFIELDS, sv_reqfields, SV_REQGLOBALS, sv_reqglobals);
+static void SV_VM_Setup()
+{
+	Program prog = SVVM_prog;
+	PRVM_Prog_Init(prog.getPtr());
+
+	// allocate the mempools
+	// TODO: move the magic numbers/constants into #defines [9/13/2006 Black]
+	prog->progs_mempool = Mem_AllocPool("Server Progs", 0, nullptr);
+	prog->builtins = vm_sv_builtins;
+	prog->numbuiltins = vm_sv_numbuiltins;
+	prog->max_edicts = 512;
+	prog->limit_edicts = MAX_EDICTS;
+	prog->reserved_edicts = svs.maxclients;
+	prog->edictprivate_size = sizeof(edict_engineprivate_t);
+	prog->name = "server";
+	prog->extensionstring = vm_sv_extensions;
+	prog->loadintoworld = true;
+
+	SV_VM_InitCallbacks(prog);
+
+	PRVM_Prog_Load(prog.getPtr(), sv_progs.string, nullptr, 0, SV_REQFUNCS, sv_reqfuncs, SV_REQFIELDS, sv_reqfields, SV_REQGLOBALS, sv_reqglobals);
 
 	// some mods compiled with scrambling compilers lack certain critical
 	// global names and field names such as "self" and "time" and "nextthink"
 	// so we have to set these offsets manually, matching the entvars_t
 	// but we only do this if the prog header crc matches, otherwise it's totally freeform
-	if (prog->progs_crc == PROGHEADER_CRC || prog->progs_crc == PROGHEADER_CRC_TENEBRAE)
-	{
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, modelindex);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, absmin);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, absmax);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ltime);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, movetype);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, solid);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, origin);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, oldorigin);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, velocity);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, angles);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, avelocity);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, punchangle);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, classname);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, model);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, frame);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, skin);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, effects);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, mins);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, maxs);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, size);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, touch);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, use);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, think);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, blocked);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, nextthink);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, groundentity);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, health);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, frags);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, weapon);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, weaponmodel);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, weaponframe);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, currentammo);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_shells);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_nails);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_rockets);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ammo_cells);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, items);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, takedamage);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, chain);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, deadflag);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, view_ofs);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, button0);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, button1);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, button2);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, impulse);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, fixangle);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, v_angle);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, idealpitch);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, netname);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, enemy);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, flags);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, colormap);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, team);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, max_health);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, teleport_time);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, armortype);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, armorvalue);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, waterlevel);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, watertype);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, ideal_yaw);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, yaw_speed);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, aiment);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, goalentity);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, spawnflags);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, target);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, targetname);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, dmg_take);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, dmg_save);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, dmg_inflictor);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, owner);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, movedir);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, message);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, sounds);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise1);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise2);
-		PRVM_ED_FindFieldOffset_FromStruct(entvars_t, noise3);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, self);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, other);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, world);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, time);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, frametime);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, force_retouch);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, mapname);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, deathmatch);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, coop);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, teamplay);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, serverflags);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, total_secrets);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, total_monsters);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, found_secrets);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, killed_monsters);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm1);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm2);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm3);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm4);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm5);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm6);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm7);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm8);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm9);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm10);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm11);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm12);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm13);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm14);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm15);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, parm16);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, v_forward);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, v_up);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, v_right);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_allsolid);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_startsolid);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_fraction);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_endpos);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_plane_normal);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_plane_dist);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_ent);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_inopen);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, trace_inwater);
-		PRVM_ED_FindGlobalOffset_FromStruct(globalvars_t, msg_entity);
-
-	}
+	if (likely(prog->progs_crc == PROGHEADER_CRC || prog->progs_crc == PROGHEADER_CRC_TENEBRAE))
+		SV_VM_InitOffsets(prog);
 	else
 		Con_DPrintf("%s: %s system vars have been modified (CRC %i != engine %i), will not load in other engines", prog->name, sv_progs.string, prog->progs_crc, PROGHEADER_CRC);
 

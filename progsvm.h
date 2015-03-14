@@ -35,6 +35,9 @@ The code uses void pointers instead.
 #define PROFILING
 #endif
 
+#define	EDICTPRIVATE_CONSTEXPR	0
+#define	CONSTEXPR_OFFSETS		0
+
 typedef struct prvm_stack_s
 {
 	int				s;
@@ -46,6 +49,7 @@ typedef struct prvm_stack_s
 
 
 typedef union prvm_eval_s
+//union prvm_eval_t
 {
 	prvm_int_t		string;
 	prvm_vec_t	_float;
@@ -54,7 +58,7 @@ typedef union prvm_eval_s
 	prvm_int_t		ivector[3];
 	prvm_int_t		_int;
 	prvm_int_t		edict;
-} prvm_eval_t;
+}prvm_eval_t;
 
 typedef struct prvm_required_field_s
 {
@@ -223,20 +227,6 @@ extern prvm_eval_t prvm_badvalue;
 #define PRVM_menuglobalfunction(fieldname)    (PRVM_GLOBALFIELDFUNCTION(prog->globaloffsets.fieldname))
 #define PRVM_menufunction(funcname)           (prog->funcoffsets.funcname)
 
-#if 0
-#define PRVM_EDICTFIELDVALUE(ed, fieldoffset)    ((fieldoffset) < 0 ? Con_Printf("Invalid fieldoffset at %s:%i\n", __FILE__, __LINE__), &prvm_badvalue : (prvm_eval_t *)((ed)->fields.fp + (fieldoffset)))
-#define PRVM_EDICTFIELDFLOAT(ed, fieldoffset)    (PRVM_EDICTFIELDVALUE(ed, fieldoffset)->_float)
-#define PRVM_EDICTFIELDVECTOR(ed, fieldoffset)   (PRVM_EDICTFIELDVALUE(ed, fieldoffset)->vector)
-#define PRVM_EDICTFIELDSTRING(ed, fieldoffset)   (PRVM_EDICTFIELDVALUE(ed, fieldoffset)->string)
-#define PRVM_EDICTFIELDEDICT(ed, fieldoffset)    (PRVM_EDICTFIELDVALUE(ed, fieldoffset)->edict)
-#define PRVM_EDICTFIELDFUNCTION(ed, fieldoffset) (PRVM_EDICTFIELDVALUE(ed, fieldoffset)->function)
-#define PRVM_GLOBALFIELDVALUE(fieldoffset)       ((fieldoffset) < 0 ? Con_Printf("Invalid fieldoffset at %s:%i\n", __FILE__, __LINE__), &prvm_badvalue : (prvm_eval_t *)(prog->globals.fp + (fieldoffset)))
-#define PRVM_GLOBALFIELDFLOAT(fieldoffset)       (PRVM_GLOBALFIELDVALUE(fieldoffset)->_float)
-#define PRVM_GLOBALFIELDVECTOR(fieldoffset)      (PRVM_GLOBALFIELDVALUE(fieldoffset)->vector)
-#define PRVM_GLOBALFIELDSTRING(fieldoffset)      (PRVM_GLOBALFIELDVALUE(fieldoffset)->string)
-#define PRVM_GLOBALFIELDEDICT(fieldoffset)       (PRVM_GLOBALFIELDVALUE(fieldoffset)->edict)
-#define PRVM_GLOBALFIELDFUNCTION(fieldoffset)    (PRVM_GLOBALFIELDVALUE(fieldoffset)->function)
-#else
 #define PRVM_EDICTFIELDVALUE(ed, fieldoffset) ((prvm_eval_t *)(ed->fields.fp + fieldoffset))
 #define PRVM_EDICTFIELDFLOAT(ed, fieldoffset) (((prvm_eval_t *)(ed->fields.fp + fieldoffset))->_float)
 #define PRVM_EDICTFIELDVECTOR(ed, fieldoffset) (((prvm_eval_t *)(ed->fields.fp + fieldoffset))->vector)
@@ -249,7 +239,6 @@ extern prvm_eval_t prvm_badvalue;
 #define PRVM_GLOBALFIELDSTRING(fieldoffset) (((prvm_eval_t *)(prog->globals.fp + fieldoffset))->string)
 #define PRVM_GLOBALFIELDEDICT(fieldoffset) (((prvm_eval_t *)(prog->globals.fp + fieldoffset))->edict)
 #define PRVM_GLOBALFIELDFUNCTION(fieldoffset) (((prvm_eval_t *)(prog->globals.fp + fieldoffset))->function)
-#endif
 
 //============================================================================
 #define PRVM_OP_STATE		1
@@ -272,358 +261,209 @@ struct prvm_prog_s;
 typedef void (*prvm_builtin_t) (struct prvm_prog_s *prog);
 
 // NOTE: field offsets use -1 for NULL
-typedef struct prvm_prog_fieldoffsets_s
+//typedef struct prvm_prog_fieldoffsets_s
+struct prvm_prog_fieldoffsets_t
 {
-#if 0
-	#define PRVM_DECLARE_serverglobalfloat(x)
-	#define PRVM_DECLARE_serverglobalvector(x)
-	#define PRVM_DECLARE_serverglobalstring(x)
-	#define PRVM_DECLARE_serverglobaledict(x)
-	#define PRVM_DECLARE_serverglobalfunction(x)
-	#define PRVM_DECLARE_clientglobalfloat(x)
-	#define PRVM_DECLARE_clientglobalvector(x)
-	#define PRVM_DECLARE_clientglobalstring(x)
-	#define PRVM_DECLARE_clientglobaledict(x)
-	#define PRVM_DECLARE_clientglobalfunction(x)
-	#define PRVM_DECLARE_menuglobalfloat(x)
-	#define PRVM_DECLARE_menuglobalvector(x)
-	#define PRVM_DECLARE_menuglobalstring(x)
-	#define PRVM_DECLARE_menuglobaledict(x)
-	#define PRVM_DECLARE_menuglobalfunction(x)
-	#define PRVM_DECLARE_serverfieldfloat(x)
-	#define PRVM_DECLARE_serverfieldvector(x)
-	#define PRVM_DECLARE_serverfieldstring(x)
-	#define PRVM_DECLARE_serverfieldedict(x)
-	#define PRVM_DECLARE_serverfieldfunction(x)
-	#define PRVM_DECLARE_clientfieldfloat(x)
-	#define PRVM_DECLARE_clientfieldvector(x)
-	#define PRVM_DECLARE_clientfieldstring(x)
-	#define PRVM_DECLARE_clientfieldedict(x)
-	#define PRVM_DECLARE_clientfieldfunction(x)
-	#define PRVM_DECLARE_menufieldfloat(x)
-	#define PRVM_DECLARE_menufieldvector(x)
-	#define PRVM_DECLARE_menufieldstring(x)
-	#define PRVM_DECLARE_menufieldedict(x)
-	#define PRVM_DECLARE_menufieldfunction(x)
-	#define PRVM_DECLARE_serverfunction(x)
-	#define PRVM_DECLARE_clientfunction(x)
-	#define PRVM_DECLARE_menufunction(x)
-	#define PRVM_DECLARE_field(x) int x;
-	#define PRVM_DECLARE_global(x)
-	#define PRVM_DECLARE_function(x)
-	#include "prvm_offsets.h"
-	#undef PRVM_DECLARE_serverglobalfloat
-	#undef PRVM_DECLARE_serverglobalvector
-	#undef PRVM_DECLARE_serverglobalstring
-	#undef PRVM_DECLARE_serverglobaledict
-	#undef PRVM_DECLARE_serverglobalfunction
-	#undef PRVM_DECLARE_clientglobalfloat
-	#undef PRVM_DECLARE_clientglobalvector
-	#undef PRVM_DECLARE_clientglobalstring
-	#undef PRVM_DECLARE_clientglobaledict
-	#undef PRVM_DECLARE_clientglobalfunction
-	#undef PRVM_DECLARE_menuglobalfloat
-	#undef PRVM_DECLARE_menuglobalvector
-	#undef PRVM_DECLARE_menuglobalstring
-	#undef PRVM_DECLARE_menuglobaledict
-	#undef PRVM_DECLARE_menuglobalfunction
-	#undef PRVM_DECLARE_serverfieldfloat
-	#undef PRVM_DECLARE_serverfieldvector
-	#undef PRVM_DECLARE_serverfieldstring
-	#undef PRVM_DECLARE_serverfieldedict
-	#undef PRVM_DECLARE_serverfieldfunction
-	#undef PRVM_DECLARE_clientfieldfloat
-	#undef PRVM_DECLARE_clientfieldvector
-	#undef PRVM_DECLARE_clientfieldstring
-	#undef PRVM_DECLARE_clientfieldedict
-	#undef PRVM_DECLARE_clientfieldfunction
-	#undef PRVM_DECLARE_menufieldfloat
-	#undef PRVM_DECLARE_menufieldvector
-	#undef PRVM_DECLARE_menufieldstring
-	#undef PRVM_DECLARE_menufieldedict
-	#undef PRVM_DECLARE_menufieldfunction
-	#undef PRVM_DECLARE_serverfunction
-	#undef PRVM_DECLARE_clientfunction
-	#undef PRVM_DECLARE_menufunction
-	#undef PRVM_DECLARE_field
-	#undef PRVM_DECLARE_global
-	#undef PRVM_DECLARE_function
-#else
-	int SendEntity;
-	int SendFlags;
-	int Version;
-	int absmax;
-	int absmin;
-	int aiment;
-	int alpha;
-	int ammo_cells;
-	int ammo_cells1;
-	int ammo_lava_nails;
-	int ammo_multi_rockets;
-	int ammo_nails;
-	int ammo_nails1;
-	int ammo_plasma;
-	int ammo_rockets;
-	int ammo_rockets1;
-	int ammo_shells;
-	int ammo_shells1;
-	int angles;
-	int armortype;
-	int armorvalue;
-	int avelocity;
-	int blocked;
-	int bouncefactor;
-	int bouncestop;
-	int button0;
-	int button1;
-	int button2;
-	int button3;
-	int button4;
-	int button5;
-	int button6;
-	int button7;
-	int button8;
-	int button9;
-	int button10;
-	int button11;
-	int button12;
-	int button13;
-	int button14;
-	int button15;
-	int button16;
-	int buttonchat;
-	int buttonuse;
-	int camera_transform;
-	int chain;
-	int classname;
-	int clientcamera;
-	int clientcolors;
-	int clientstatus;
-	int color;
-	int colormap;
-	int colormod;
-	int contentstransition;
-	int crypto_encryptmethod;
-	int crypto_idfp;
-	int crypto_keyfp;
-	int crypto_mykeyfp;
-	int crypto_signmethod;
-	int currentammo;
-	int cursor_active;
-	int cursor_screen;
-	int cursor_trace_endpos;
-	int cursor_trace_ent;
-	int cursor_trace_start;
-	int customizeentityforclient;
-	int deadflag;
-	int disableclientprediction;
-	int discardabledemo;
-	int dmg_inflictor;
-	int dmg_save;
-	int dmg_take;
-	int dphitcontentsmask;
-	int drawmask;
-	int drawonlytoclient;
-	int effects;
-	int enemy;
-	int entnum;
-	int exteriormodeltoclient;
-	int fixangle;
-	int flags;
-	int frags;
-	int frame;
-	int frame1time;
-	int frame2;
-	int frame2time;
-	int frame3;
-	int frame3time;
-	int frame4;
-	int frame4time;
-	int fullbright;
-	int glow_color;
-	int glow_size;
-	int glow_trail;
-	int glowmod;
-	int goalentity;
-	int gravity;
-	int groundentity;
-	int health;
-	int ideal_yaw;
-	int idealpitch;
-	int impulse;
-	int items;
-	int items2;
-	int geomtype;
-	int jointtype;
-	int forcetype;
-	int lerpfrac;
-	int lerpfrac3;
-	int lerpfrac4;
-	int light_lev;
-	int ltime;
-	int mass;
-	int massofs;
-	int friction;
-	int maxcontacts;
-	int erp;
-	int max_health;
-	int maxs;
-	int message;
-	int mins;
-	int model;
-	int modelflags;
-	int modelindex;
-	int movedir;
-	int movement;
-	int movetype;
-	int movetypesteplandevent;
-	int netaddress;
-	int netname;
-	int nextthink;
-	int nodrawtoclient;
-	int noise;
-	int noise1;
-	int noise2;
-	int noise3;
-	int oldorigin;
-	int origin;
-	int owner;
-	int pflags;
-	int ping;
-	int ping_movementloss;
-	int ping_packetloss;
-	int pitch_speed;
-	int playermodel;
-	int playerskin;
-	int pmodel;
-	int pmove_flags;
-	int predraw;
-	int punchangle;
-	int punchvector;
-	int renderamt;
-	int renderflags;
-	int scale;
-	int modelscale_vec;
-	int sendcomplexanimation;
-	int shadertime;
-	int size;
-	int skeletonindex;
-	int skin;
-	int solid;
-	int sounds;
-	int spawnflags;
-	int style;
-	int tag_entity;
-	int tag_index;
-	int takedamage;
-	int target;
-	int targetname;
-	int team;
-	int teleport_time;
-	int think;
-	int touch;
-	int traileffectnum;
-	int use;
-	int userwavefunc_param0;
-	int userwavefunc_param1;
-	int userwavefunc_param2;
-	int userwavefunc_param3;
-	int v_angle;
-	int velocity;
-	int modellight_ambient;
-	int modellight_diffuse;
-	int modellight_dir;
-	int view_ofs;
-	int viewmodelforclient;
-	int viewzoom;
-	int waterlevel;
-	int watertype;
-	int weapon;
-	int weaponframe;
-	int weaponmodel;
-	int yaw_speed;
-#endif
-}
-prvm_prog_fieldoffsets_t;
+		int SendEntity;
+		int SendFlags;
+		int Version;
+		int absmax;
+		int absmin;
+		int aiment;
+		int alpha;
+		int ammo_cells;
+		int ammo_cells1;
+		int ammo_lava_nails;
+		int ammo_multi_rockets;
+		int ammo_nails;
+		int ammo_nails1;
+		int ammo_plasma;
+		int ammo_rockets;
+		int ammo_rockets1;
+		int ammo_shells;
+		int ammo_shells1;
+		int angles;
+		int armortype;
+		int armorvalue;
+		int avelocity;
+		int blocked;
+		int bouncefactor;
+		int bouncestop;
+		int button0;
+		int button1;
+		int button2;
+		int button3;
+		int button4;
+		int button5;
+		int button6;
+		int button7;
+		int button8;
+		int button9;
+		int button10;
+		int button11;
+		int button12;
+		int button13;
+		int button14;
+		int button15;
+		int button16;
+		int buttonchat;
+		int buttonuse;
+		int camera_transform;
+		int chain;
+		int classname;
+		int clientcamera;
+		int clientcolors;
+		int clientstatus;
+		int color;
+		int colormap;
+		int colormod;
+		int contentstransition;
+		int crypto_encryptmethod;
+		int crypto_idfp;
+		int crypto_keyfp;
+		int crypto_mykeyfp;
+		int crypto_signmethod;
+		int currentammo;
+		int cursor_active;
+		int cursor_screen;
+		int cursor_trace_endpos;
+		int cursor_trace_ent;
+		int cursor_trace_start;
+		int customizeentityforclient;
+		int deadflag;
+		int disableclientprediction;
+		int discardabledemo;
+		int dmg_inflictor;
+		int dmg_save;
+		int dmg_take;
+		int dphitcontentsmask;
+		int drawmask;
+		int drawonlytoclient;
+		int effects;
+		int enemy;
+		int entnum;
+		int exteriormodeltoclient;
+		int fixangle;
+		int flags;
+		int frags;
+		int frame;
+		int frame1time;
+		int frame2;
+		int frame2time;
+		int frame3;
+		int frame3time;
+		int frame4;
+		int frame4time;
+		int fullbright;
+		int glow_color;
+		int glow_size;
+		int glow_trail;
+		int glowmod;
+		int goalentity;
+		int gravity;
+		int groundentity;
+		int health;
+		int ideal_yaw;
+		int idealpitch;
+		int impulse;
+		int items;
+		int items2;
+		int geomtype;
+		int jointtype;
+		int forcetype;
+		int lerpfrac;
+		int lerpfrac3;
+		int lerpfrac4;
+		int light_lev;
+		int ltime;
+		int mass;
+		int massofs;
+		int friction;
+		int maxcontacts;
+		int erp;
+		int max_health;
+		int maxs;
+		int message;
+		int mins;
+		int model;
+		int modelflags;
+		int modelindex;
+		int movedir;
+		int movement;
+		int movetype;
+		int movetypesteplandevent;
+		int netaddress;
+		int netname;
+		int nextthink;
+		int nodrawtoclient;
+		int noise;
+		int noise1;
+		int noise2;
+		int noise3;
+		int oldorigin;
+		int origin;
+		int owner;
+		int pflags;
+		int ping;
+		int ping_movementloss;
+		int ping_packetloss;
+		int pitch_speed;
+		int playermodel;
+		int playerskin;
+		int pmodel;
+		int pmove_flags;
+		int predraw;
+		int punchangle;
+		int punchvector;
+		int renderamt;
+		int renderflags;
+		int scale;
+		int modelscale_vec;
+		int sendcomplexanimation;
+		int shadertime;
+		int size;
+		int skeletonindex;
+		int skin;
+		int solid;
+		int sounds;
+		int spawnflags;
+		int style;
+		int tag_entity;
+		int tag_index;
+		int takedamage;
+		int target;
+		int targetname;
+		int team;
+		int teleport_time;
+		int think;
+		int touch;
+		int traileffectnum;
+		int use;
+		int userwavefunc_param0;
+		int userwavefunc_param1;
+		int userwavefunc_param2;
+		int userwavefunc_param3;
+		int v_angle;
+		int velocity;
+		int modellight_ambient;
+		int modellight_diffuse;
+		int modellight_dir;
+		int view_ofs;
+		int viewmodelforclient;
+		int viewzoom;
+		int waterlevel;
+		int watertype;
+		int weapon;
+		int weaponframe;
+		int weaponmodel;
+		int yaw_speed;
+
+};
 
 // NOTE: global offsets use -1 for NULL
-typedef struct prvm_prog_globaloffsets_s
+//typedef struct prvm_prog_globaloffsets_s
+struct prvm_prog_globaloffsets_t
 {
-#if 0
-	#define PRVM_DECLARE_serverglobalfloat(x)
-	#define PRVM_DECLARE_serverglobalvector(x)
-	#define PRVM_DECLARE_serverglobalstring(x)
-	#define PRVM_DECLARE_serverglobaledict(x)
-	#define PRVM_DECLARE_serverglobalfunction(x)
-	#define PRVM_DECLARE_clientglobalfloat(x)
-	#define PRVM_DECLARE_clientglobalvector(x)
-	#define PRVM_DECLARE_clientglobalstring(x)
-	#define PRVM_DECLARE_clientglobaledict(x)
-	#define PRVM_DECLARE_clientglobalfunction(x)
-	#define PRVM_DECLARE_menuglobalfloat(x)
-	#define PRVM_DECLARE_menuglobalvector(x)
-	#define PRVM_DECLARE_menuglobalstring(x)
-	#define PRVM_DECLARE_menuglobaledict(x)
-	#define PRVM_DECLARE_menuglobalfunction(x)
-	#define PRVM_DECLARE_serverfieldfloat(x)
-	#define PRVM_DECLARE_serverfieldvector(x)
-	#define PRVM_DECLARE_serverfieldstring(x)
-	#define PRVM_DECLARE_serverfieldedict(x)
-	#define PRVM_DECLARE_serverfieldfunction(x)
-	#define PRVM_DECLARE_clientfieldfloat(x)
-	#define PRVM_DECLARE_clientfieldvector(x)
-	#define PRVM_DECLARE_clientfieldstring(x)
-	#define PRVM_DECLARE_clientfieldedict(x)
-	#define PRVM_DECLARE_clientfieldfunction(x)
-	#define PRVM_DECLARE_menufieldfloat(x)
-	#define PRVM_DECLARE_menufieldvector(x)
-	#define PRVM_DECLARE_menufieldstring(x)
-	#define PRVM_DECLARE_menufieldedict(x)
-	#define PRVM_DECLARE_menufieldfunction(x)
-	#define PRVM_DECLARE_serverfunction(x)
-	#define PRVM_DECLARE_clientfunction(x)
-	#define PRVM_DECLARE_menufunction(x)
-	#define PRVM_DECLARE_field(x)
-	#define PRVM_DECLARE_global(x) int x;
-	#define PRVM_DECLARE_function(x)
-	#include "prvm_offsets.h"
-	#undef PRVM_DECLARE_serverglobalfloat
-	#undef PRVM_DECLARE_serverglobalvector
-	#undef PRVM_DECLARE_serverglobalstring
-	#undef PRVM_DECLARE_serverglobaledict
-	#undef PRVM_DECLARE_serverglobalfunction
-	#undef PRVM_DECLARE_clientglobalfloat
-	#undef PRVM_DECLARE_clientglobalvector
-	#undef PRVM_DECLARE_clientglobalstring
-	#undef PRVM_DECLARE_clientglobaledict
-	#undef PRVM_DECLARE_clientglobalfunction
-	#undef PRVM_DECLARE_menuglobalfloat
-	#undef PRVM_DECLARE_menuglobalvector
-	#undef PRVM_DECLARE_menuglobalstring
-	#undef PRVM_DECLARE_menuglobaledict
-	#undef PRVM_DECLARE_menuglobalfunction
-	#undef PRVM_DECLARE_serverfieldfloat
-	#undef PRVM_DECLARE_serverfieldvector
-	#undef PRVM_DECLARE_serverfieldstring
-	#undef PRVM_DECLARE_serverfieldedict
-	#undef PRVM_DECLARE_serverfieldfunction
-	#undef PRVM_DECLARE_clientfieldfloat
-	#undef PRVM_DECLARE_clientfieldvector
-	#undef PRVM_DECLARE_clientfieldstring
-	#undef PRVM_DECLARE_clientfieldedict
-	#undef PRVM_DECLARE_clientfieldfunction
-	#undef PRVM_DECLARE_menufieldfloat
-	#undef PRVM_DECLARE_menufieldvector
-	#undef PRVM_DECLARE_menufieldstring
-	#undef PRVM_DECLARE_menufieldedict
-	#undef PRVM_DECLARE_menufieldfunction
-	#undef PRVM_DECLARE_serverfunction
-	#undef PRVM_DECLARE_clientfunction
-	#undef PRVM_DECLARE_menufunction
-	#undef PRVM_DECLARE_field
-	#undef PRVM_DECLARE_global
-	#undef PRVM_DECLARE_function
-#else
 	int SV_InitCmd;
 	int clientcommandframe;
 	int cltime;
@@ -761,88 +601,11 @@ typedef struct prvm_prog_globaloffsets_s
 	int world;
 	int worldstatus;
 	int sound_starttime;
-#endif
-}
-prvm_prog_globaloffsets_t;
+};
 
 // NOTE: function offsets use 0 for NULL
-typedef struct prvm_prog_funcoffsets_s
+struct prvm_prog_funcoffsets_t
 {
-#if 0
-	#define PRVM_DECLARE_serverglobalfloat(x)
-	#define PRVM_DECLARE_serverglobalvector(x)
-	#define PRVM_DECLARE_serverglobalstring(x)
-	#define PRVM_DECLARE_serverglobaledict(x)
-	#define PRVM_DECLARE_serverglobalfunction(x)
-	#define PRVM_DECLARE_clientglobalfloat(x)
-	#define PRVM_DECLARE_clientglobalvector(x)
-	#define PRVM_DECLARE_clientglobalstring(x)
-	#define PRVM_DECLARE_clientglobaledict(x)
-	#define PRVM_DECLARE_clientglobalfunction(x)
-	#define PRVM_DECLARE_menuglobalfloat(x)
-	#define PRVM_DECLARE_menuglobalvector(x)
-	#define PRVM_DECLARE_menuglobalstring(x)
-	#define PRVM_DECLARE_menuglobaledict(x)
-	#define PRVM_DECLARE_menuglobalfunction(x)
-	#define PRVM_DECLARE_serverfieldfloat(x)
-	#define PRVM_DECLARE_serverfieldvector(x)
-	#define PRVM_DECLARE_serverfieldstring(x)
-	#define PRVM_DECLARE_serverfieldedict(x)
-	#define PRVM_DECLARE_serverfieldfunction(x)
-	#define PRVM_DECLARE_clientfieldfloat(x)
-	#define PRVM_DECLARE_clientfieldvector(x)
-	#define PRVM_DECLARE_clientfieldstring(x)
-	#define PRVM_DECLARE_clientfieldedict(x)
-	#define PRVM_DECLARE_clientfieldfunction(x)
-	#define PRVM_DECLARE_menufieldfloat(x)
-	#define PRVM_DECLARE_menufieldvector(x)
-	#define PRVM_DECLARE_menufieldstring(x)
-	#define PRVM_DECLARE_menufieldedict(x)
-	#define PRVM_DECLARE_menufieldfunction(x)
-	#define PRVM_DECLARE_serverfunction(x)
-	#define PRVM_DECLARE_clientfunction(x)
-	#define PRVM_DECLARE_menufunction(x)
-	#define PRVM_DECLARE_field(x)
-	#define PRVM_DECLARE_global(x)
-	#define PRVM_DECLARE_function(x) int x;
-	#include "prvm_offsets.h"
-	#undef PRVM_DECLARE_serverglobalfloat
-	#undef PRVM_DECLARE_serverglobalvector
-	#undef PRVM_DECLARE_serverglobalstring
-	#undef PRVM_DECLARE_serverglobaledict
-	#undef PRVM_DECLARE_serverglobalfunction
-	#undef PRVM_DECLARE_clientglobalfloat
-	#undef PRVM_DECLARE_clientglobalvector
-	#undef PRVM_DECLARE_clientglobalstring
-	#undef PRVM_DECLARE_clientglobaledict
-	#undef PRVM_DECLARE_clientglobalfunction
-	#undef PRVM_DECLARE_menuglobalfloat
-	#undef PRVM_DECLARE_menuglobalvector
-	#undef PRVM_DECLARE_menuglobalstring
-	#undef PRVM_DECLARE_menuglobaledict
-	#undef PRVM_DECLARE_menuglobalfunction
-	#undef PRVM_DECLARE_serverfieldfloat
-	#undef PRVM_DECLARE_serverfieldvector
-	#undef PRVM_DECLARE_serverfieldstring
-	#undef PRVM_DECLARE_serverfieldedict
-	#undef PRVM_DECLARE_serverfieldfunction
-	#undef PRVM_DECLARE_clientfieldfloat
-	#undef PRVM_DECLARE_clientfieldvector
-	#undef PRVM_DECLARE_clientfieldstring
-	#undef PRVM_DECLARE_clientfieldedict
-	#undef PRVM_DECLARE_clientfieldfunction
-	#undef PRVM_DECLARE_menufieldfloat
-	#undef PRVM_DECLARE_menufieldvector
-	#undef PRVM_DECLARE_menufieldstring
-	#undef PRVM_DECLARE_menufieldedict
-	#undef PRVM_DECLARE_menufieldfunction
-	#undef PRVM_DECLARE_serverfunction
-	#undef PRVM_DECLARE_clientfunction
-	#undef PRVM_DECLARE_menufunction
-	#undef PRVM_DECLARE_field
-	#undef PRVM_DECLARE_global
-	#undef PRVM_DECLARE_function
-#else
 	int CSQC_ConsoleCommand;
 	int CSQC_Ent_Remove;
 	int CSQC_Ent_Spawn;
@@ -887,9 +650,7 @@ typedef struct prvm_prog_funcoffsets_s
 	int m_shutdown;
 	int m_toggle;
 	int main;
-#endif
-}
-prvm_prog_funcoffsets_t;
+};
 
 // stringbuffer flags
 #define STRINGBUFFER_SAVED     1   // saved in savegames
@@ -1030,8 +791,11 @@ typedef struct prvm_prog_s
 	void				*edictprivate;
 
 	// size of the engine private struct
-	int					edictprivate_size; // [INIT]
-
+	#if !EDICTPRIVATE_CONSTEXPR
+		int					edictprivate_size; // [INIT]
+	#else
+		static constexpr int edictprivate_size = sizeof(edict_engineprivate_t);
+	#endif
 	prvm_prog_fieldoffsets_t	fieldoffsets;
 	prvm_prog_globaloffsets_t	globaloffsets;
 	prvm_prog_funcoffsets_t	funcoffsets;
@@ -1141,6 +905,8 @@ typedef struct prvm_prog_s
 	}
 } prvm_prog_t;
 
+
+
 typedef enum prvm_progindex_e
 {
 	PRVM_PROG_SERVER,
@@ -1228,8 +994,15 @@ mfunction_t *PRVM_ED_FindFunction(prvm_prog_t *prog, const char *name);
 int PRVM_ED_FindFieldOffset(prvm_prog_t *prog, const char *name);
 int PRVM_ED_FindGlobalOffset(prvm_prog_t *prog, const char *name);
 func_t PRVM_ED_FindFunctionOffset(prvm_prog_t *prog, const char *name);
-#define PRVM_ED_FindFieldOffset_FromStruct(st, field) prog->fieldoffsets . field = ((int *)(&((st *)NULL)-> field ) - ((int *)NULL))
-#define PRVM_ED_FindGlobalOffset_FromStruct(st, field) prog->globaloffsets . field = ((int *)(&((st *)NULL)-> field ) - ((int *)NULL))
+
+#if 1
+//!defined(__offsetOf)
+	#define PRVM_ED_FindFieldOffset_FromStruct(st, field) prog->fieldoffsets . field = ((int *)(&((st *)NULL)-> field ) - ((int *)NULL))
+	#define PRVM_ED_FindGlobalOffset_FromStruct(st, field) prog->globaloffsets . field = ((int *)(&((st *)NULL)-> field ) - ((int *)NULL))
+#else
+	#define PRVM_ED_FindFieldOffset_FromStruct(st, field)	prog->fieldoffsets.field	= __offsetOf(st, field)
+	#define PRVM_ED_FindGlobalOffset_FromStruct(st, field)	prog->globaloffsets.field	= __offsetOf(st, field)
+#endif
 
 void PRVM_MEM_IncreaseEdicts(prvm_prog_t *prog);
 
@@ -1326,3 +1099,58 @@ void VM_UpdateEdictSkeleton(prvm_prog_t *prog, prvm_edict_t *ed, const dp_model_
 void VM_RemoveEdictSkeleton(prvm_prog_t *prog, prvm_edict_t *ed);
 
 void PRVM_ExplicitCoverageEvent(prvm_prog_t *prog, mfunction_t *func, int statement);
+
+
+namespace cloture	{
+namespace vm		{
+
+#define		PROGRAM_INLINE	inline
+class Program
+{
+	prvm_prog_t* ptr;
+public:
+
+	constexpr PROGRAM_INLINE Program(prvm_prog_t* p) : ptr(p)
+	{}
+
+	constexpr PROGRAM_INLINE prvm_prog_t* operator ->()
+	{
+		return ptr;
+	}
+
+	__pseudopure constexpr PROGRAM_INLINE bool operator ==(const prvm_prog_t* const other) const
+	{
+		return ptr == other;
+	}
+
+	__pseudopure constexpr PROGRAM_INLINE bool operator !=(const prvm_prog_t* const other) const
+	{
+		return ptr != other;
+	}
+
+
+	__pseudopure constexpr PROGRAM_INLINE explicit operator bool() const
+	{
+		return ptr != nullptr;
+	}
+
+	__pseudopure constexpr PROGRAM_INLINE bool operator !() const
+	{
+		return ptr == nullptr;
+	}
+
+	__pseudopure constexpr PROGRAM_INLINE explicit operator prvm_prog_t*()
+	{
+		return ptr;
+	}
+
+	__pseudopure constexpr PROGRAM_INLINE prvm_prog_t* getPtr()
+	{
+		return ptr;
+	}
+
+};//class Program
+
+
+}//namespace vm
+}//namespace cloture

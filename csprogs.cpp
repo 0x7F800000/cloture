@@ -1044,13 +1044,20 @@ void CL_VM_Init ()
 
 	// allocate the mempools
 	prog->progs_mempool = Mem_AllocPool(csqc_progname.string, 0, nullptr);
+
+	#if !EDICTPRIVATE_CONSTEXPR
 	prog->edictprivate_size = 0; // no private struct used
+	#else
+	#endif
 	prog->name = "client";
 	prog->num_edicts = 1;
 	prog->max_edicts = 512;
 	prog->limit_edicts = CL_MAX_EDICTS;
 	prog->reserved_edicts = 0;
+	#if !EDICTPRIVATE_CONSTEXPR
 	prog->edictprivate_size = sizeof(edict_engineprivate_t);
+	#else
+	#endif
 	// TODO: add a shared extension string #define and add real support for csqc extension strings [12/5/2007 Black]
 	prog->extensionstring = vm_sv_extensions;
 	prog->builtins = vm_cl_builtins;

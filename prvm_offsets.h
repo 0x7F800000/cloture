@@ -1,3 +1,4 @@
+
 PRVM_DECLARE_clientfieldedict(aiment)
 PRVM_DECLARE_clientfieldedict(chain)
 PRVM_DECLARE_clientfieldedict(enemy)
@@ -35,7 +36,9 @@ PRVM_DECLARE_clientfieldvector(massofs)
 PRVM_DECLARE_clientfieldfloat(friction)
 PRVM_DECLARE_clientfieldfloat(maxcontacts)
 PRVM_DECLARE_clientfieldfloat(erp)
+#if !CONSTEXPR_OFFSETS
 PRVM_DECLARE_clientfieldfloat(modelindex)
+#endif
 PRVM_DECLARE_clientfieldfloat(movetype)
 PRVM_DECLARE_clientfieldfloat(nextthink)
 PRVM_DECLARE_clientfieldfloat(pitch_speed)
@@ -329,7 +332,9 @@ PRVM_DECLARE_field(message)
 PRVM_DECLARE_field(mins)
 PRVM_DECLARE_field(model)
 PRVM_DECLARE_field(modelflags)
+#if !CONSTEXPR_OFFSETS
 PRVM_DECLARE_field(modelindex)
+#endif
 PRVM_DECLARE_field(movedir)
 PRVM_DECLARE_field(movement)
 PRVM_DECLARE_field(movetype)

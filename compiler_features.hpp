@@ -50,7 +50,7 @@
 	#define 	clear_cache(begin, end)					__builtin___clear_cache(begin, end)
 
 
-	#define 	__offsetof(type, member)				__builtin_offsetof (type, member)
+	#define 	__offsetOf(type, member)				__builtin_offsetof (type, member)
 	#define 	likely(x)								__builtin_expect(!!(x), true)
 	#define 	unlikely(x)								__builtin_expect(!!(x), false)
 

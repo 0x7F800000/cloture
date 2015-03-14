@@ -52,6 +52,39 @@ namespace common
 		"meta::popcnt is returning inaccurate results..."
 	);
 
+	template<typename T>
+	constexpr bool powerOfTwo(const T x)
+	{
+		static_assert(
+		is_integral(T),
+		"common::powerOfTwo requires an integral type"
+		);
+
+		return (x & (x - static_cast<T>(1))) == static_cast<T>(0);
+	}
+
+	template<typename T>
+	constexpr size_t findBitSet(const T x)
+	{
+		__import_make_unsigned();
+		__import_make_signed();
+
+		constexpr make_signed(T) negOne 		= static_cast<T>(-1);
+		constexpr make_unsigned(T) highestBit 	= ~(static_cast<make_unsigned(T)>(negOne) >> 1);
+
+		make_unsigned(T) bitmask = highestBit;
+		size_t i = 0;
+		while((bitmask & x) == static_cast<T>(0) && bitmask != static_cast<T>(0))
+		{
+			bitmask >>= 1;
+			++i;
+		}
+		return bitSizeof<T> - i - 1;
+	}
+
+	static_assert(
+	findBitSet(1) == 0
+	);
 }
 }
 };

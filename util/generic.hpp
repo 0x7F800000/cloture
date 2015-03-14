@@ -243,3 +243,8 @@ template<> struct __is_float64__<double>
 
 
 constexpr int* coerceConstexprTest = __coerce_constexpr((int*)0xFF);
+
+
+#ifdef __clang__
+	#define __enableIf(condition, msg)	__attribute__((enable_if(condition, msg)))
+#endif

@@ -5381,7 +5381,10 @@ static void MP_Init ()
 	prvm_prog_t *prog = MVM_prog;
 	PRVM_Prog_Init(prog);
 
+	#if !EDICTPRIVATE_CONSTEXPR
 	prog->edictprivate_size = 0; // no private struct used
+	#else
+	#endif
 	prog->name = "menu";
 	prog->num_edicts = 1;
 	prog->limit_edicts = M_MAX_EDICTS;
