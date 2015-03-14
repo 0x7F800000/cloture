@@ -41,8 +41,15 @@ __if_not_exists(ptrdiff_t)
 */
 #include	"generic.hpp"
 
+/**
+ * helper templates for use with variadic templates
+ */
 #include	"va_template.hpp"
 
+/**
+ * helper templates for passing functions as template arguments
+ */
+#include	"functions.hpp"
 /*
 	common routines
 */

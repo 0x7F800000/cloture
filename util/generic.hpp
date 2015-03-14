@@ -87,54 +87,23 @@ enum
 #define 	type_is_boolean(type)					( type_is_typeclass(type, boolean_type_class) )
 #define 	type_is_function(type)					( type_is_typeclass(type, function_type_class) )
 
+/**
+ * added these for c++
+ */
+#define		type_is_method(type)					( type_is_typeclass(type, method_type_class) )
+#define		type_is_reference(type)					( type_is_typeclass(type, reference_type_class) )
+
+
 #define 	type_is_pointer(type)					( type_is_typeclass(type, pointer_type_class) )
 #define 	type_is_array(type)						( type_is_typeclass(type, array_type_class) )
 
-
-#define		assert_object_is_pointer(object, msg)	({static_assert(object_is_pointer(object), msg)})
-
-
-#define 	assignable(dest, src)	\
-	types_compatible( __typeof__(dest), __typeof__(src) )
-
-#define 	variable_is_type(variable, type)	\
-	types_compatible(__typeof__(variable), type)
-
-
-#define 	type_is_signed(T)			(-static_cast<T>(1) < static_cast<T>(0))
-
-#define 	type_is_unsigned(T)				(!type_is_signed(T))
-
-#define 	elementTypeof(array)		__typeof__(*array)
-#define		elementSizeof(array)		sizeof( elementTypeof(array) )
-#define 	objectSizeof(object)		__builtin_object_size(object, 0)
-
-/*
-	if object's type is object*:
-		return the type of object*
-
-	else if object's type is object:
-		return the type of &object
-
-	This is only used for first-level references
-*/
-
-#define get_structure_pointer_type(object)			\
-	__typeof__(object_is_pointer(object) ? object : &object)
-
-#define type_remove_pointer(type)	\
-	__typeof__(type_is_pointer(type) ? **dummy_type_ptr(type) : *dummy_type_ptr(type))
-
-#define remove_pointer(type)		type_remove_pointer(type)
-
-static_assert(type_is_pointer(void*), "ruh roh");
+#define 	object_size(object)		__builtin_object_size(object, 0)
 
 
 /*
 	size-1 for null character
 */
 #define 	argNameLength(arg)				(static_cast<ptrdiff_t>(sizeof(""#arg"") - 1))
-#define 	arrayDiff(elementptr, array)	(reinterpret_cast<const size_t>(elementptr) - reinterpret_cast<const size_t>(&array[0]))
 
 namespace cloture
 {
@@ -193,34 +162,101 @@ template<> struct __make_signed__<uint64>
 	typedef int64 ___type___;
 };
 
-template<typename T> struct __is_float32__
+template<typename T>
+struct typeHolder
 {
-	static constexpr bool value = false;
+	using type = T;
+	char y;
+	constexpr typeHolder() : y(0) {}
 };
 
-template<> struct __is_float32__<float>
-{
-	static constexpr bool value = true;
-};
 
-template<typename T> struct __is_float64__
+template<int typeclass_, typename T>
+static constexpr bool isTypeclass()
 {
-	static constexpr bool value = false;
-};
+	return classify_type(*static_cast<T*>(nullptr)) == typeclass_;
+}
 
-template<> struct __is_float64__<double>
+template<int typeclass_, typename T>
+static constexpr bool isTypeclass(T f)
 {
-	static constexpr bool value = true;
-};
+	return classify_type(f) == typeclass_;
+}
+
+#define		__typeClassChecker(name, typeclass)	\
+template<typename T>							\
+static constexpr bool name ()					\
+{	\
+	return isTypeclass<typeclass, T>();		\
+}	\
+template<typename T>	\
+static constexpr bool name (T f)	\
+{				\
+	return isTypeclass<typeclass>(f);	\
+}
+
+__typeClassChecker(isVoid, void_type_class)
+__typeClassChecker(isInteger, integer_type_class)
+__typeClassChecker(isChar, char_type_class)
+__typeClassChecker(isEnumeral, enumeral_type_class)
+
+__typeClassChecker(isBoolean, boolean_type_class)
+__typeClassChecker(isFunction, function_type_class)
+__typeClassChecker(isMethod, method_type_class)
+__typeClassChecker(isReference, reference_type_class)
+__typeClassChecker(isPointer, pointer_type_class)
+__typeClassChecker(isArray, array_type_class)
+__typeClassChecker(isRealNumber, real_type_class)
+__typeClassChecker(isComplexNumber, complex_type_class)
+
+static_assert(isRealNumber(7.0f) && isRealNumber(7.0) && isRealNumber(7.0L));
+
+static_assert(isComplexNumber((_Complex float) {1.0f, 2.0f} ));
+
+static constexpr int ___GENERIC_TEST___ = 0;
+static_assert(isInteger<int>() && isInteger(___GENERIC_TEST___) && isInteger<long long>() );
+
+
+template<typename T>
+static constexpr bool isIntegral()
+{
+	return isInteger<T>() || isChar<T>() || isEnumeral<T>() || isBoolean<T>();
+}
+
+template<typename T>
+static constexpr bool isIntegral(T f)
+{
+	return isIntegral<T>();
+}
+
+
+template<typename T>
+static constexpr bool isSigned()
+{
+	return static_cast<T>(-1) < static_cast<T>(0);
+}
+
+template<typename T>
+static constexpr bool isSigned(T f)
+{
+	return isSigned<T>();
+}
+
+template<typename T>
+static constexpr bool isUnsigned()
+{
+	return !isSigned<T>();
+}
+
+template<typename T>
+static constexpr bool isUnsigned(T f)
+{
+	return isUnsigned<T>();
+}
+
 }//namespace generic
 }//namespace util
 }//namespace cloture
-#define		type_is_float32(type)		(__is_float32__<type>::value)
-#define		type_is_float64(type)		(__is_float64__<type>::value)
-
-#define		object_is_float32(object)	(type_is_float32(__typeof__(object)))
-#define		object_is_float64(object)	(type_is_float64(__typeof__(object)))
-
 
 #define 	make_unsigned(type)		typename __make_unsigned__<type>::___type___
 #define 	make_signed(type)		typename __make_signed__<type>::___type___
