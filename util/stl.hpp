@@ -95,3 +95,5 @@ using vec_t = float;
  * simple wrapper around a c-style string
  */
 #include	"CString.hpp"
+
+#include	"pointer.hpp"

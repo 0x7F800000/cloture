@@ -1104,6 +1104,7 @@ void PRVM_ExplicitCoverageEvent(prvm_prog_t *prog, mfunction_t *func, int statem
 namespace cloture	{
 namespace vm		{
 
+#if 0
 #define		PROGRAM_INLINE	inline
 class Program
 {
@@ -1150,7 +1151,16 @@ public:
 	}
 
 };//class Program
+#else
 
+class Program : public util::pointers::wrapped_ptr<prvm_prog_t>
+{
+public:
+	__pseudopure inline Program(prvm_prog_t* p) : wrapped_ptr<prvm_prog_t>(p)
+	{}
+};
+
+#endif
 
 }//namespace vm
 }//namespace cloture

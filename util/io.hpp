@@ -11,11 +11,26 @@ enum class Radix : common::uint8
 	hex
 };
 
-template<void (*output_func)(const char*, ...)>
+template<void (*output_func)(const char*, ...), typename userDataType = void>
 class ostream
 {
 	Radix rad;
+	template<typename TT> struct isUdataVoid
+	{
+		static constexpr bool value = false;
+	};
+	template<> struct isUdataVoid<void>
+	{
+	};
+
+	__if_exists(isUdataVoid<typename userDataType>::value)
+	{
+		userDataType udata;
+	}
+
 public:
+
+
 	ostream& operator <<(const bool b)
 	{
 		if(b)
