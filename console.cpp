@@ -103,8 +103,8 @@ namespace cloture
 {
 namespace console
 {
-	cloture::util::stream::ostream<&Con_Printf> 	con;
-	cloture::util::stream::ostream<&Con_DPrintf> 	dbgout;
+	conStreamType 	con;
+	dbgStreamType 	dbgout;
 	// generic functions for console buffers
 }//namespace console
 }//namespace cloture

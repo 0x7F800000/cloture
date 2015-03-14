@@ -154,6 +154,9 @@ void Sys_InitConsole (void)
 int main (int argc, char **argv)
 {
 	signal(SIGFPE, SIG_IGN);
+	using cloture::util::stream::sstream;
+	sstream<1024> strtest;
+	strtest = "lol";
 
 	com_argc = argc;
 	com_argv = (const char **)argv;

@@ -2440,13 +2440,6 @@ void PRVM_Prog_Load(
 )
 {
 	using console::dbgout;
-	dprograms_t *dprograms;
-
-	fs_offset_t filesize;
-	opcode_t op;
-	int a;
-	int b;
-	int c;
 
 	if( unlikely( prog->loaded ) )
 		prog->error_cmd("PRVM_LoadProgs: there is already a %s program loaded!", prog->name );
@@ -2454,6 +2447,8 @@ void PRVM_Prog_Load(
 	Host_LockSession(); // all progs can use the session cvar
 	Crypto_LoadKeys(); // all progs might use the keys at init time
 
+	dprograms_t *dprograms;
+	fs_offset_t filesize;
 	if (data)
 	{
 		dprograms	= reinterpret_cast<dprograms_t *>(data);
@@ -2734,20 +2729,19 @@ PRVM_Global
 */
 static void PRVM_Global_f()
 {
-	prvm_prog_t *prog;
-	ddef_t *global;
 	char valuebuf[MAX_INPUTLINE];
-	if( Cmd_Argc() != 3 ) {
-		Con_Printf( "prvm_global <program name> <global name>\n" );
+	if( Cmd_Argc() != 3 )
+	{
+		con << "prvm_global <program name> <global name>\n";
 		return;
 	}
-
-	if (!(prog = PRVM_FriendlyProgFromString(Cmd_Argv(1))))
+	prvm_prog_t *prog = PRVM_FriendlyProgFromString(Cmd_Argv(1));
+	if (prog == nullptr)
 		return;
 
-	global = PRVM_ED_FindGlobal( prog, Cmd_Argv(2) );
+	ddef_t* global = PRVM_ED_FindGlobal( prog, Cmd_Argv(2) );
 	if( !global )
-		Con_Printf( "No global '%s' in %s!\n", Cmd_Argv(2), Cmd_Argv(1) );
+		con << "No global '" << Cmd_Argv(2) << "' in " << Cmd_Argv(1) << "!\n";
 	else
 		Con_Printf( "%s: %s\n", Cmd_Argv(2), PRVM_ValueString( prog, (etype_t)global->type, PRVM_GLOBALFIELDVALUE(global->ofs), valuebuf, sizeof(valuebuf) ) );
 }

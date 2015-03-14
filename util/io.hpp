@@ -13,10 +13,11 @@ enum class Radix : common::uint8
 	hex
 };
 
-#define		ostreamFlexible		0
+#define		ostreamFlexible		1
 
 #if ostreamFlexible
-	template<void (*outputFunc)(const char*, ...), typename... userDataTypes>
+	template<typename funcType, funcType outputFunc,//void (*outputFunc)(const char*, ...),
+	typename... userDataTypes>
 #else
 	template<void (*output_func)(const char*, ...)>
 #endif
@@ -32,7 +33,7 @@ class ostream
 public:
 	#if ostreamFlexible
 		template<typename... args>
-		void output_func(const char* s, args... Args)
+		inline void output_func(const char* s, args... Args)
 		{
 		choose_expr
 		(
@@ -169,6 +170,71 @@ public:
 		return *this;
 	}
 };//class ostream
+
+template<size_t arraysize = common::unone>
+class sstream : public ostream<decltype(sprintf), sprintf, char*>
+{
+
+	template<size_t sz>
+	struct dynhelper
+	{
+		using T = char[sz];
+	};
+
+	template<>
+	struct dynhelper<common::unone>
+	{
+		using T = char*;
+	};
+
+	using stringType = typename dynhelper<arraysize>::T;
+	stringType s;
+
+	static constexpr bool isAllocedString = arraysize == common::unone;
+
+	template<bool isAllocedString_>
+	void __CONSTRUCTOR()
+	{
+	}
+
+	template<> void __CONSTRUCTOR<false>()
+	{
+		__builtin_memset(s, 0, arraysize);
+	}
+
+	template<> void __CONSTRUCTOR<true>()
+	{
+		s = nullptr;
+	}
+
+	template<bool isAllocedString_>
+	constexpr void __COPYER(const char* other)
+	{
+	}
+
+	template<>
+	constexpr void __COPYER<false>(const char* other)
+	{
+		__builtin_strcpy(s, other);
+	}
+	template<>
+	constexpr void __COPYER<true>(const char* other)
+	{
+		s = other;
+	}
+public:
+
+	sstream()
+	{
+		__CONSTRUCTOR<isAllocedString>();
+	}
+
+	constexpr void operator =(const char* other)
+	{
+		__COPYER<isAllocedString>(other);
+	}
+
+};
 
 }//namespace stream
 }//namespace util
