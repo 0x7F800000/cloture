@@ -12,6 +12,8 @@ __if_not_exists(ptrdiff_t)
 	#include "stddef.h"
 }
 
+#include <cassert>
+
 /**
  	 Cloture STL headers.
 */
@@ -40,6 +42,8 @@ __if_not_exists(ptrdiff_t)
 	if needed
 */
 #include	"generic.hpp"
+
+#include	"casts.hpp"
 
 /**
  * helper templates for use with variadic templates

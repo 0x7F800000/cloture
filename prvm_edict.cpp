@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 using namespace cloture;
 using namespace util::common;
+using namespace console;
 
 prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
 

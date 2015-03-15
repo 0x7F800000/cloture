@@ -11,17 +11,16 @@
 */
 #define		IS_FLOAT_ZERO(f)						\
 ({													\
-	static_assert(object_is_pointer(f),				\
+	static_assert(cloture::util::generic::isPointer<typeof(f)>(),\
 	"IS_FLOAT_ZERO takes a POINTER to a "			\
 	"float as an operand. Input was not a pointer."	\
 	);												\
-	static_assert(object_is_float32(*f) 			\
-	|| object_is_float64(*f),						\
+	static_assert(cloture::util::generic::isRealNumber<typeof(*f)>(),\
 	"IS_FLOAT_ZERO was provided a pointer to an "	\
 	"object that is neither float nor double.");	\
 	!(choose_expr									\
 	(												\
-			object_is_float32(*f),					\
+			sizeof(*f) == 4,						\
 			*reinterpret_cast<unsigned int*>(f),	\
 			*reinterpret_cast<unsigned __int64*>(f)	\
 	));												\

@@ -150,25 +150,27 @@ static constexpr auto functionTypeInfo(returnType (classType::*f)(Args..., ...))
 {
 	return delegateInfo<true, typeof(f), classType, returnType, Args...>(f);
 }
+#if 0
+	static constexpr auto testType = functionTypeInfo(strlen);
 
-static constexpr auto testType = functionTypeInfo(strlen);
+	static_assert(decltype(functionTypeInfo(sprintf))::numArgs != common::unone);
 
-static_assert(decltype(functionTypeInfo(sprintf))::numArgs != common::unone);
-
-class __TEMPLATE_FUNCTIONS_TEST___
-{
-public:
-	int a;
-	void doStuff(int c, int d)
+	class __TEMPLATE_FUNCTIONS_TEST___
 	{
-	}
-	void doStuffs(int c, int d, ...)
-	{
-	}
-};
+	public:
+		int a;
+		void doStuff(int c, int d)
+		{
+		}
+		void doStuffs(int c, int d, ...)
+		{
+		}
+	};
 
-static_assert(decltype(functionTypeInfo(&__TEMPLATE_FUNCTIONS_TEST___::doStuff))::numArgs == 2);
-static_assert(decltype(functionTypeInfo(&__TEMPLATE_FUNCTIONS_TEST___::doStuffs))::isVariadic);
+	static_assert(decltype(functionTypeInfo(&__TEMPLATE_FUNCTIONS_TEST___::doStuff))::numArgs == 2);
+	static_assert(decltype(functionTypeInfo(&__TEMPLATE_FUNCTIONS_TEST___::doStuffs))::isVariadic);
+#endif
+
 }//namespace functions
 }//namespace templates
 }//namespace util
