@@ -173,3 +173,5 @@ static_assert(decltype(functionTypeInfo(&__TEMPLATE_FUNCTIONS_TEST___::doStuffs)
 }//namespace templates
 }//namespace util
 }//namespace cloture
+
+
