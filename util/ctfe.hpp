@@ -59,6 +59,14 @@ namespace ctfe
 	{
 		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 	}
+
+	static constexpr size_t cstrlen(const char* s)
+	{
+		size_t i = 0;
+		for(; s[i]; ++i)
+			;
+		return i;
+	}
 	static constexpr size_t skipLeadingWhitespace(const char* buffer, const size_t position = 0)
 	{
 		size_t i = 0;
@@ -186,6 +194,8 @@ namespace ctfe
 		explicit constexpr operator const T*()	{return data;}
 	};
 
+
+
 	template<size_t sz>
 	class CString : public Array<char, sz>
 	{
@@ -270,7 +280,7 @@ namespace ctfe
 	template<size_t sz>
 	class charStream<sz, true> : public CString<sz>
 	{
-		mutable size_t position;
+		size_t position;
 	public:
 		constexpr charStream() : CString<sz>::CString(), position(sz - 1)	{}
 
@@ -563,3 +573,7 @@ namespace ctfe
 }//namespace ctfe
 }//namespace util
 }//namespace cloture
+
+
+#define constantCString(s)		\
+cloture::util::ctfe::CString<cloture::util::ctfe::cstrlen(s)>::CString<cloture::util::ctfe::cstrlen(s)>(s)

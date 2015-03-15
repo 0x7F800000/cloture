@@ -76,6 +76,7 @@ __if_not_exists(ptrdiff_t)
 
 #include	"reflect.hpp"
 
+#include	"typenames.hpp"
 
 /*
 	generic integer bitwise operations
