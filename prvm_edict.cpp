@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 using namespace cloture;
 using namespace util::common;
 using namespace console;
+using namespace vm;
 
 prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
 
@@ -53,6 +54,9 @@ bool prvm_runawaycheck = true;
 
 //============================================================================
 // mempool handling
+
+
+static constexpr int PRVM_KNOWNSTRINGBASE = 0x40000000;
 
 /*
 ===============
@@ -192,7 +196,7 @@ prvm_prog_t *PRVM_FriendlyProgFromString(const char *str)
 =================
 PRVM_ED_ClearEdict
 
-Sets everything to nullptr
+Sets everything to NULL
 =================
 */
 void PRVM_ED_ClearEdict(prvm_prog_t *prog, prvm_edict_t *e)
@@ -3045,11 +3049,11 @@ unsigned int PRVM_EDICT_NUM_ERROR(prvm_prog_t *prog, unsigned int n, const char 
 	return 0;
 }
 
-static constexpr int PRVM_KNOWNSTRINGBASE = 0x40000000;
+
 
 const char *PRVM_GetString(prvm_prog_t *prog, int num)
 {
-	if (num < 0)
+	if (unlikely(num < 0))
 	{
 		// invalid
 		VM_Warning(prog, "PRVM_GetString: Invalid string offset (%i < 0)\n", num);
@@ -3064,7 +3068,7 @@ const char *PRVM_GetString(prvm_prog_t *prog, int num)
 	{
 		// tempstring returned by engine to QC (becomes invalid after returning to engine)
 		num -= prog->stringssize;
-		if (num < prog->tempstringsbuf.cursize)
+		if (likely(num < prog->tempstringsbuf.cursize))
 			return (char *)prog->tempstringsbuf.data + num;
 		else
 		{
@@ -3076,9 +3080,9 @@ const char *PRVM_GetString(prvm_prog_t *prog, int num)
 	{
 		// allocated string
 		num = num - PRVM_KNOWNSTRINGBASE;
-		if (num >= 0 && num < prog->numknownstrings)
+		if (likely(num >= 0 && num < prog->numknownstrings))
 		{
-			if (!prog->knownstrings[num])
+			if (unlikely(!prog->knownstrings[num]))
 			{
 				VM_Warning(prog, "PRVM_GetString: Invalid zone-string offset (%i has been freed)\n", num);
 				return "";

@@ -79,42 +79,49 @@ typedef struct prvm_edict_private_s
 	const char *allocation_origin;
 } prvm_edict_private_t;
 
-typedef struct prvm_edict_s
+namespace cloture::engine::vm
 {
-	// engine-private fields (stored in dynamically resized array)
-	union
+	//typedef struct prvm_edict_s
+	struct Edict
 	{
-		prvm_edict_private_t *required;
-		prvm_vec_t *fp;
-		prvm_int_t *ip;
-		// FIXME: this server pointer really means world, not server
-		// (it is used by both server qc and client qc, but not menu qc)
-		edict_engineprivate_t *server;
-		// add other private structs as you desire
-		// new structs have to start with the elements of prvm_edit_private_t
-		// e.g. a new struct has to either look like this:
-		//	typedef struct server_edict_private_s {
-		//		prvm_edict_private_t base;
-		//		vec3_t moved_from;
-		//      vec3_t moved_fromangles;
-		//		... } server_edict_private_t;
-		// or:
-		//	typedef struct server_edict_private_s {
-		//		bool free;
-		//		float freetime;
-		//		vec3_t moved_from;
-		//      vec3_t moved_fromangles;
-		//		... } server_edict_private_t;
-		// However, the first one should be preferred.
-	} priv;
-	// QuakeC fields (stored in dynamically resized array)
-	union
-	{
-		prvm_vec_t *fp;
-		prvm_int_t *ip;
+		// engine-private fields (stored in dynamically resized array)
+		union
+		{
+			prvm_edict_private_t *required;
+			prvm_vec_t *fp;
+			prvm_int_t *ip;
+			// FIXME: this server pointer really means world, not server
+			// (it is used by both server qc and client qc, but not menu qc)
+			edict_engineprivate_t *server;
+			// add other private structs as you desire
+			// new structs have to start with the elements of prvm_edit_private_t
+			// e.g. a new struct has to either look like this:
+			//	typedef struct server_edict_private_s {
+			//		prvm_edict_private_t base;
+			//		vec3_t moved_from;
+			//      vec3_t moved_fromangles;
+			//		... } server_edict_private_t;
+			// or:
+			//	typedef struct server_edict_private_s {
+			//		bool free;
+			//		float freetime;
+			//		vec3_t moved_from;
+			//      vec3_t moved_fromangles;
+			//		... } server_edict_private_t;
+			// However, the first one should be preferred.
+		} priv;
+		// QuakeC fields (stored in dynamically resized array)
+		union
+		{
+			prvm_vec_t *fp;
+			prvm_int_t *ip;
 
-	} fields;
-} prvm_edict_t;
+		} fields;
+	}; //prvm_edict_t;
+
+}//namespace cloture::engine::vm
+
+using prvm_edict_t = cloture::engine::vm::Edict;
 
 #define VMPOLYGONS_MAXPOINTS 64
 
@@ -264,199 +271,199 @@ typedef void (*prvm_builtin_t) (struct prvm_prog_s *prog);
 //typedef struct prvm_prog_fieldoffsets_s
 struct prvm_prog_fieldoffsets_t
 {
-		int SendEntity;
-		int SendFlags;
-		int Version;
-		int absmax;
-		int absmin;
-		int aiment;
-		int alpha;
-		int ammo_cells;
-		int ammo_cells1;
-		int ammo_lava_nails;
-		int ammo_multi_rockets;
-		int ammo_nails;
-		int ammo_nails1;
-		int ammo_plasma;
-		int ammo_rockets;
-		int ammo_rockets1;
-		int ammo_shells;
-		int ammo_shells1;
-		int angles;
-		int armortype;
-		int armorvalue;
-		int avelocity;
-		int blocked;
-		int bouncefactor;
-		int bouncestop;
-		int button0;
-		int button1;
-		int button2;
-		int button3;
-		int button4;
-		int button5;
-		int button6;
-		int button7;
-		int button8;
-		int button9;
-		int button10;
-		int button11;
-		int button12;
-		int button13;
-		int button14;
-		int button15;
-		int button16;
-		int buttonchat;
-		int buttonuse;
-		int camera_transform;
-		int chain;
-		int classname;
-		int clientcamera;
-		int clientcolors;
-		int clientstatus;
-		int color;
-		int colormap;
-		int colormod;
-		int contentstransition;
-		int crypto_encryptmethod;
-		int crypto_idfp;
-		int crypto_keyfp;
-		int crypto_mykeyfp;
-		int crypto_signmethod;
-		int currentammo;
-		int cursor_active;
-		int cursor_screen;
-		int cursor_trace_endpos;
-		int cursor_trace_ent;
-		int cursor_trace_start;
-		int customizeentityforclient;
-		int deadflag;
-		int disableclientprediction;
-		int discardabledemo;
-		int dmg_inflictor;
-		int dmg_save;
-		int dmg_take;
-		int dphitcontentsmask;
-		int drawmask;
-		int drawonlytoclient;
-		int effects;
-		int enemy;
-		int entnum;
-		int exteriormodeltoclient;
-		int fixangle;
-		int flags;
-		int frags;
-		int frame;
-		int frame1time;
-		int frame2;
-		int frame2time;
-		int frame3;
-		int frame3time;
-		int frame4;
-		int frame4time;
-		int fullbright;
-		int glow_color;
-		int glow_size;
-		int glow_trail;
-		int glowmod;
-		int goalentity;
-		int gravity;
-		int groundentity;
-		int health;
-		int ideal_yaw;
-		int idealpitch;
-		int impulse;
-		int items;
-		int items2;
-		int geomtype;
-		int jointtype;
-		int forcetype;
-		int lerpfrac;
-		int lerpfrac3;
-		int lerpfrac4;
-		int light_lev;
-		int ltime;
-		int mass;
-		int massofs;
-		int friction;
-		int maxcontacts;
-		int erp;
-		int max_health;
-		int maxs;
-		int message;
-		int mins;
-		int model;
-		int modelflags;
-		int modelindex;
-		int movedir;
-		int movement;
-		int movetype;
-		int movetypesteplandevent;
-		int netaddress;
-		int netname;
-		int nextthink;
-		int nodrawtoclient;
-		int noise;
-		int noise1;
-		int noise2;
-		int noise3;
-		int oldorigin;
-		int origin;
-		int owner;
-		int pflags;
-		int ping;
-		int ping_movementloss;
-		int ping_packetloss;
-		int pitch_speed;
-		int playermodel;
-		int playerskin;
-		int pmodel;
-		int pmove_flags;
-		int predraw;
-		int punchangle;
-		int punchvector;
-		int renderamt;
-		int renderflags;
-		int scale;
-		int modelscale_vec;
-		int sendcomplexanimation;
-		int shadertime;
-		int size;
-		int skeletonindex;
-		int skin;
-		int solid;
-		int sounds;
-		int spawnflags;
-		int style;
-		int tag_entity;
-		int tag_index;
-		int takedamage;
-		int target;
-		int targetname;
-		int team;
-		int teleport_time;
-		int think;
-		int touch;
-		int traileffectnum;
-		int use;
-		int userwavefunc_param0;
-		int userwavefunc_param1;
-		int userwavefunc_param2;
-		int userwavefunc_param3;
-		int v_angle;
-		int velocity;
-		int modellight_ambient;
-		int modellight_diffuse;
-		int modellight_dir;
-		int view_ofs;
-		int viewmodelforclient;
-		int viewzoom;
-		int waterlevel;
-		int watertype;
-		int weapon;
-		int weaponframe;
-		int weaponmodel;
-		int yaw_speed;
+	int SendEntity;
+	int SendFlags;
+	int Version;
+	int absmax;
+	int absmin;
+	int aiment;
+	int alpha;
+	int ammo_cells;
+	int ammo_cells1;
+	int ammo_lava_nails;
+	int ammo_multi_rockets;
+	int ammo_nails;
+	int ammo_nails1;
+	int ammo_plasma;
+	int ammo_rockets;
+	int ammo_rockets1;
+	int ammo_shells;
+	int ammo_shells1;
+	int angles;
+	int armortype;
+	int armorvalue;
+	int avelocity;
+	int blocked;
+	int bouncefactor;
+	int bouncestop;
+	int button0;
+	int button1;
+	int button2;
+	int button3;
+	int button4;
+	int button5;
+	int button6;
+	int button7;
+	int button8;
+	int button9;
+	int button10;
+	int button11;
+	int button12;
+	int button13;
+	int button14;
+	int button15;
+	int button16;
+	int buttonchat;
+	int buttonuse;
+	int camera_transform;
+	int chain;
+	int classname;
+	int clientcamera;
+	int clientcolors;
+	int clientstatus;
+	int color;
+	int colormap;
+	int colormod;
+	int contentstransition;
+	int crypto_encryptmethod;
+	int crypto_idfp;
+	int crypto_keyfp;
+	int crypto_mykeyfp;
+	int crypto_signmethod;
+	int currentammo;
+	int cursor_active;
+	int cursor_screen;
+	int cursor_trace_endpos;
+	int cursor_trace_ent;
+	int cursor_trace_start;
+	int customizeentityforclient;
+	int deadflag;
+	int disableclientprediction;
+	int discardabledemo;
+	int dmg_inflictor;
+	int dmg_save;
+	int dmg_take;
+	int dphitcontentsmask;
+	int drawmask;
+	int drawonlytoclient;
+	int effects;
+	int enemy;
+	int entnum;
+	int exteriormodeltoclient;
+	int fixangle;
+	int flags;
+	int frags;
+	int frame;
+	int frame1time;
+	int frame2;
+	int frame2time;
+	int frame3;
+	int frame3time;
+	int frame4;
+	int frame4time;
+	int fullbright;
+	int glow_color;
+	int glow_size;
+	int glow_trail;
+	int glowmod;
+	int goalentity;
+	int gravity;
+	int groundentity;
+	int health;
+	int ideal_yaw;
+	int idealpitch;
+	int impulse;
+	int items;
+	int items2;
+	int geomtype;
+	int jointtype;
+	int forcetype;
+	int lerpfrac;
+	int lerpfrac3;
+	int lerpfrac4;
+	int light_lev;
+	int ltime;
+	int mass;
+	int massofs;
+	int friction;
+	int maxcontacts;
+	int erp;
+	int max_health;
+	int maxs;
+	int message;
+	int mins;
+	int model;
+	int modelflags;
+	int modelindex;
+	int movedir;
+	int movement;
+	int movetype;
+	int movetypesteplandevent;
+	int netaddress;
+	int netname;
+	int nextthink;
+	int nodrawtoclient;
+	int noise;
+	int noise1;
+	int noise2;
+	int noise3;
+	int oldorigin;
+	int origin;
+	int owner;
+	int pflags;
+	int ping;
+	int ping_movementloss;
+	int ping_packetloss;
+	int pitch_speed;
+	int playermodel;
+	int playerskin;
+	int pmodel;
+	int pmove_flags;
+	int predraw;
+	int punchangle;
+	int punchvector;
+	int renderamt;
+	int renderflags;
+	int scale;
+	int modelscale_vec;
+	int sendcomplexanimation;
+	int shadertime;
+	int size;
+	int skeletonindex;
+	int skin;
+	int solid;
+	int sounds;
+	int spawnflags;
+	int style;
+	int tag_entity;
+	int tag_index;
+	int takedamage;
+	int target;
+	int targetname;
+	int team;
+	int teleport_time;
+	int think;
+	int touch;
+	int traileffectnum;
+	int use;
+	int userwavefunc_param0;
+	int userwavefunc_param1;
+	int userwavefunc_param2;
+	int userwavefunc_param3;
+	int v_angle;
+	int velocity;
+	int modellight_ambient;
+	int modellight_diffuse;
+	int modellight_dir;
+	int view_ofs;
+	int viewmodelforclient;
+	int viewzoom;
+	int waterlevel;
+	int watertype;
+	int weapon;
+	int weaponframe;
+	int weaponmodel;
+	int yaw_speed;
 
 };
 
@@ -683,6 +690,86 @@ typedef struct prvm_prog_s
 	int					entityfields;			// number of vec_t fields in progs (some variables are 3)
 	int					entityfieldsarea;		// LordHavoc: equal to max_edicts * entityfields (for bounds checking)
 
+	// buffer for storing all tempstrings created during one invocation of ExecuteProgram
+	sizebuf_t			tempstringsbuf;
+
+	// LordHavoc: moved this here to clean up things that relied on prvm_prog_list too much
+	// FIXME: make VM_CL_R_Polygon functions use Debug_Polygon functions?
+	vmpolygons_t		vmpolygons;
+
+	// copies of some vars that were former read from sv
+	int					num_edicts;
+	// number of edicts for which space has been (should be) allocated
+	int					max_edicts; // [INIT]
+	// used instead of the constant MAX_EDICTS
+	int					limit_edicts; // [INIT]
+
+	// number of reserved edicts (allocated from 1)
+	int					reserved_edicts; // [INIT]
+
+	prvm_edict_t		*edicts;
+	prvm_vec_t		*edictsfields;
+	void				*edictprivate;
+
+	// size of the engine private struct
+	#if !EDICTPRIVATE_CONSTEXPR
+		int					edictprivate_size; // [INIT]
+	#else
+		static constexpr int edictprivate_size = sizeof(edict_engineprivate_t);
+	#endif
+	prvm_prog_fieldoffsets_t	fieldoffsets;
+	prvm_prog_globaloffsets_t	globaloffsets;
+	prvm_prog_funcoffsets_t	funcoffsets;
+
+	// allow writing to world entity fields, this is set by server init and
+	// cleared before first server frame
+	bool			allowworldwrites;
+
+	// name of the prog, e.g. "Server", "Client" or "Menu" (used for text output)
+	const char			*name; // [INIT]
+
+	// flag - used to store general flags like PRVM_GE_SELF, etc.
+	int				flag;
+
+	const char			*extensionstring; // [INIT]
+
+	bool			loadintoworld; // [INIT]
+
+	// used to indicate whether a prog is loaded
+	bool			loaded;
+	bool			leaktest_active;
+
+	// translation buffer (only needs to be freed on unloading progs, type is private to prvm_edict.c)
+	void *po;
+
+	// printed together with backtraces
+	const char *statestring;
+
+
+	//============================================================================
+
+	ddef_t				*self; // if self != 0 then there is a global self
+
+	//============================================================================
+	// function pointers
+
+	void				(*begin_increase_edicts)(struct prvm_prog_s *prog); // [INIT] used by PRVM_MEM_Increase_Edicts
+	void				(*end_increase_edicts)(struct prvm_prog_s *prog); // [INIT]
+
+	void				(*init_edict)(struct prvm_prog_s *prog, prvm_edict_t *edict); // [INIT] used by PRVM_ED_ClearEdict
+	void				(*free_edict)(struct prvm_prog_s *prog, prvm_edict_t *ed); // [INIT] used by PRVM_ED_Free
+
+	void				(*count_edicts)(struct prvm_prog_s *prog); // [INIT] used by PRVM_ED_Count_f
+
+	bool			(*load_edict)(struct prvm_prog_s *prog, prvm_edict_t *ent); // [INIT] used by PRVM_ED_LoadFromFile
+
+	void				(*init_cmd)(struct prvm_prog_s *prog); // [INIT] used by PRVM_InitProg
+	void				(*reset_cmd)(struct prvm_prog_s *prog); // [INIT] used by PRVM_ResetProg
+
+	void				(*error_cmd)(const char *format, ...) DP_FUNC_PRINTF(1); // [INIT]
+
+	void				(*ExecuteProgram)(struct prvm_prog_s *prog, func_t fnum, const char *errormessage); // pointer to one of the *VM_ExecuteProgram functions
+	
 	// loaded values from the disk format
 	int					progs_version;
 	int					progs_crc;
@@ -769,86 +856,6 @@ typedef struct prvm_prog_s
 	const char *         opensearches_origin[PRVM_MAX_OPENSEARCHES];
 	skeleton_t			*skeletons[MAX_EDICTS];
 
-	// buffer for storing all tempstrings created during one invocation of ExecuteProgram
-	sizebuf_t			tempstringsbuf;
-
-	// LordHavoc: moved this here to clean up things that relied on prvm_prog_list too much
-	// FIXME: make VM_CL_R_Polygon functions use Debug_Polygon functions?
-	vmpolygons_t		vmpolygons;
-
-	// copies of some vars that were former read from sv
-	int					num_edicts;
-	// number of edicts for which space has been (should be) allocated
-	int					max_edicts; // [INIT]
-	// used instead of the constant MAX_EDICTS
-	int					limit_edicts; // [INIT]
-
-	// number of reserved edicts (allocated from 1)
-	int					reserved_edicts; // [INIT]
-
-	prvm_edict_t		*edicts;
-	prvm_vec_t		*edictsfields;
-	void				*edictprivate;
-
-	// size of the engine private struct
-	#if !EDICTPRIVATE_CONSTEXPR
-		int					edictprivate_size; // [INIT]
-	#else
-		static constexpr int edictprivate_size = sizeof(edict_engineprivate_t);
-	#endif
-	prvm_prog_fieldoffsets_t	fieldoffsets;
-	prvm_prog_globaloffsets_t	globaloffsets;
-	prvm_prog_funcoffsets_t	funcoffsets;
-
-	// allow writing to world entity fields, this is set by server init and
-	// cleared before first server frame
-	bool			allowworldwrites;
-
-	// name of the prog, e.g. "Server", "Client" or "Menu" (used for text output)
-	const char			*name; // [INIT]
-
-	// flag - used to store general flags like PRVM_GE_SELF, etc.
-	int				flag;
-
-	const char			*extensionstring; // [INIT]
-
-	bool			loadintoworld; // [INIT]
-
-	// used to indicate whether a prog is loaded
-	bool			loaded;
-	bool			leaktest_active;
-
-	// translation buffer (only needs to be freed on unloading progs, type is private to prvm_edict.c)
-	void *po;
-
-	// printed together with backtraces
-	const char *statestring;
-
-
-	//============================================================================
-
-	ddef_t				*self; // if self != 0 then there is a global self
-
-	//============================================================================
-	// function pointers
-
-	void				(*begin_increase_edicts)(struct prvm_prog_s *prog); // [INIT] used by PRVM_MEM_Increase_Edicts
-	void				(*end_increase_edicts)(struct prvm_prog_s *prog); // [INIT]
-
-	void				(*init_edict)(struct prvm_prog_s *prog, prvm_edict_t *edict); // [INIT] used by PRVM_ED_ClearEdict
-	void				(*free_edict)(struct prvm_prog_s *prog, prvm_edict_t *ed); // [INIT] used by PRVM_ED_Free
-
-	void				(*count_edicts)(struct prvm_prog_s *prog); // [INIT] used by PRVM_ED_Count_f
-
-	bool			(*load_edict)(struct prvm_prog_s *prog, prvm_edict_t *ent); // [INIT] used by PRVM_ED_LoadFromFile
-
-	void				(*init_cmd)(struct prvm_prog_s *prog); // [INIT] used by PRVM_InitProg
-	void				(*reset_cmd)(struct prvm_prog_s *prog); // [INIT] used by PRVM_ResetProg
-
-	void				(*error_cmd)(const char *format, ...) DP_FUNC_PRINTF(1); // [INIT]
-
-	void				(*ExecuteProgram)(struct prvm_prog_s *prog, func_t fnum, const char *errormessage); // pointer to one of the *VM_ExecuteProgram functions
-	
 	/**
 		function pointer wrappers
 	*/

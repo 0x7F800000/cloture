@@ -73,7 +73,13 @@ interface from being ambiguous.
 #define CVAR_DEFAULTSET (1<<30)
 #define CVAR_ALLOCATED (1<<31)
 
-typedef struct cvar_s
+
+namespace cloture	{
+namespace engine	{
+namespace cvars		{
+
+//typedef struct cvar_s
+struct CVar
 {
 	int flags;
 
@@ -104,7 +110,25 @@ typedef struct cvar_s
 	//menucvar_t menuinfo;
 	struct cvar_s *next;
 	struct cvar_s *nextonhashchain;
-} cvar_t;
+
+	void Register();
+	static void set(const char* name, const char* value);
+	static void setValue(const char *name, const float value);
+	void setQuick(const char* value);
+	void setValueQuick(const float value);
+	static struct CVar* find(const char* name);
+	static struct CVar* findAfter(const char* prevName, const int neededflags);
+
+	static float variableValue(const char* name);
+}; //cvar_t;
+
+
+}//namespace cvars
+}//namespace engine
+}//namespace cloture
+//using cvar_s = struct cloture::engine::cvars::CVar;
+using cvar_t = cloture::engine::cvars::CVar;
+//using cvar_s = cvar_t;
 
 /// registers a cvar that already has the name, string, and optionally the
 /// archive elements set.
@@ -195,3 +219,42 @@ void Cvar_UpdateAllAutoCvars(); // updates ALL autocvars of the active prog to t
 void Cvar_FillAll_f();
 #endif /* FILLALLCVARSWITHRUBBISH */
 
+
+namespace cloture::engine::cvars
+{
+
+	inline void CVar::Register()
+	{
+		Cvar_RegisterVariable(this);
+	}
+	inline void CVar::set(const char* name, const char* value)
+	{
+		Cvar_Set(name, value);
+	}
+	inline void CVar::setValue(const char *name, const float value)
+	{
+		Cvar_SetValue(name, value);
+	}
+
+	inline void CVar::setQuick(const char* value)
+	{
+		Cvar_SetQuick(this, value);
+	}
+	inline void CVar::setValueQuick(const float value)
+	{
+		Cvar_SetValueQuick(this, value);
+	}
+
+	inline struct CVar* CVar::find(const char* name)
+	{
+		return Cvar_FindVar(name);
+	}
+	inline struct CVar* CVar::findAfter(const char* prevName, const int neededflags)
+	{
+		return Cvar_FindVarAfter(prevName, neededflags);
+	}
+	inline float variableValue(const char* name)
+	{
+		return Cvar_VariableValue(name);
+	}
+}

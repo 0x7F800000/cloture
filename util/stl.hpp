@@ -6,6 +6,8 @@
 #include <stdexcept>
 
 
+#define		funcName()		__PRETTY_FUNCTION__
+
 __if_not_exists(ptrdiff_t)
 {
 	//needed for some files that don't include quakedef.h

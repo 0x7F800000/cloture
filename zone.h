@@ -18,7 +18,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #pragma once
-//#include <cstddef>
 
 extern bool mem_bigendian;
 
@@ -33,6 +32,10 @@ constexpr size_t POOLNAMESIZE = 128;
 
 namespace cloture
 {
+namespace engine::cvars
+{
+	struct CVar;
+}
 namespace memory
 {
 	struct Header
@@ -83,6 +86,9 @@ namespace memory
 	};
 };
 };
+
+#define	cvar_s	cloture::engine::cvars::CVar
+
 using memheader_s = cloture::memory::Header;
 using memheader_t = memheader_s;
 using mempool_s = cloture::memory::Pool;
@@ -152,6 +158,8 @@ extern struct cvar_s developer_memory;
 extern struct cvar_s developer_memorydebug;
 namespace cloture
 {
+
+
 namespace memory
 {
 	template<typename T> __returns_aligned(16) 

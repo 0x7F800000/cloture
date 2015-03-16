@@ -2227,7 +2227,7 @@ typedef struct cl_clientmovement_state_s
 		vector3D mins;
 		vector3D maxs;
 	#endif
-	struct prvm_edict_s *self;
+	struct cloture::engine::vm::Edict *self;
 	// currently on the ground
 	bool onground;
 	// currently crouching

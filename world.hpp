@@ -46,6 +46,11 @@ namespace cloture//::engine::world
 {
 namespace engine
 {
+
+namespace vm
+{
+	struct Edict;
+}
 namespace world
 {
 	//typedef struct world_s
@@ -106,7 +111,6 @@ using world_s			=	world_t;
 using world_physics_t	=	cloture::engine::world::World::Physics;
 using world_physics_s	=	world_physics_t;
 
-struct prvm_edict_s;
 
 // cyclic doubly-linked list functions
 void World_ClearLink(link_t *l);
@@ -125,13 +129,13 @@ void World_PrintAreaStats(world_t *world, const char *worldname);
 
 /// call before removing an entity, and before trying to move one,
 /// so it doesn't clip against itself
-void World_UnlinkEdict(struct prvm_edict_s *ent);
+void World_UnlinkEdict(struct cloture::engine::vm::Edict *ent);
 
 /// Needs to be called any time an entity changes origin, mins, maxs
-void World_LinkEdict(world_t *world, struct prvm_edict_s *ent, const vec3_t mins, const vec3_t maxs);
+void World_LinkEdict(world_t *world, struct cloture::engine::vm::Edict *ent, const vec3_t mins, const vec3_t maxs);
 
 /// \returns list of entities touching a box
-int World_EntitiesInBox(world_t *world, const vec3_t mins, const vec3_t maxs, int maxlist, struct prvm_edict_s **list);
+int World_EntitiesInBox(world_t *world, const vec3_t mins, const vec3_t maxs, int maxlist, struct cloture::engine::vm::Edict **list);
 
 void World_Start(world_t *world);
 void World_End(world_t *world);
@@ -141,13 +145,12 @@ void World_End(world_t *world);
 void World_Physics_Frame(world_t *world, double frametime, double gravity);
 
 // change physics properties of entity
-struct prvm_edict_s;
 struct edict_odefunc_s;
-void World_Physics_ApplyCmd(struct prvm_edict_s *ed, struct edict_odefunc_s *f);
+void World_Physics_ApplyCmd(struct cloture::engine::vm::Edict *ed, struct edict_odefunc_s *f);
 
 // remove physics data from entity
 // this is called by entity removal
-void World_Physics_RemoveFromEntity(world_t *world, struct prvm_edict_s *ed);
-void World_Physics_RemoveJointFromEntity(world_t *world, struct prvm_edict_s *ed);
+void World_Physics_RemoveFromEntity(world_t *world, struct cloture::engine::vm::Edict *ed);
+void World_Physics_RemoveJointFromEntity(world_t *world, struct cloture::engine::vm::Edict *ed);
 
 

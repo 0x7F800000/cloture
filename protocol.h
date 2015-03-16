@@ -1014,7 +1014,13 @@ void EntityFrameQW_FreeDatabase(entityframeqw_database_t *d);
 void EntityStateQW_ReadPlayerUpdate();
 void EntityFrameQW_CL_ReadFrame(bool delta);
 
-struct client_s;
+namespace cloture::engine::client
+{
+	struct Client;
+};
+
+#define	client_s	cloture::engine::client::Client
+
 void EntityFrameCSQC_LostFrame(struct client_s *client, int framenum);
 bool EntityFrameCSQC_WriteFrame (sizebuf_t *msg, int maxsize, int numnumbers, const unsigned short *numbers, int framenum);
 

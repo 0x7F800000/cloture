@@ -393,4 +393,13 @@ namespace CRC		{
 		return CRC_Block(reinterpret_cast<const unsigned char*>(data), size);
 	}
 }//namespace CRC
+
+namespace engine		{
+namespace message		{
+
+
+
+}//namespace message
+}//namespace engine
+
 }//namespace cloture

@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // server.h
 #pragma once
 
-typedef struct server_static_s
+struct server_static_t
 {
 	/// number of svs.clients slots (updated by maxplayers command)
 	int maxclients, maxclients_next;
@@ -57,22 +57,49 @@ typedef struct server_static_s
 	bool volatile threadstop;
 	void *threadmutex;
 	void *thread;
-} server_static_t;
+};
 
 //=============================================================================
 
-typedef enum server_state_e {ss_loading, ss_active} server_state_t;
+enum server_state_t
+{
+	ss_loading,
+	ss_active
+};
 
-#define MAX_CONNECTFLOODADDRESSES 16
-#define MAX_GETSTATUSFLOODADDRESSES 128
-typedef struct server_floodaddress_s
+static constexpr size_t MAX_CONNECTFLOODADDRESSES = 16;
+static constexpr size_t MAX_GETSTATUSFLOODADDRESSES = 128;
+
+struct server_floodaddress_t
 {
 	double lasttime;
 	lhnetaddress_t address;
-}
-server_floodaddress_t;
+};
 
-typedef struct server_s
+
+static constexpr size_t NUM_CSQCENTITIES_PER_FRAME = 256;
+typedef struct csqcentityframedb_s
+{
+	int framenum;
+	int num;
+	unsigned short entno[NUM_CSQCENTITIES_PER_FRAME];
+	int sendflags[NUM_CSQCENTITIES_PER_FRAME];
+} csqcentityframedb_t;
+
+// if defined this does ping smoothing, otherwise it does not
+//#define NUM_PING_TIMES 16
+
+static constexpr size_t NUM_SPAWN_PARMS = 16;
+
+
+
+namespace cloture	{
+namespace engine	{
+
+
+namespace server	{
+//typedef struct server_s
+struct Server
 {
 	/// false if only a net client
 	bool active;
@@ -166,23 +193,12 @@ typedef struct server_s
 
 	/// legacy support for self.Version based csqc entity networking
 	unsigned char csqcentityversion[MAX_EDICTS]; // legacy
-} server_t;
+}; //server_t;
 
-#define NUM_CSQCENTITIES_PER_FRAME 256
-typedef struct csqcentityframedb_s
-{
-	int framenum;
-	int num;
-	unsigned short entno[NUM_CSQCENTITIES_PER_FRAME];
-	int sendflags[NUM_CSQCENTITIES_PER_FRAME];
-} csqcentityframedb_t;
-
-// if defined this does ping smoothing, otherwise it does not
-//#define NUM_PING_TIMES 16
-
-#define NUM_SPAWN_PARMS 16
-
-typedef struct client_s
+}//namespace server
+namespace client	{
+//typedef struct client_s
+struct Client
 {
 	/// false = empty client slot
 	bool active;
@@ -311,8 +327,19 @@ typedef struct client_s
 	// last sent move sequence
 	// if the move sequence changed, an empty entity frame is sent
 	int lastmovesequence;
-} client_t;
+};
 
+}//namespace client
+
+
+}//namespace engine
+}//namespace cloture
+
+using client_t = cloture::engine::client::Client;
+//using client_s = client_t;
+
+using server_t = cloture::engine::server::Server;
+using server_s = server_t;
 
 //=============================================================================
 
