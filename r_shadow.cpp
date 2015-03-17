@@ -149,8 +149,8 @@ extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 
 using namespace cloture::util;
 using namespace common;
-using math::vector::vector4D;
-using math::vector::vector3D;
+using math::vector::vector4f;
+using math::vector::vector3f;
 
 
 #include "renderer/r_common.hpp"
@@ -387,11 +387,11 @@ cvar_t r_editlights_current_realtimemode = {0, "r_editlights_current_realtimemod
 
 __align(16) struct r_shadow_bouncegrid_settings_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	#if 0
 		float spacing[3];
 	#else
-		vector3D spacing;
+		vector3f spacing;
 	#endif
 	//16 bytes
 	float dlightparticlemultiplier;
@@ -1201,7 +1201,7 @@ static int R_Shadow_ConstructShadowVolume_ZPass(int innumvertices, int innumtris
 	float ratio;
 	float direction[3];
 	float projectvector[3];
-	//vector3D projectvector
+	//vector3f projectvector
 	
 	bool side[4];
 
@@ -1616,7 +1616,7 @@ int R_Shadow_CalcSphereSideMask(const vec3_t p, float radius, float bias)
 
 static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const float size, const float border)
 {
-	vector3D o, p, n;
+	vector3f o, p, n;
 	int sides = 0x3F;
 	int masks[6] = 
 	{ 
@@ -1652,7 +1652,7 @@ static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const fl
 
 			//Matrix4x4_Transform3x3(&rtlight->matrix_worldtolight, r_refdef.view.frustum[i].normal, n);
 			{
-				vector3D frustumNormal = r_refdef.view.frustum[i].normal;
+				vector3f frustumNormal = r_refdef.view.frustum[i].normal;
 				const matrix4x4_t* RESTRICT const matWtl = &rtlight->matrix_worldtolight;
 				
 				n[0] = frustumNormal[0] * matWtl->m[0][0] + frustumNormal[1] * matWtl->m[0][1] + frustumNormal[2] * matWtl->m[0][2];
@@ -1662,7 +1662,7 @@ static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const fl
 			len = scale*VectorLength2(n);
 			
 			{
-				const vector3D nSquared = n * n;
+				const vector3f nSquared = n * n;
 				if(nSquared[0] > len) 
 					sides &= n[0] < .0f ? ~(1<<0) : ~(2 << 0);
 				if(nSquared[1] > len) 
@@ -1676,7 +1676,7 @@ static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const fl
 		{
 			//Matrix4x4_Transform3x3(&rtlight->matrix_worldtolight, r_refdef.view.frustum[4].normal, n);
 			{
-				vector3D frustumNormal = r_refdef.view.frustum[4].normal;
+				vector3f frustumNormal = r_refdef.view.frustum[4].normal;
 				const matrix4x4_t* RESTRICT const matWtl = &rtlight->matrix_worldtolight;
 				
 				n[0] = frustumNormal[0] * matWtl->m[0][0] + frustumNormal[1] * matWtl->m[0][1] + frustumNormal[2] * matWtl->m[0][2];
@@ -1684,7 +1684,7 @@ static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const fl
 				n[2] = frustumNormal[0] * matWtl->m[2][0] + frustumNormal[1] * matWtl->m[2][1] + frustumNormal[2] * matWtl->m[2][2];	
 			}
 			len = scale*VectorLength2(n);
-			const vector3D nSquared = n * n;//
+			const vector3f nSquared = n * n;//
 			if(nSquared[0] > len) 
 				sides &= n[0] >= .0f ? ~(1<<0) : ~(2 << 0);
 				
@@ -1705,7 +1705,7 @@ static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const fl
 
 	{
 		const matrix4x4_t* RESTRICT const matWtl = &rtlight->matrix_worldtolight;
-		const vector3D viewOrigin = r_refdef.view.origin;
+		const vector3f viewOrigin = r_refdef.view.origin;
 		p[0] = viewOrigin[0] * matWtl->m[0][0] + viewOrigin[1] * matWtl->m[0][1] + viewOrigin[2] * matWtl->m[0][2] + matWtl->m[0][3];
 		p[1] = viewOrigin[0] * matWtl->m[1][0] + viewOrigin[1] * matWtl->m[1][1] + viewOrigin[2] * matWtl->m[1][2] + matWtl->m[1][3];
 		p[2] = viewOrigin[0] * matWtl->m[2][0] + viewOrigin[1] * matWtl->m[2][1] + viewOrigin[2] * matWtl->m[2][2] + matWtl->m[2][3];		
@@ -1740,7 +1740,7 @@ static int R_Shadow_CullFrustumSides(rtlight_t *RESTRICT const rtlight, const fl
 
 			//Matrix4x4_Transform(&rtlight->matrix_worldtolight, r_refdef.view.frustumcorner[i], n);
 			{
-				const vector3D corner = r_refdef.view.frustumcorner[i];
+				const vector3f corner = r_refdef.view.frustumcorner[i];
 				n[0] = corner[0] * matWtl->m[0][0] + corner[1] * matWtl->m[0][1] + corner[2] * matWtl->m[0][2] + matWtl->m[0][3];
 				n[1] = corner[0] * matWtl->m[1][0] + corner[1] * matWtl->m[1][1] + corner[2] * matWtl->m[1][2] + matWtl->m[1][3];
 				n[2] = corner[0] * matWtl->m[2][0] + corner[1] * matWtl->m[2][1] + corner[2] * matWtl->m[2][2] + matWtl->m[2][3];				
@@ -3507,7 +3507,7 @@ void R_Shadow_RenderLighting(int texturenumsurfaces, const msurface_t **textures
 	//float lightcolor[3];
 	
 	//VectorCopy(rsurface.rtlight->currentcolor, lightcolor);
-	vector3D lightColor 	= vector3D(rsurface.rtlight->currentcolor);
+	vector3f lightColor 	= vector3f(rsurface.rtlight->currentcolor);
 	
 	float ambientscale 		= rsurface.rtlight->ambientscale	+	rsurface.texture->rtlightambient;
 	float diffusescale 		= rsurface.rtlight->diffusescale	*	max(.0f, 1.0f - rsurface.texture->rtlightambient);
@@ -3523,8 +3523,8 @@ void R_Shadow_RenderLighting(int texturenumsurfaces, const msurface_t **textures
 	{
 		const float colorVecLength = 
 		({
-			const vector3D lightColorSquared = lightColor * lightColor;
-			lightColorSquared.x + lightColorSquared.y + lightColorSquared.z;
+			const vector3f lightColorSquared = lightColor * lightColor;
+			lightColorSquared[0] + lightColorSquared[1] + lightColorSquared[2];
 		});
 		if ((ambientscale + diffusescale) * colorVecLength + specularscale * colorVecLength < (1.0f / 1048576.0f))
 			return;
@@ -3534,7 +3534,7 @@ void R_Shadow_RenderLighting(int texturenumsurfaces, const msurface_t **textures
 	if(negated)
 	{
 		
-		lightColor = vector3D() - lightColor;
+		lightColor = vector3f() - lightColor;
 		//VectorNegate(lightcolor, lightcolor);
 		
 		GL_BlendEquationSubtract(true);

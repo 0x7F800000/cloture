@@ -171,71 +171,73 @@ public:
 	}
 };//class ostream
 
-template<size_t arraysize = common::unone>
-class sstream : public ostream<decltype(sprintf), sprintf, char*>
+__if_exists(sprintf)
 {
-
-	template<size_t sz>
-	struct dynhelper
+	template<size_t arraysize = common::unone>
+	class sstream : public ostream<decltype(sprintf), sprintf, char*>
 	{
-		using T = char[sz];
+
+		template<size_t sz>
+		struct dynhelper
+		{
+			using T = char[sz];
+		};
+
+		template<>
+		struct dynhelper<common::unone>
+		{
+			using T = char*;
+		};
+
+		using stringType = typename dynhelper<arraysize>::T;
+		stringType s;
+
+		static constexpr bool isAllocedString = arraysize == common::unone;
+
+		template<bool isAllocedString_>
+		void __CONSTRUCTOR()
+		{
+		}
+
+		template<> void __CONSTRUCTOR<false>()
+		{
+			__builtin_memset(s, 0, arraysize);
+		}
+
+		template<> void __CONSTRUCTOR<true>()
+		{
+			s = nullptr;
+		}
+
+		template<bool isAllocedString_>
+		constexpr void __COPYER(const char* other)
+		{
+		}
+
+		template<>
+		constexpr void __COPYER<false>(const char* other)
+		{
+			__builtin_strcpy(s, other);
+		}
+		template<>
+		constexpr void __COPYER<true>(const char* other)
+		{
+			s = other;
+		}
+	public:
+
+		sstream()
+		{
+			__CONSTRUCTOR<isAllocedString>();
+		}
+
+		constexpr void operator =(const char* other)
+		{
+			__COPYER<isAllocedString>(other);
+		}
+
 	};
-
-	template<>
-	struct dynhelper<common::unone>
-	{
-		using T = char*;
-	};
-
-	using stringType = typename dynhelper<arraysize>::T;
-	stringType s;
-
-	static constexpr bool isAllocedString = arraysize == common::unone;
-
-	template<bool isAllocedString_>
-	void __CONSTRUCTOR()
-	{
-	}
-
-	template<> void __CONSTRUCTOR<false>()
-	{
-		__builtin_memset(s, 0, arraysize);
-	}
-
-	template<> void __CONSTRUCTOR<true>()
-	{
-		s = nullptr;
-	}
-
-	template<bool isAllocedString_>
-	constexpr void __COPYER(const char* other)
-	{
-	}
-
-	template<>
-	constexpr void __COPYER<false>(const char* other)
-	{
-		__builtin_strcpy(s, other);
-	}
-	template<>
-	constexpr void __COPYER<true>(const char* other)
-	{
-		s = other;
-	}
-public:
-
-	sstream()
-	{
-		__CONSTRUCTOR<isAllocedString>();
-	}
-
-	constexpr void operator =(const char* other)
-	{
-		__COPYER<isAllocedString>(other);
-	}
-
-};
-
+}
 }//namespace stream
 }//namespace util
 }//namespace cloture

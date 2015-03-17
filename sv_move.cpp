@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 using namespace cloture::util;
 /*	basic types	*/
 using namespace common;
-using math::vector::vector3D;
+using math::vector::vector3f;
 
 /*
 =============
@@ -268,7 +268,7 @@ facing it.
 static bool SV_StepDirection (prvm_edict_t *ent, const float yaw, const float dist)
 {
 	prvm_prog_t *prog = SVVM_prog;
-	vector3D oldorigin;
+	vector3f oldorigin;
 	PRVM_serveredictfloat(ent, ideal_yaw) = yaw;
 	VM_changeyaw(prog);
 
@@ -277,7 +277,7 @@ static bool SV_StepDirection (prvm_edict_t *ent, const float yaw, const float di
 		cos is important here. don't use cosf or sinf
 		monsters begin meandering around in the wrong direction
 	*/
-	vector3D move = vector3D(math::cos(dyaw) * dist, math::sin(dyaw) * dist, .0f);
+	vector3f move = vector3f(math::cos(dyaw) * dist, math::sin(dyaw) * dist, .0f);
 
 	VectorCopy (PRVM_serveredictvector(ent, origin), oldorigin);
 	if (SV_movestep (ent, move, false, false, false))

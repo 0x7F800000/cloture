@@ -36,7 +36,7 @@ static size_t numexplosions = 0;
 static float explosiontexcoord2f[EXPLOSIONVERTS][2];
 static unsigned short explosiontris[EXPLOSIONTRIS][3];
 static int explosionnoiseindex[EXPLOSIONVERTS];
-static /*vec3_t*/ vector3D explosionpoint[EXPLOSIONVERTS];
+static /*vec3_t*/ vector3f explosionpoint[EXPLOSIONVERTS];
 
 //typedef struct explosion_s
 __align(16) struct explosion_s
@@ -45,9 +45,9 @@ __align(16) struct explosion_s
 	/*vec3_t origin;
 	vec3_t vert[EXPLOSIONVERTS];
 	vec3_t vertvel[EXPLOSIONVERTS];*/
-	vector3D origin;
-	vector3D vert[EXPLOSIONVERTS];
-	vector3D vertvel[EXPLOSIONVERTS];
+	vector3f origin;
+	vector3f vert[EXPLOSIONVERTS];
+	vector3f vertvel[EXPLOSIONVERTS];
 	float starttime;
 	float endtime;
 	float time;

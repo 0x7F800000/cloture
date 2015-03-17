@@ -13,7 +13,7 @@ namespace math
 namespace matrix
 {
 	
-	using columnType = cloture::util::math::vector::vector4D;
+	using columnType = cloture::util::math::vector::vector4f;
 	
 	struct //alignas(16)
 	matrix4D
@@ -280,7 +280,7 @@ namespace matrix
 		MATRIX_INLINE void reflect(const float normalx, const float normaly, const float normalz, const float dist, const float axisscale) 
 		{
 			//float p[4], p2[4];
-			vector::vector4D p, p2;
+			vector::vector4f p, p2;
 			p[0] = normalx;
 			p[1] = normaly;
 			p[2] = normalz;
@@ -363,19 +363,19 @@ namespace matrix
 		{}
 	/*	MATRIX_INLINE matrix4D(float m0[4], float m1[4], float m2[4], float m3[4])
 		{
-			using cloture::util::math::vector::vector4D;
-			m[0] = vector4D(m0[0], m0[1], m0[2], m0[3]);//other.m[0];
-			m[1] = vector4D(m1[0], m1[1], m1[2], m1[3]);//other.m[1];
-			m[2] = vector4D(m2[0], m2[1], m2[2], m2[3]);//other.m[2];
-			m[3] = vector4D(m3[0], m3[1], m3[2], m3[3]);//other.m[3];
+			using cloture::util::math::vector::vector4f;
+			m[0] = vector4f(m0[0], m0[1], m0[2], m0[3]);//other.m[0];
+			m[1] = vector4f(m1[0], m1[1], m1[2], m1[3]);//other.m[1];
+			m[2] = vector4f(m2[0], m2[1], m2[2], m2[3]);//other.m[2];
+			m[3] = vector4f(m3[0], m3[1], m3[2], m3[3]);//other.m[3];
 		}*/
 		MATRIX_INLINE matrix4D(float *m0, float *m1, float* m2, float *m3)
 		{
-			using cloture::util::math::vector::vector4D;
-			m[0] = vector4D(m0[0], m0[1], m0[2], m0[3]);//other.m[0];
-			m[1] = vector4D(m1[0], m1[1], m1[2], m1[3]);//other.m[1];
-			m[2] = vector4D(m2[0], m2[1], m2[2], m2[3]);//other.m[2];
-			m[3] = vector4D(m3[0], m3[1], m3[2], m3[3]);//other.m[3];
+			using cloture::util::math::vector::vector4f;
+			m[0] = vector4f(m0[0], m0[1], m0[2], m0[3]);//other.m[0];
+			m[1] = vector4f(m1[0], m1[1], m1[2], m1[3]);//other.m[1];
+			m[2] = vector4f(m2[0], m2[1], m2[2], m2[3]);//other.m[2];
+			m[3] = vector4f(m3[0], m3[1], m3[2], m3[3]);//other.m[3];
 		}
 		MATRIX_INLINE operator void*() 
 		{

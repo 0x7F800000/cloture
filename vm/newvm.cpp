@@ -541,11 +541,11 @@ VM_normalize
 vector normalize(vector)
 =================
 */
-vector3D vm::normalize(const Program prog, const vector3D vec)
+vector3f vm::normalize(const Program prog, const vector3f vec)
 {
 
 	double f = VectorLength2(vec);
-	vector3D newvalue;
+	vector3f newvalue;
 	if (f)
 	{
 		f = 1.0 / sqrt(f);
@@ -563,7 +563,7 @@ VM_vlen
 scalar vlen(vector)
 =================
 */
-float vm::vlen(const Program prog, vector3D v)
+float vm::vlen(const Program prog, vector3f v)
 {
 	return VectorLength(v);
 }
@@ -575,7 +575,7 @@ VM_vectoyaw
 float vectoyaw(vector)
 =================
 */
-float vm::vectoyaw(const Program prog, const vector3D vec)
+float vm::vectoyaw(const Program prog, const vector3f vec)
 {
 	float	yaw;
 
@@ -599,18 +599,18 @@ VM_vectoangles
 vector vectoangles(vector[, vector])
 =================
 */
-vector3D vm::vectoangles(const Program prog, const vector3D parm0)
+vector3f vm::vectoangles(const Program prog, const vector3f parm0)
 {
-	vector3D result, forward;
+	vector3f result, forward;
 
 	VectorCopy(parm0, forward);
 	AnglesFromVectors(result, forward, nullptr, true);
 	return result;
 }
 
-vector3D vm::vectoangles(const Program prog, const vector3D parm0, const vector3D parm1)
+vector3f vm::vectoangles(const Program prog, const vector3f parm0, const vector3f parm1)
 {
-	vector3D result, forward, up;
+	vector3f result, forward, up;
 
 	VectorCopy(parm0, forward);
 
@@ -1089,9 +1089,9 @@ Returns a vector of length < 1 and > 0
 vector randomvec()
 =================
 */
-vector3D vm::randomVec(Program prog)
+vector3f vm::randomVec(Program prog)
 {
-	vector3D temp;
+	vector3f temp;
 	VectorRandom(temp);
 	return temp;
 }
@@ -5728,9 +5728,9 @@ void vm::client::setCursorMode (const Program prog, const bool useCursor)
 }
 
 //#344 vector() getmousepos (DP_CSQC)
-vector3D vm::client::getMousePosition(Program prog)
+vector3f vm::client::getMousePosition(Program prog)
 {
-	vector3D result;
+	vector3f result;
 	if (key_consoleactive || key_dest != key_game)
 		VectorSet(result, .0f, .0f, .0f);
 	else if (cl.csqc_wantsmousemove)

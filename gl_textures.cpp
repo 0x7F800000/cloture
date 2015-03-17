@@ -24,8 +24,8 @@ extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 
 using namespace cloture::util;
 using namespace common;
-using math::vector::vector4D;
-using math::vector::vector3D;
+using math::vector::vector4f;
+using math::vector::vector3f;
 
 
 #include "renderer/r_common.hpp"

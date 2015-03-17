@@ -11,7 +11,7 @@
 typedef struct matrix4x4_s
 {
 	//vec_t m[4][4];
-	cloture::util::math::vector::vector4D m[4];
+	cloture::util::math::vector::vector4f m[4];
 }
 matrix4x4_t;
 #else

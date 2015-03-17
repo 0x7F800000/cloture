@@ -214,7 +214,7 @@ __align(16) struct tridecal_t
 	#if 0
 		float		plane[4]; // backface culling
 	#else
-		vector4D	plane;
+		vector4f	plane;
 	#endif
 	#if 0
 		// color and initial alpha value
@@ -222,9 +222,9 @@ __align(16) struct tridecal_t
 		float			vertex3f[3][3];
 		float			color4f[3][4];
 	#else
-		vector2D	texcoord2f[3];
-		vector3D	vertex3f[3];
-		vector4D	color4f[3];
+		vector2f	texcoord2f[3];
+		vector3f	vertex3f[3];
+		vector4f	color4f[3];
 	#endif
 
 };
@@ -252,11 +252,11 @@ struct decalsystem_t
 //typedef struct effect_s
 __align(16) struct cl_effect_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	#if 0
 		float origin[3];
 	#else
-		vector3D origin;
+		vector3f origin;
 	#endif
 	double starttime;
 	double frame1time;
@@ -277,11 +277,11 @@ __align(16) struct cl_effect_t
 //typedef struct beam_s
 __align(16) struct beam_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	#if 0
 		float	start[3], end[3];
 	#else
-		vector3D start, end;
+		vector3f start, end;
 	#endif
 	struct model_s	*model;
 	float	endtime;
@@ -294,13 +294,13 @@ __align(16) struct beam_t
 //typedef struct rtlight_particle_s
 __align(16) struct rtlight_particle_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	#if 0
 		float origin[3];
 		float color[3];
 	#else
-		vector3D origin;
-		vector3D color;
+		vector3f origin;
+		vector3f color;
 	#endif
 };
 //rtlight_particle_t;
@@ -316,7 +316,7 @@ enum r_shadow_shadowmode_t//r_shadow_shadowmode_e
 //typedef struct rtlight_s
 __align(16) struct rtlight_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	/// light filter
 	char cubemapname[64];
 	// shadow volumes are done entirely in model space, so there are no matrices for dealing with them...  they just use the origin
@@ -346,14 +346,14 @@ __align(16) struct rtlight_t
 		/// bouncegrid light info
 		float photoncolor[3];
 	#else
-		vector3D color;
-		vector3D shadoworigin;
-		vector3D cullmins;
-		vector3D cullmaxs;
-		vector3D currentcolor;
-		vector3D cached_cullmins;
-		vector3D cached_cullmaxs;
-		vector3D photoncolor;
+		vector3f color;
+		vector3f shadoworigin;
+		vector3f cullmins;
+		vector3f cullmaxs;
+		vector3f currentcolor;
+		vector3f cached_cullmins;
+		vector3f cached_cullmaxs;
+		vector3f photoncolor;
 	#endif
 	/// intensity of corona to render
 	float corona;
@@ -475,7 +475,7 @@ __align(16) struct rtlight_t
 //typedef struct dlight_s
 __align(16) struct dlight_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	// cubemap name to use on this light
 	// (worldlight: saved to .rtlights file)
 	char cubemapname[64];
@@ -496,10 +496,10 @@ __align(16) struct dlight_t
 		// (worldlight: saved to .rtlights file)
 		float color[3];
 	#else
-		vector3D origin;
-		vector3D angles;
-		vector3D initialcolor;
-		vector3D color;
+		vector3f origin;
+		vector3f angles;
+		vector3f initialcolor;
+		vector3f color;
 	#endif
 	// destroy light after this time
 	// (dlight only)
@@ -593,7 +593,7 @@ frameblend_t;
 // For example the r_cullentities_trace code does such caching.
 typedef struct entity_render_s
 {
-	__import_vector3D();
+	__import_vector3f();
 	// location
 	//vec3_t origin;
 	// orientation
@@ -617,17 +617,17 @@ typedef struct entity_render_s
 		// calculated during R_AddModelEntities
 		vec3_t mins, maxs;
 	#else
-		vector3D colormap_pantscolor;
-		vector3D colormap_shirtcolor;
-		vector3D modellight_ambient;
-		vector3D modellight_diffuse; // q3bsp
-		vector3D modellight_lightdir; // q3bsp
+		vector3f colormap_pantscolor;
+		vector3f colormap_shirtcolor;
+		vector3f modellight_ambient;
+		vector3f modellight_diffuse; // q3bsp
+		vector3f modellight_lightdir; // q3bsp
 		// colormod tinting of models
-		vector3D colormod;
-		vector3D glowmod;
+		vector3f colormod;
+		vector3f glowmod;
 		// calculated during R_AddModelEntities
-		vector3D mins;
-		vector3D maxs;
+		vector3f mins;
+		vector3f maxs;
 	#endif
 	// time of last model change (for shader animations)
 	double shadertime;
@@ -709,7 +709,7 @@ entity_render_t;
 //typedef struct entity_persistent_s
 struct entity_persistent_t
 {
-	__import_vector3D();
+	__import_vector3f();
 	#if 0
 		vec3_t trail_origin; // previous position for particle trail spawning
 		vec3_t oldorigin; // lerp
@@ -717,11 +717,11 @@ struct entity_persistent_t
 		vec3_t neworigin; // lerp
 		vec3_t newangles; // lerp
 	#else
-		vector3D trail_origin; // previous position for particle trail spawning
-		vector3D oldorigin; // lerp
-		vector3D oldangles; // lerp
-		vector3D neworigin; // lerp
-		vector3D newangles; // lerp
+		vector3f trail_origin; // previous position for particle trail spawning
+		vector3f oldorigin; // lerp
+		vector3f oldangles; // lerp
+		vector3f neworigin; // lerp
+		vector3f newangles; // lerp
 	#endif
 	float lerpstarttime; // lerp
 	float lerpdeltatime; // lerp
@@ -750,7 +750,7 @@ entity_t;
 
 struct usercmd_t
 {
-	using vectorType = cloture::util::math::vector::vector3D;
+	using vectorType = cloture::util::math::vector::vector3f;
 	#if 0
 		vec3_t	viewangles;
 		vec3_t	cursor_screen;
@@ -1081,7 +1081,7 @@ extern client_static_t	cls;
 //typedef struct client_movementqueue_s
 struct client_movementqueue_t
 {
-	using vectorType = cloture::util::math::vector::vector3D;
+	using vectorType = cloture::util::math::vector::vector3f;
 	#if 0
 		float viewangles[3];
 		float move[3];
@@ -1234,9 +1234,9 @@ cl_parsingtextmode_t;
 //typedef struct cl_locnode_s
 __align(16) struct cl_locnode_t
 {
-	__import_vector3D();
-	vector3D mins;
-	vector3D maxs;
+	__import_vector3f();
+	vector3f mins;
+	vector3f maxs;
 	struct cl_locnode_t *next;
 	char *name;
 
@@ -1968,7 +1968,7 @@ typedef struct r_refdef_view_s
 
 	// eye position information
 	matrix4x4_t matrix, inverse_matrix;
-	using vectorType = cloture::util::math::vector::vector3D;
+	using vectorType = cloture::util::math::vector::vector3f;
 	#if 0
 		vec3_t origin;
 		vec3_t forward;
@@ -2211,7 +2211,7 @@ enum waterlevel_t : int
 
 typedef struct cl_clientmovement_state_s
 {
-	__import_vector3D();
+	__import_vector3f();
 	// entity to be ignored for movement
 
 	#if 0
@@ -2222,10 +2222,10 @@ typedef struct cl_clientmovement_state_s
 		vec3_t mins;
 		vec3_t maxs;
 	#else
-		vector3D origin;
-		vector3D velocity;
-		vector3D mins;
-		vector3D maxs;
+		vector3f origin;
+		vector3f velocity;
+		vector3f mins;
+		vector3f maxs;
 	#endif
 	struct cloture::engine::vm::Edict *self;
 	// currently on the ground

@@ -92,6 +92,8 @@ __if_not_exists(ptrdiff_t)
 
 #include	"typenames.hpp"
 
+
+#include	"simd_generic.hpp"
 /*
 	generic integer bitwise operations
 	these are wrapped because some architectures provide their own

@@ -25,13 +25,13 @@ namespace vm			{
 	void sprint (Program prog, const ptrdiff_t clientnum, const char* s);
 	void centerprint (const Program prog, const char* msg);
 
-	util::math::vector::vector3D normalize(const Program prog, const util::math::vector::vector3D vec);
-	float vlen(const Program prog, util::math::vector::vector3D v);
-	float vectoyaw(const Program prog, const util::math::vector::vector3D vec);
+	util::math::vector::vector3f normalize(const Program prog, const util::math::vector::vector3f vec);
+	float vlen(const Program prog, util::math::vector::vector3f v);
+	float vectoyaw(const Program prog, const util::math::vector::vector3f vec);
 
-	util::math::vector::vector3D vectoangles(const Program prog, const util::math::vector::vector3D parm0);
-	util::math::vector::vector3D vectoangles(const Program prog,
-	const util::math::vector::vector3D parm0, const util::math::vector::vector3D parm1);
+	util::math::vector::vector3f vectoangles(const Program prog, const util::math::vector::vector3f parm0);
+	util::math::vector::vector3f vectoangles(const Program prog,
+	const util::math::vector::vector3f parm0, const util::math::vector::vector3f parm1);
 	float random (Program prog);
 
 	bool localsound(const Program prog, const char* s);

@@ -5232,10 +5232,10 @@ void R_HDR_UpdateIrisAdaptation(const vec3_t point)
 
 static void R_View_SetFrustum(RenderState* renderState, const int *scissor)
 {
-	using cloture::util::math::vector::vector3D;
+	using cloture::util::math::vector::vector3f;
 	int i;
 	double fpx = +1, fnx = -1, fpy = +1, fny = -1;
-	vector3D forward, left, up, origin, v;
+	vector3f forward, left, up, origin, v;
 
 	if(scissor != nullptr)
 	{

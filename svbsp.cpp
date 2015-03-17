@@ -15,8 +15,8 @@
 
 using namespace cloture::util;
 using namespace common;
-using math::vector::vector4D;
-using math::vector::vector3D;
+using math::vector::vector4f;
+using math::vector::vector3f;
 
 
 #define MAX_SVBSP_POLYGONPOINTS 64

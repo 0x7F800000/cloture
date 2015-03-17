@@ -58,7 +58,7 @@ namespace cloture::game
 namespace cloture::game::shared::api
 {
 	using namespace cloture::game::types;
-	using cloture::util::vector::vector3D;
+	using cloture::util::vector::vector3f;
 	
 	namespace Edicts 
 	{
@@ -91,7 +91,7 @@ namespace cloture::game::shared::api
 namespace cloture::game::server::api
 {
 	using namespace cloture::game::types;
-	using cloture::util::vector::vector3D;
+	using cloture::util::vector::vector3f;
 	namespace Edicts
 	{
 
@@ -99,7 +99,7 @@ namespace cloture::game::server::api
 			Edicts::setOrigin
 			replaces VM_SV_setorigin in svvm_cmds.cpp
 		*/
-		void setOrigin(Program* program, Edict* edict, vector3D newOrigin);
+		void setOrigin(Program* program, Edict* edict, vector3f newOrigin);
 		/**
 			Edicts::setModel
 			replaces VM_SV_setmodel in svvm_cmds.cpp

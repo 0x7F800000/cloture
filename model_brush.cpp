@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "curves.h"
 #include "wad.h"
 
-using cloture::util::math::vector::vector3D;
+using cloture::util::math::vector::vector3f;
 
 //cvar_t r_subdivide_size = {CVAR_SAVE, "r_subdivide_size", "128", "how large water polygons should be (smaller values produce more polygons which give better warping effects)"};
 cvar_t mod_bsp_portalize = {0, "mod_bsp_portalize", "1", "enables portal generation from BSP tree (may take several seconds per map), used by r_drawportals, r_useportalculling, r_shadow_realtime_world_compileportalculling, sv_cullentities_portal"};
@@ -372,10 +372,10 @@ static int Mod_Q1BSP_BoxTouchingVisibleLeafs(dp_model_t *model, const unsigned c
 __align(16) struct findnonsolidlocationinfo_s
 {
 	//vec3_t center;
-	vector3D 	center;
-	vector3D 	absmin;
-	vector3D	absmax;
-	vector3D 	nudge;
+	vector3f 	center;
+	vector3f 	absmin;
+	vector3f	absmax;
+	vector3f 	nudge;
 	float 		radius;
 	float 		bestdist;
 	dp_model_t 	*model;
