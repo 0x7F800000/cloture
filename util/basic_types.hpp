@@ -6,14 +6,17 @@ namespace common  {
 	/*
 	integer primitive types
 	*/
-	using uint8 = unsigned char;
-	using int8 = signed char;
-	using uint16 = unsigned short;
-	using int16 = signed short;
-	using uint32 = unsigned int;
-	using int32 = signed int;
-	using uint64 = unsigned __int64;//unsigned long long;
-	using int64 = __int64;//signed long long;
+	using uint8		= unsigned char;
+	using int8		= signed char;
+	using uint16	= unsigned short;
+	using int16		= signed short;
+	using uint32	= unsigned int;
+	using int32		= signed int;
+	using uint64	= unsigned __int64;//unsigned long long;
+	using int64		= __int64;//signed long long;
+
+	using size32	= uint32;
+	using ptrdiff32 = int32;
 
 	/*
 	sanity checks

@@ -25,7 +25,10 @@ public:
 	{
 		return ptr;
 	}
-
+	constexpr WRAPPED_PTR_INLINE const T* operator ->() const
+	{
+		return ptr;
+	}
 	__pseudopure constexpr WRAPPED_PTR_INLINE bool operator ==(const T* const other) const
 	{
 		return ptr == other;

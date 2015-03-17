@@ -1,12 +1,24 @@
 #pragma once
 
-#ifdef __clang__
-	extern char *gets (char *__s) __wur __attribute_deprecated__;
+#if defined(__i386__)
+	#include <immintrin.h>
+
+#elif defined(__x86_64__)
+	#include <immintrin.h>
+#elif defined(__ARM_ARCH)
+	#include "arm_neon.h"
 #endif
-#include <stdexcept>
 
+#if 0
+	#ifdef __clang__
+		extern char *gets (char *__s) __wur __attribute_deprecated__;
+	#endif
+	#include <stdexcept>
+#endif
 
-#define		funcName()		__PRETTY_FUNCTION__
+#define		funcName()		__builtin_FUNCTION()
+#define		sourceLine()	__builtin_LINE()
+#define		sourceFile()	__builtin_FILE()
 
 __if_not_exists(ptrdiff_t)
 {

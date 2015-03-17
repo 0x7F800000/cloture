@@ -79,6 +79,14 @@ typedef struct prvm_edict_private_s
 	const char *allocation_origin;
 } prvm_edict_private_t;
 
+#if 0
+
+// FIXME: make these go away?
+#define	PRVM_E_FLOAT(e,o) (e->fields.fp[o])
+#define	PRVM_E_INT(e,o) (e->fields.ip[o])
+//#define	PRVM_E_VECTOR(e,o) (&(e->fields.fp[o]))
+#define	PRVM_E_STRING(e,o) (PRVM_GetString(prog, e->fields.ip[o]))
+#endif
 namespace cloture::engine::vm
 {
 	//typedef struct prvm_edict_s
@@ -117,6 +125,39 @@ namespace cloture::engine::vm
 			prvm_int_t *ip;
 
 		} fields;
+
+
+		template<typename T> __pseudopure __forceinline
+		auto getField(const unsigned int offset) RESTRICT const
+		{
+			using pointerStripped = typename cloture::util::generic::stripPointer<T>::type;
+			/*
+			 * template constraints to ensure that its only instantiated for int, float or float*
+			 */
+			static_assert
+			(
+					(cloture::util::generic::isRealNumber<T>()	&&	sizeof(T) == sizeof(float))
+			||
+					(cloture::util::generic::isIntegral<T>()	&&	sizeof(T) == sizeof(int))
+			||
+					(cloture::util::generic::isPointer<T>()		&&	cloture::util::generic::isRealNumber<pointerStripped>()
+			&& sizeof(pointerStripped) == 4)
+			);
+
+			return nullptr;
+		}
+
+		template<> __pseudopure __forceinline
+		auto getField<int>(const unsigned int offset) RESTRICT const
+		{
+			return fields.ip[offset];
+		}
+		template<> __pseudopure __forceinline
+		auto getField<float>(const unsigned int offset) RESTRICT const
+		{
+			return fields.fp[offset];
+		}
+
 	}; //prvm_edict_t;
 
 }//namespace cloture::engine::vm
@@ -739,6 +780,19 @@ typedef struct prvm_prog_s
 	bool			loaded;
 	bool			leaktest_active;
 
+	/*
+	 * CHRIS
+	 *
+	 * added these here for the new vm
+	 *
+	 *
+	 */
+	bool				isNative;
+	struct prvm_prog_s*	clientProgram;
+	struct prvm_prog_s* serverProgram;
+	client_static_t*	clientStatic;
+	client_state_t*		clientState;
+	struct server_static_t*	serverStatic;
 	// translation buffer (only needs to be freed on unloading progs, type is private to prvm_edict.c)
 	void *po;
 
@@ -768,7 +822,7 @@ typedef struct prvm_prog_s
 
 	void				(*error_cmd)(const char *format, ...) DP_FUNC_PRINTF(1); // [INIT]
 
-	void				(*ExecuteProgram)(struct prvm_prog_s *prog, func_t fnum, const char *errormessage); // pointer to one of the *VM_ExecuteProgram functions
+	void				(*ExecuteProgram)(struct prvm_prog_s *prog, size_t fnum, const char *errormessage); // pointer to one of the *VM_ExecuteProgram functions
 	
 	// loaded values from the disk format
 	int					progs_version;
@@ -966,10 +1020,10 @@ void VM_Cmd_Reset(prvm_prog_t *prog);
 void PRVM_Init ();
 
 #ifdef PROFILING
-void SVVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage);
-void CLVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage);
+void SVVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage);
+void CLVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage);
 #ifdef CONFIG_MENU
-void MVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage);
+void MVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage);
 #endif
 #else
 #define SVVM_ExecuteProgram PRVM_ExecuteProgram
@@ -977,7 +1031,7 @@ void MVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessag
 #ifdef CONFIG_MENU
 #define MVM_ExecuteProgram PRVM_ExecuteProgram
 #endif
-void PRVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage);
+void PRVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage);
 #endif
 
 #define PRVM_Alloc(buffersize) Mem_Alloc(prog->progs_mempool, buffersize)
@@ -1031,7 +1085,7 @@ void PRVM_ED_LoadFromFile(prvm_prog_t *prog, const char *data);
 unsigned int PRVM_EDICT_NUM_ERROR(prvm_prog_t *prog, unsigned int n, const char *filename, int fileline);
 
 #define	PRVM_EDICT(n) (((unsigned)(n) < (unsigned int)prog->max_edicts) ? (unsigned int)(n) : PRVM_EDICT_NUM_ERROR(prog, (unsigned int)(n), __FILE__, __LINE__))
-#define	PRVM_EDICT_NUM(n) (prog->edicts + static_cast<size_t>(n))//PRVM_EDICT(n))
+#define	PRVM_EDICT_NUM(n) (prog->edicts + static_cast<unsigned int>(n))//PRVM_EDICT(n))
 
 //int NUM_FOR_EDICT_ERROR(prvm_edict_t *e);
 #define PRVM_NUM_FOR_EDICT(e) ((int)((prvm_edict_t *)(e) - prog->edicts))
@@ -1109,66 +1163,18 @@ void PRVM_ExplicitCoverageEvent(prvm_prog_t *prog, mfunction_t *func, int statem
 
 
 namespace cloture	{
+namespace engine	{
 namespace vm		{
 
-#if 0
-#define		PROGRAM_INLINE	inline
-class Program
-{
-	prvm_prog_t* ptr;
-public:
 
-	constexpr PROGRAM_INLINE Program(prvm_prog_t* p) : ptr(p)
-	{}
+//using util::pointers::wrapped_ptr;
 
-	constexpr PROGRAM_INLINE prvm_prog_t* operator ->()
-	{
-		return ptr;
-	}
-
-	__pseudopure constexpr PROGRAM_INLINE bool operator ==(const prvm_prog_t* const other) const
-	{
-		return ptr == other;
-	}
-
-	__pseudopure constexpr PROGRAM_INLINE bool operator !=(const prvm_prog_t* const other) const
-	{
-		return ptr != other;
-	}
-
-
-	__pseudopure constexpr PROGRAM_INLINE explicit operator bool() const
-	{
-		return ptr != nullptr;
-	}
-
-	__pseudopure constexpr PROGRAM_INLINE bool operator !() const
-	{
-		return ptr == nullptr;
-	}
-
-	__pseudopure constexpr PROGRAM_INLINE explicit operator prvm_prog_t*()
-	{
-		return ptr;
-	}
-
-	__pseudopure constexpr PROGRAM_INLINE prvm_prog_t* getPtr()
-	{
-		return ptr;
-	}
-
-};//class Program
-#else
-
-using util::pointers::wrapped_ptr;
-
-class Program : public wrapped_ptr<prvm_prog_t>
+class Program : public util::pointers::wrapped_ptr<prvm_prog_t>
 {
 public:
 	using wrapped_ptr::wrapped_ptr;
 };
 
-#endif
-
 }//namespace vm
+}//namespace engine
 }//namespace cloture

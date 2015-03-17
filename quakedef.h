@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // quakedef.h -- primary header for client
 
 #pragma once
-//#define BUILD_CLOTURE_GAME
 
 #define		disableProfiling	1
 
@@ -30,18 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 
-#if defined(__i386__)
-	#include <emmintrin.h>
 
-#elif defined(__x86_64__)
-	#include <emmintrin.h>	
-#elif defined(__ARM_ARCH)
-	#include "arm_neon.h"
-#endif
-
-#if defined(_MSVC_VER) || defined(__INTEL_COMPILER)
-		#include <immintrin.h>
-#endif
 #include "stddef.h"
 #if defined(__INTEL_COMPILER)
 #undef _MSVC_VER

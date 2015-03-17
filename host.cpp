@@ -600,7 +600,7 @@ void Host_ShutdownServer(void)
 	{
 		if(PRVM_serverfunction(SV_Shutdown))
 		{
-			func_t s = PRVM_serverfunction(SV_Shutdown);
+			const size_t s = PRVM_serverfunction(SV_Shutdown);
 			PRVM_serverglobalfloat(time) = sv.time;
 			PRVM_serverfunction(SV_Shutdown) = 0; // prevent it from getting called again
 			prog->ExecuteProgram(prog, s,"SV_Shutdown() required");
@@ -1053,8 +1053,10 @@ void Host_Main(void)
 #if MEMPARANOIA
 		Mem_CheckSentinelsGlobal();
 #else
-		if (developer_memorydebug.integer)
-			Mem_CheckSentinelsGlobal();
+		#if mDebugMemory
+			if (developer_memorydebug.integer)
+				Mem_CheckSentinelsGlobal();
+		#endif
 #endif
 
 		// if there is some time remaining from this frame, reset the timers
@@ -1191,10 +1193,12 @@ static void Host_Init (void)
 		developer_extra.string = "1";
 		developer_insane.value = developer_insane.integer = 1;
 		developer_insane.string = "1";
-		developer_memory.value = developer_memory.integer = 1;
-		developer_memory.string = "1";
-		developer_memorydebug.value = developer_memorydebug.integer = 1;
-		developer_memorydebug.string = "1";
+		#if mDebugMemory
+			developer_memory.value = developer_memory.integer = 1;
+			developer_memory.string = "1";
+			developer_memorydebug.value = developer_memorydebug.integer = 1;
+			developer_memorydebug.string = "1";
+		#endif
 	}
 
 	if (COM_CheckParm("-developer3"))

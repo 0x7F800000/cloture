@@ -779,7 +779,8 @@ static void VM_CL_R_AddEntities (prvm_prog_t *prog)
 
 	// callprofile fixing hack: do not include this time in what is counted for CSQC_UpdateView
 	t = Sys_DirtyTime() - t;if (t < 0 || t >= 1800) t = 0;
-	prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
+	if(!prog->isNative)
+		prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
 }
 
 //#302 void(entity ent) addentity (EXT_CSQC)
@@ -789,7 +790,8 @@ static void VM_CL_R_AddEntity (prvm_prog_t *prog)
 	VM_SAFEPARMCOUNT(1, VM_CL_R_AddEntity);
 	CSQC_AddRenderEdict(PRVM_G_EDICT(OFS_PARM0), 0);
 	t = Sys_DirtyTime() - t;if (t < 0 || t >= 1800) t = 0;
-	prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
+	if(!prog->isNative)
+		prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
 }
 
 //#303 float(float property, ...) setproperty (EXT_CSQC)
@@ -1144,7 +1146,8 @@ static void VM_CL_R_AddDynamicLight (prvm_prog_t *prog)
 	R_RTLight_Update(&r_refdef.scene.templights[r_refdef.scene.numlights], false, &matrix, col, style, cubemapname, castshadow, coronaintensity, coronasizescale, ambientscale, diffusescale, specularscale, LIGHTFLAG_NORMALMODE | LIGHTFLAG_REALTIMEMODE);
 	r_refdef.scene.lights[r_refdef.scene.numlights] = &r_refdef.scene.templights[r_refdef.scene.numlights];r_refdef.scene.numlights++;
 	t = Sys_DirtyTime() - t;if (t < 0 || t >= 1800) t = 0;
-	prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
+	if(!prog->isNative)
+		prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
 }
 
 //============================================================================
@@ -3272,7 +3275,8 @@ static void VM_CL_R_RenderScene (prvm_prog_t *prog)
 
 	// callprofile fixing hack: do not include this time in what is counted for CSQC_UpdateView
 	t = Sys_DirtyTime() - t;if (t < 0 || t >= 1800) t = 0;
-	prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
+	if(!prog->isNative)
+		prog->functions[PRVM_clientfunction(CSQC_UpdateView)].totaltime -= t;
 }
 
 static void VM_ResizePolygons(vmpolygons_t *polys)

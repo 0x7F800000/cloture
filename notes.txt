@@ -1,34 +1,40 @@
 
-OPTIMAL TESTING CVARS:
-	r_motionblur 1
-	 r_damageblur 1
-	r_shadows 1
-	r_viewfbo 3
-	r_water 1
-	r_shadow_shadowmapping_filterquality 4
-	r_glsl_postprocess 1
-	mod_q3shader_force_terrain_alphaflag 1
-	r_glsl_vertextextureblend_usebothalphas 1
-	r_shadow_realtime_world 1
-	r_shadow_shadowmapping_depthbits 32
-	r_motionblur_maxblur 0.75
-	r_shadow_realtime_dlight_portalculling 1
-/*
-r_shadow_realtime_dlight_portalculling is "0" ["0"] enables portal optimization on dynamic lights (slow!)
+changed func_t in XXVM_Execute functions to size_t
 
-*/
-#define 	NO_SOFTWARE_RENDERER
-#define		EXCLUDE_D3D_CODEPATHS
-#define		NO_DEVELOPER_CVARS
-#define		NO_SILLY_CVARS
+when isNative in the program is set to true, the "size_t func"
+parameter will be interpreted as a function pointer of type "void (*)(Program)"
 
-#define		ENABLE_TIMEREPORT	0
+since all function offsets are accessed through the PRVM_serverfunction, PRVM_clientfunction, 
+PRVM_menufunction, etc macros, the solution is to just redefine them
+
+original definitions:
+#define PRVM_allfunction(funcname)           (prog->funcoffsets.funcname)
+#define PRVM_drawfunction(funcname)           (prog->funcoffsets.funcname)
+#define PRVM_gamefunction(funcname)           (prog->funcoffsets.funcname)
+#define PRVM_serverfunction(funcname)           (prog->funcoffsets.funcname)
+#define PRVM_clientfunction(funcname)           (prog->funcoffsets.funcname)
+#define PRVM_menufunction(funcname)           (prog->funcoffsets.funcname)
+
+there is a problematic one, PRVM_GLOBALFIELDFUNCTION, but it looks like its unused thankfully
 
 
-todo:
-	Eliminate vec3_t from structures in client.h
+the solution is something like this
 
+#define PRVM_serverfunction(funcname)           \
+(prog->isNative ? prog->LookupFunction(#funcname) : prog->funcoffsets.funcname)
 
-r_shadow_realtime_world is linked to the problem with models
+need to check the results of each of the function getters to make sure that
+the result is never cached in a func_t variable or anything other than size_t
 
-r_refdef.scene.rtworld is the variable that gets set by r_shadow_realtime_world
+so far cleared:
+	PRVM_allfunction (used)
+	PRVM_drawfunction (unused)
+	PRVM_gamefunction (unused)
+	PRVM_serverfunction (used)
+	PRVM_clientfunction (used)
+	PRVM_menufunction (used)
+	
+changed some stuff to check if isNative is true to prevent segfaults
+Program::LookupFunction should return a pointer to the function pointer, for compatability
+with some parts of the code (manually NULL'ing out global quakeC functions)
+

@@ -25,7 +25,7 @@ struct server_static_t
 	/// number of svs.clients slots (updated by maxplayers command)
 	int maxclients, maxclients_next;
 	/// client slots
-	struct client_s *clients;
+	client_s *clients;
 	/// episode completion information
 	int serverflags;
 	/// cleared when at SV_SpawnServer

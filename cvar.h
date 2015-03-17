@@ -253,7 +253,7 @@ namespace cloture::engine::cvars
 	{
 		return Cvar_FindVarAfter(prevName, neededflags);
 	}
-	inline float variableValue(const char* name)
+	inline float CVar::variableValue(const char* name)
 	{
 		return Cvar_VariableValue(name);
 	}

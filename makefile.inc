@@ -143,7 +143,8 @@ OBJ_COMMON= \
 	wad.o \
 	world.o \
 	zone.o \
-	game.o 
+	game.o \
+	newvm.o
 #\
 #	profile-clang.o
 
@@ -502,7 +503,10 @@ world.o: world.cpp
 vid_glx.o: vid_glx.cpp
 	$(CHECKLEVEL2)
 	$(DO_CC) -I/usr/X11R6/include
-
+newvm.o: vm/newvm.cpp
+	$(CHECKLEVEL2)
+	$(DO_CC)
+	
 keysym2ucs.o: keysym2ucs.cpp
 	$(CHECKLEVEL2)
 	$(DO_CC) -I/usr/X11R6/include

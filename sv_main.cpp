@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 using namespace cloture;
 using namespace util::common;
 using namespace console;
-using namespace vm;
+using namespace engine::vm;
 
 static void SV_SaveEntFile_f();
 static void SV_StartDownload_f();
@@ -3259,7 +3259,7 @@ void SV_SpawnServer (const char *server)
 		World_End(&sv.world);
 		if(PRVM_serverfunction(SV_Shutdown))
 		{
-			func_t s = PRVM_serverfunction(SV_Shutdown);
+			size_t s = PRVM_serverfunction(SV_Shutdown);
 			PRVM_serverglobalfloat(time) = sv.time;
 			PRVM_serverfunction(SV_Shutdown) = 0; // prevent it from getting called again
 			prog->ExecuteProgram(prog, s,"SV_Shutdown() required");

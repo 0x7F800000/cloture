@@ -1112,7 +1112,7 @@ cleanup:
 MVM_ExecuteProgram
 ====================
 */
-void MVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage)
+void MVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage)
 {
 	mstatement_t	*st, *startst;
 	mfunction_t	*f, *newf;
@@ -1247,7 +1247,7 @@ cleanup:
 CLVM_ExecuteProgram
 ====================
 */
-void CLVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage)
+void CLVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage)
 {
 	mfunction_t *newf;
 	prvm_edict_t	*ed;
@@ -1342,9 +1342,9 @@ SVVM_ExecuteProgram
 ====================
 */
 #ifdef PROFILING
-void SVVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage)
+void SVVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage)
 #else
-void PRVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessage)
+void PRVM_ExecuteProgram (prvm_prog_t *prog, size_t fnum, const char *errormessage)
 #endif
 {
 	mstatement_t	*st, *startst;

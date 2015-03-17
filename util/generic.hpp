@@ -254,6 +254,27 @@ static constexpr bool isUnsigned(T f)
 	return isUnsigned<T>();
 }
 
+template<typename T>
+class stripPointer
+{
+	static constexpr bool isPointerType = isPointer<T>();
+
+	template<typename TT, bool bb = false>
+	struct helper
+	{
+		using type = TT;
+	};
+
+	template<typename TT>
+	struct helper<TT, true>
+	{
+		using type = typeof( *static_cast<T>(nullptr));
+	};
+
+public:
+	using type = typename helper<T, isPointerType>::type;
+};
+
 }//namespace generic
 }//namespace util
 }//namespace cloture

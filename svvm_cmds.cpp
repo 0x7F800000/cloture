@@ -3796,7 +3796,7 @@ void SVVM_reset_cmd(prvm_prog_t *prog)
 
 	if(prog->loaded && PRVM_serverfunction(SV_Shutdown))
 	{
-		func_t s = PRVM_serverfunction(SV_Shutdown);
+		size_t s = PRVM_serverfunction(SV_Shutdown);
 		PRVM_serverglobalfloat(time) = sv.time;
 		PRVM_serverfunction(SV_Shutdown) = 0; // prevent it from getting called again
 		prog->ExecuteProgram(prog, s,"SV_Shutdown() required");

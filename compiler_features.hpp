@@ -34,12 +34,17 @@
 	#define		__pure									__attribute__((__const__))
 	#define		__pseudopure							__attribute__((pure))
 
+	#define		__cold									__attribute__((cold))
+	#define		__hot									__attribute__((hot))
+
 	#define		__align(alignment)						__attribute__((aligned(alignment)))
 	#define		__returns_aligned(alignment)			__attribute__((assume_aligned(alignment)))
 	#define		__nonull_args(...)						__attribute__((nonnull(__VA_ARGS__)))
 	#define		__returns_nonull 						__attribute__((returns_nonnull))
+	#define		__returns_unaliased						__attribute__((malloc))
 
 	#define		unreachable()							__builtin_unreachable()
+
 
 	#ifdef		__GNUC__
 		#define 	__assume(x)								if(!(x))	unreachable()
@@ -53,7 +58,7 @@
 	#define 	__offsetOf(type, member)				__builtin_offsetof (type, member)
 	#define 	likely(x)								__builtin_expect(!!(x), true)
 	#define 	unlikely(x)								__builtin_expect(!!(x), false)
-
+	#define		__expect(x, value)						__builtin_expect(x, value)
 #else
 	#ifndef _MSVC_VER
 		#define	__forceinline	inline
@@ -63,10 +68,11 @@
 		#define	__assume(x)
 		#define	__align(a)	
 	#else
-		#define	__noreturn		__declspec(noreturn)
-		#define	__noinline		__declspec(noinline)
-		#define	__pure			__declspec(noalias)
-		#define	__align(a)		__declspec( align( a))
+		#define	__noreturn			__declspec(noreturn)
+		#define	__noinline			__declspec(noinline)
+		#define	__pure				__declspec(noalias)
+		#define	__align(a)			__declspec( align( a))
+		#define	__returns_unaliased	__declspec(restrict)
 	#endif
 	#define	__pseudopure	
 	#define unlikely(x)		(x)
@@ -89,7 +95,7 @@
 	#define	__expand_msvc_property__(call, gt, ...)	call(gt, __VA_ARGS__)
 
 	#define	__msvc_property(readWrite, gt, ...)		__expand_msvc_property__(__msvc_property_##readWrite, gt, __VA_ARGS__)
-	#define	__returns_unaliased						__declspec(noalias)
+
 	#define	__naked									__declspec(naked)
 #else
 	#define	__novtbl	
@@ -99,6 +105,7 @@
 
 #if defined(__clang__)
 	#define		vectorizeLoop	_Pragma("clang loop vectorize(enable)")
+	#define		__flag_enum		__attribute__((flag_enum))
 #elif defined(__INTEL_COMPILER)
 	#define		vectorizeLoop	_Pragma("simd")
 #else

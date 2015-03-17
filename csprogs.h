@@ -117,3 +117,4 @@ dp_model_t *CL_GetModelByIndex(int modelindex);
 
 int CL_VM_GetViewEntity();
 
+static constexpr int PRVM_KNOWNSTRINGBASE = 0x40000000;

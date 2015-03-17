@@ -1,11 +1,17 @@
 
 #pragma once
 
+#define		qcDisabled		1
 
 namespace cloture		{
 namespace engine		{
 namespace vm			{
 
+	__pseudopure inline unsigned int edictToIndex(const Program prog, Edict* RESTRICT const e)
+	{
+		return static_cast<unsigned int>(e - prog->edicts) / static_cast<unsigned int>(sizeof(Edict));
+	}
+	void warn(const Program prog, const char *fmt, ...);
 	void Cmd_Init();
 
 	prvm_stringbuffer_t *BufStr_FindCreateReplace (Program prog, int bufindex, int flags, char *format);
@@ -15,26 +21,30 @@ namespace vm			{
 	void error (Program prog);
 	void objerror (Program prog);
 	void print (Program prog);
-	void bprint (Program prog);
-	void sprint (Program prog);
-	void centerprint (Program prog);
-	void normalize (Program prog);
-	void vlen (Program prog);
-	void vectoyaw (Program prog);
-	void vectoangles (Program prog);
-	float random (Program prog);
-	void localsound(Program prog);
-	void _break (Program prog);
-	void localcmd (Program prog);
-	void cvar (Program prog);
-	void cvar_string(Program prog);
-	void cvar_type (Program prog);
-	void cvar_defstring (Program prog);
-	void cvar_set (Program prog);
+	void bprint (Program prog, const char* msg);
+	void sprint (Program prog, const ptrdiff_t clientnum, const char* s);
+	void centerprint (const Program prog, const char* msg);
 
-	void spawn (Program prog);
-	void remove (Program prog);
-	void find (Program prog);
+	util::math::vector::vector3D normalize(const Program prog, const util::math::vector::vector3D vec);
+	float vlen(const Program prog, util::math::vector::vector3D v);
+	float vectoyaw(const Program prog, const util::math::vector::vector3D vec);
+
+	util::math::vector::vector3D vectoangles(const Program prog, const util::math::vector::vector3D parm0);
+	util::math::vector::vector3D vectoangles(const Program prog,
+	const util::math::vector::vector3D parm0, const util::math::vector::vector3D parm1);
+	float random (Program prog);
+
+	bool localsound(const Program prog, const char* s);
+
+	void _break(Program prog);
+	void localcmd(const Program prog, const char* cmd);
+	float cvar(const Program prog, const char* s);
+	decltype(engine::cvars::CVar::flags) cvar_type(const Program prog, const char* s);
+
+	Edict* spawn(Program prog);
+	void remove(Program prog, Edict* e);
+
+	Edict* find(Program prog, Edict* start, const char* field, const char* match );
 	void findfloat (Program prog);
 	void findchain (Program prog);
 	void findchainfloat (Program prog);

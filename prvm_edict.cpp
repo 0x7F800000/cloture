@@ -26,7 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 using namespace cloture;
 using namespace util::common;
 using namespace console;
-using namespace vm;
+using namespace engine::vm;
+using cloture::engine::memory::Pool;
 
 prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
 
@@ -54,9 +55,6 @@ bool prvm_runawaycheck = true;
 
 //============================================================================
 // mempool handling
-
-
-static constexpr int PRVM_KNOWNSTRINGBASE = 0x40000000;
 
 /*
 ===============
@@ -294,7 +292,7 @@ prvm_edict_t *PRVM_ED_Alloc(prvm_prog_t *prog)
 PRVM_ED_Free
 
 Marks the edict as free
-FIXME: walk all entities and nullptr out references to this entity
+FIXME: walk all entities and NULL out references to this entity
 =================
 */
 void PRVM_ED_Free(prvm_prog_t *prog, prvm_edict_t *ed)
@@ -1889,7 +1887,6 @@ static void PRVM_Prog_Alloc(
 	const size_t	requiredGlobalSpace
 )
 {
-	using Pool = cloture::memory::Pool;
 
 	prog->numstatements 	= prog->progs_numstatements;
 	prog->numglobaldefs 	= prog->progs_numglobaldefs;
