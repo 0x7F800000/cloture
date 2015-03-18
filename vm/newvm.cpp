@@ -810,7 +810,7 @@ VM_findfloat
 Edict* vm::findFloat(Program prog, Edict* start, const char* field, const float match)
 {
 	size32 e = PRVM_NUM_FOR_EDICT(start);
-	const size32 f = vm::findField(prog, field);
+	const size32 f = vm::findField(prog, field)->ofs;
 
 	{
 		const size32 numEdicts = prog->num_edicts;

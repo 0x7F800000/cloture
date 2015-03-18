@@ -38,6 +38,8 @@ The code uses void pointers instead.
 #define	EDICTPRIVATE_CONSTEXPR	0
 #define	CONSTEXPR_OFFSETS		0
 
+#define	mDebugGlobalVM			1
+
 typedef struct prvm_stack_s
 {
 	int				s;
@@ -92,6 +94,10 @@ namespace cloture::engine::vm
 	//typedef struct prvm_edict_s
 	struct Edict
 	{
+		static constexpr auto clotureTypeName()
+		{
+			return "Edict";
+		}
 		// engine-private fields (stored in dynamically resized array)
 		union
 		{
@@ -160,91 +166,12 @@ namespace cloture::engine::vm
 			return fields.fp[offset];
 		}
 
-		#if 0
-		float	modelindex;
-		float	absmin[3];
-		float	absmax[3];
-		float	ltime;
-		float	movetype;
-		float	solid;
-		float	origin[3];
-		float	oldorigin[3];
-		float	velocity[3];
-		float	angles[3];
-		float	avelocity[3];
-		float	punchangle[3];
-		string_t	classname;
-		string_t	model;
-		float	frame;
-		float	skin;
-		float	effects;
-		float	mins[3];
-		float	maxs[3];
-		float	size[3];
-		func_t	touch;
-		func_t	use;
-		func_t	think;
-		func_t	blocked;
-		float	nextthink;
-		int	groundentity;
-		float	health;
-		float	frags;
-		float	weapon;
-		string_t	weaponmodel;
-		float	weaponframe;
-		float	currentammo;
-		float	ammo_shells;
-		float	ammo_nails;
-		float	ammo_rockets;
-		float	ammo_cells;
-		float	items;
-		float	takedamage;
-		int	chain;
-		float	deadflag;
-		float	view_ofs[3];
-		float	button0;
-		float	button1;
-		float	button2;
-		float	impulse;
-		float	fixangle;
-		float	v_angle[3];
-		float	idealpitch;
-		string_t	netname;
-		int	enemy;
-		float	flags;
-		float	colormap;
-		float	team;
-		float	max_health;
-		float	teleport_time;
-		float	armortype;
-		float	armorvalue;
-		float	waterlevel;
-		float	watertype;
-		float	ideal_yaw;
-		float	yaw_speed;
-		int	aiment;
-		int	goalentity;
-		float	spawnflags;
-		string_t	target;
-		string_t	targetname;
-		float	dmg_take;
-		float	dmg_save;
-		int	dmg_inflictor;
-		int	owner;
-		float	movedir[3];
-		string_t	message;
-		float	sounds;
-		string_t	noise;
-		string_t	noise1;
-		string_t	noise2;
-		string_t	noise3;
-		#endif
 
 		#define		EDICT_VECTOR_FIELD_WRAPPER(setgetSuffix, field)						\
 		__forceinline util::math::vector::vector3f get##setgetSuffix () const			\
 		{																				\
 			const float* RESTRICT const o = entity->field;								\
-			return vector3f(o[0], o[1], o[2]);											\
+			return util::math::vector::vector3f(o[0], o[1], o[2]);						\
 		}																				\
 		__forceinline void set##setgetSuffix (const util::math::vector::vector3f vecIn)	\
 		{																				\
@@ -313,25 +240,60 @@ namespace cloture::engine::vm
 		EDICT_FLOAT_FIELD_WRAPPER(NextThink, nextthink)
 		EDICT_INT_FIELD_WRAPPER(GroundEntity, groundentity)
 		EDICT_FLOAT_FIELD_WRAPPER(Health, health)
-/*
- * 		float	frags;
-		float	weapon;
-		string_t	weaponmodel;
-		float	weaponframe;
-		float	currentammo;
-		float	ammo_shells;
-		float	ammo_nails;
-		float	ammo_rockets;
-		float	ammo_cells;
-		float	items;
-		float	takedamage;
-		int	chain;
- */
+
 		EDICT_FLOAT_FIELD_WRAPPER(Frags, frags)
-		EDICT_FLOAT_FIELD_WRAPPER(Weapon, weapon)
+		EDICT_INT_FIELD_WRAPPER(Weapon, weapon)
 		EDICT_STRING_FIELD_WRAPPER(WeaponModel, weaponmodel)
 		EDICT_INT_FIELD_WRAPPER(WeaponFrame, weaponframe)
 		EDICT_INT_FIELD_WRAPPER(CurrentAmmo, currentammo)
+		EDICT_INT_FIELD_WRAPPER(AmmoShells, ammo_shells)
+		EDICT_INT_FIELD_WRAPPER(AmmoNails, ammo_nails)
+		EDICT_INT_FIELD_WRAPPER(AmmoRockets, ammo_rockets)
+		EDICT_INT_FIELD_WRAPPER(AmmoCells, ammo_cells)
+		EDICT_INT_FIELD_WRAPPER(Items, items)
+		EDICT_INT_FIELD_WRAPPER(TakeDamage, takedamage)
+		EDICT_INT_FIELD_WRAPPER(Chain, chain)
+
+		EDICT_INT_FIELD_WRAPPER(DeadFlags, deadflag)
+		EDICT_VECTOR_FIELD_WRAPPER(ViewOffset, view_ofs)
+		EDICT_INT_FIELD_WRAPPER(Button0, button0)
+		EDICT_INT_FIELD_WRAPPER(Button1, button1)
+		EDICT_INT_FIELD_WRAPPER(Button2, button2)
+		EDICT_FLOAT_FIELD_WRAPPER(Impulse, impulse)
+		EDICT_FLOAT_FIELD_WRAPPER(FixAngle, fixangle)
+		EDICT_VECTOR_FIELD_WRAPPER(VAngle, v_angle)
+		EDICT_FLOAT_FIELD_WRAPPER(IdealPitch, idealpitch)
+		EDICT_STRING_FIELD_WRAPPER(NetName, netname)
+		EDICT_INT_FIELD_WRAPPER(Enemy, enemy)
+		EDICT_INT_FIELD_WRAPPER(Flags, flags)
+		EDICT_FLOAT_FIELD_WRAPPER(ColorMap, colormap)
+		EDICT_FLOAT_FIELD_WRAPPER(Team, team)
+
+		EDICT_FLOAT_FIELD_WRAPPER(MaxHealth, max_health)
+		EDICT_FLOAT_FIELD_WRAPPER(TeleportTime, teleport_time)
+		EDICT_FLOAT_FIELD_WRAPPER(ArmorType, armortype)
+		EDICT_FLOAT_FIELD_WRAPPER(ArmorValue, armorvalue)
+		EDICT_FLOAT_FIELD_WRAPPER(WaterLevel, waterlevel)
+		EDICT_FLOAT_FIELD_WRAPPER(IdealYaw, ideal_yaw)
+		EDICT_FLOAT_FIELD_WRAPPER(YawSpeed, yaw_speed)
+		EDICT_INT_FIELD_WRAPPER(AIMent, aiment)
+		EDICT_INT_FIELD_WRAPPER(GoalEntity, goalentity)
+		EDICT_INT_FIELD_WRAPPER(SpawnFlags, spawnflags)
+
+		EDICT_STRING_FIELD_WRAPPER(Target, target)
+		EDICT_STRING_FIELD_WRAPPER(TargetName, targetname)
+		EDICT_FLOAT_FIELD_WRAPPER(DmgTake, dmg_take)
+		EDICT_FLOAT_FIELD_WRAPPER(DmgSave, dmg_save)
+		EDICT_INT_FIELD_WRAPPER(DmgInflictor, dmg_inflictor)
+		EDICT_INT_FIELD_WRAPPER(Owner, owner)
+		EDICT_VECTOR_FIELD_WRAPPER(MoveDir, movedir)
+		EDICT_STRING_FIELD_WRAPPER(Message, message)
+		EDICT_INT_FIELD_WRAPPER(Sounds, sounds)
+
+		EDICT_STRING_FIELD_WRAPPER(Noise, noise)
+		EDICT_STRING_FIELD_WRAPPER(Noise1, noise1)
+		EDICT_STRING_FIELD_WRAPPER(Noise2, noise2)
+		EDICT_STRING_FIELD_WRAPPER(Noise3, noise3)
 	}; //prvm_edict_t;
 
 }//namespace cloture::engine::vm
@@ -1344,12 +1306,275 @@ namespace engine	{
 namespace vm		{
 
 
-//using util::pointers::wrapped_ptr;
+struct VMGlobalFunction
+{
+	using magicType		=	util::common::uint64;
+	const char*	name;
+	void* 		funcptr;
+	magicType	magic;
+	static constexpr auto clotureTypeName()
+	{
+		return "VMGlobalFunction";
+	}
+
+	template<typename returnType, typename... ArgTypes>
+	static constexpr magicType calculateFunctionMagic()
+	{
+		static_assert(
+			sizeof...(ArgTypes) <= 9,
+			"calculateFunctionMagic only accounts for up to 9 arguments at the moment"
+		);
+
+		#define	vargNotRef(n)	!util::generic::isReference<getNthTypename(n, ArgTypes)>()
+
+			static_assert(
+				vargNotRef(1) && vargNotRef(2) && vargNotRef(3) &&
+				vargNotRef(4) && vargNotRef(5) && vargNotRef(6) &&
+				vargNotRef(7) && vargNotRef(8) && vargNotRef(9),
+				"For ease of debugging don't use reference parameters with VMGlobalFunction"
+			);
+		#undef vargNotRef
+		constexpr magicType returnSize	= sizeof(returnType);
+		constexpr magicType ArgCount	= sizeof...(ArgTypes);
+
+		constexpr magicType Arg1sz		= getNthTypenameSize(1, ArgTypes);
+		constexpr magicType Arg2sz		= getNthTypenameSize(2, ArgTypes);
+		constexpr magicType Arg3sz		= getNthTypenameSize(3, ArgTypes);
+		constexpr magicType Arg4sz		= getNthTypenameSize(4, ArgTypes);
+
+		constexpr magicType Arg5sz		= getNthTypenameSize(5, ArgTypes);
+		constexpr magicType Arg6sz		= getNthTypenameSize(6, ArgTypes);
+		constexpr magicType Arg7sz		= getNthTypenameSize(7, ArgTypes);
+		constexpr magicType Arg8sz		= getNthTypenameSize(8, ArgTypes);
+		constexpr magicType Arg9sz		= getNthTypenameSize(9, ArgTypes);
+
+		static_assert(
+					Arg1sz <= 32
+				&& 	Arg2sz <= 32
+				&& 	Arg3sz <= 32
+				&& 	Arg4sz <= 32
+				&& 	Arg5sz <= 32
+				&& 	Arg6sz <= 32
+				&& 	Arg7sz <= 32
+				&& 	Arg8sz <= 32
+				&& 	Arg9sz <= 32,
+				"Argument sizes are encoded with five bits. One of the arguments exceeds 32."
+				);
+
+		magicType result = 0;
+
+		result |= Arg1sz;
+		result <<= 5;
+
+		result |= Arg2sz;
+		result <<= 5;
+
+		result |= Arg3sz;
+		result <<= 5;
+
+		result |= Arg4sz;
+		result <<= 5;
+
+		result |= Arg5sz;
+		result <<= 5;
+
+		result |= Arg6sz;
+		result <<= 5;
+
+		result |= Arg7sz;
+		result <<= 5;
+
+		result |= Arg8sz;
+		result <<= 5;
+
+		result |= Arg9sz;
+		result <<= 5;
+
+		result |= returnSize;
+		result <<= 5;
+
+		result |= ArgCount;
+		result <<= 5;
+
+		return result;
+	}
+
+
+	template<typename returnType, typename... ArgTypes>
+	__noinline __noreturn __cold
+	static void CallFailure
+	#if mDebugGlobalVM
+		(
+			ArgTypes... arguments,
+			int			line,
+			const char*	caller,
+			const char*	file
+		)
+	#else
+		(ArgTypes... arguments)
+	#endif
+	{
+		#if mDebugGlobalVM
+			cloture::system::error(
+			"VMGlobalFunction call failed.\n"
+			"File = %s.\n"
+			"Caller = %s.\n"
+			"Line = %i\n",
+			file, caller, line
+			);
+		#else
+			cloture::system::error(
+			"VMGlobalFunction call failed."
+			"Enable mDebugGlobalVM and rebuild for more info."
+			);
+		#endif
+	}
+	template<typename returnType, typename... ArgTypes>
+	__forceinline returnType operator ()
+	#if mDebugGlobalVM
+		(
+			ArgTypes... 			arguments,
+			int 		line 	= 	sourceLine(),
+			const char* caller 	= 	funcName(),
+			const char* file	= 	sourceFile()
+		)
+	#else
+		(ArgTypes... 		arguments)
+	#endif
+	{
+		if(	unlikely(	(calculateFunctionMagic<returnType, ArgTypes...>() != this->magic)))
+		{
+			CallFailure<returnType, ArgTypes...>(
+			arguments...
+			#if mDebugGlobalVM
+			, line, caller, file
+			#endif
+			);
+		}
+		return reinterpret_cast<returnType (*)(ArgTypes...)>(funcptr)(arguments...);
+	}
+};
 
 class Program : public util::pointers::wrapped_ptr<prvm_prog_t>
 {
 public:
+	static constexpr auto clotureTypeName()
+	{
+		return "Program";
+	}
 	using wrapped_ptr::wrapped_ptr;
+
+	__forceinline Edict* operator [](const util::common::size32 index)
+	{
+		return &(*this)->edicts[index];
+	}
+
+	__forceinline const Edict* operator [](const util::common::size32 index) const
+	{
+		return &(*this)->edicts[index];
+	}
+
+	__forceinline __pseudopure util::common::size32 getEdictCount() const
+	{
+		return (*this)->num_edicts;
+	}
+	__forceinline __pseudopure util::common::size32 getMaxEdicts() const
+	{
+		return (*this)->max_edicts;
+	}
+	__forceinline __pseudopure util::common::size32 getLimitEdicts() const
+	{
+		return (*this)->limit_edicts;
+	}
+
+	template<typename T>
+	__forceinline T* alloc(const cloture::engine::memory::allocsize_t n)
+	{
+		return (*this)->progs_mempool->alloc<T>(n);
+	}
+
+	template<typename T>
+	__forceinline void dealloc(T* data)
+	{
+		(*this)->progs_mempool->dealloc<T>(data);
+	}
+
+	template<typename T>
+	__returns_aligned(cloture::engine::memory::poolAllocAlign)
+	__returns_nonull __nonull_args(2) __returns_unaliased
+	__forceinline T* realloc(T* data, const cloture::engine::memory::allocsize_t n)
+	{
+		return (*this)->progs_mempool->realloc<T>(data, n);
+	}
+
+	#define		PROGRAM_VECTOR_FIELD_WRAPPER(setgetSuffix, field)					\
+	__forceinline util::math::vector::vector3f get##setgetSuffix () const			\
+	{																				\
+		const float* RESTRICT const o = (*this)->state->field;								\
+		return util::math::vector::vector3f(o[0], o[1], o[2]);						\
+	}																				\
+	__forceinline void set##setgetSuffix (const util::math::vector::vector3f vecIn)	\
+	{																				\
+		float* RESTRICT const o = (*this)->state->field;										\
+		o[0] = vecIn[0], o[1] = vecIn[1], o[2] = vecIn[2];							\
+	}
+
+	#define		PROGRAM_FLOAT_FIELD_WRAPPER(setgetSuffix, field)					\
+	__forceinline float get##setgetSuffix () const									\
+	{																				\
+		return (*this)->state->field;														\
+	}																				\
+	__forceinline void set##setgetSuffix (const float newValue)						\
+	{																				\
+		(*this)->state->field = newValue;													\
+	}
+
+	#define		PROGRAM_INT_FIELD_WRAPPER(setgetSuffix, field)						\
+	__forceinline int get##setgetSuffix () const									\
+	{																				\
+		return static_cast<int>((*this)->state->field);								\
+	}																				\
+	__forceinline void set##setgetSuffix (const int newValue)						\
+	{																				\
+		(*this)->state->field = static_cast<typeof((*this)->state->field)>(newValue);\
+	}
+
+	#define		PROGRAM_STRING_FIELD_WRAPPER(setgetSuffix, field)  \
+				PROGRAM_INT_FIELD_WRAPPER(setgetSuffix, field)
+
+	#define		PROGRAM_FUNCTION_FIELD_WRAPPER(setgetSuffix, field)  \
+				PROGRAM_INT_FIELD_WRAPPER(setgetSuffix, field)
+
+	PROGRAM_INT_FIELD_WRAPPER(Self, self)
+	PROGRAM_INT_FIELD_WRAPPER(Other, other)
+	PROGRAM_INT_FIELD_WRAPPER(World, world)
+	PROGRAM_FLOAT_FIELD_WRAPPER(Time, time)
+	PROGRAM_FLOAT_FIELD_WRAPPER(FrameTime, frametime)
+	PROGRAM_FLOAT_FIELD_WRAPPER(ForceRetouch, force_retouch)
+	PROGRAM_STRING_FIELD_WRAPPER(MapName, mapname)
+	PROGRAM_FLOAT_FIELD_WRAPPER(Deathmatch, deathmatch)
+	PROGRAM_FLOAT_FIELD_WRAPPER(Coop, coop)
+	PROGRAM_FLOAT_FIELD_WRAPPER(Teamplay, teamplay)
+	PROGRAM_INT_FIELD_WRAPPER(ServerFlags, serverflags)
+	PROGRAM_FLOAT_FIELD_WRAPPER(TotalSecrets, total_secrets)
+	PROGRAM_FLOAT_FIELD_WRAPPER(TotalMonsters, total_monsters)
+	PROGRAM_FLOAT_FIELD_WRAPPER(FoundSecrets, found_secrets)
+	PROGRAM_FLOAT_FIELD_WRAPPER(KilledMonsters, killed_monsters)
+
+	PROGRAM_INT_FIELD_WRAPPER(MsgEntity, msg_entity)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(Main, main)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(StartFrame, StartFrame)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(PlayerPreThink, PlayerPreThink)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(PlayerPostThink, PlayerPostThink)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(ClientKill, ClientKill)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(ClientConnect, ClientConnect)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(PutClientInServer, PutClientInServer)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(ClientDisconnect, ClientDisconnect)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(SetNewParms, SetNewParms)
+	PROGRAM_FUNCTION_FIELD_WRAPPER(SetChangeParms, SetChangeParms)
+
+	VMGlobalFunction* lookupGlobalFunction(const char* name);
+
 };
 
 }//namespace vm

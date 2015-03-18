@@ -95,6 +95,7 @@ namespace memory
 		unsigned int sentinel2;
 		template<typename T> inline T* alloc(const allocsize_t n);
 		template<typename T> inline T* realloc(T* data, const allocsize_t n);
+		template<typename T> inline void dealloc(T* data);
 	};
 }
 }
@@ -271,7 +272,10 @@ namespace memory
 	{
 		return reinterpret_cast<void*>(Mem_Realloc(this, data, n));
 	}
-
-
+	template<typename T>
+	inline void Pool::dealloc(T* data)
+	{
+		Mem_Free(reinterpret_cast<void*>(data));
+	}
 }
 }

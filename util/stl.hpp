@@ -16,9 +16,8 @@
 	#include <stdexcept>
 #endif
 
-#define		funcName()		__builtin_FUNCTION()
-#define		sourceLine()	__builtin_LINE()
-#define		sourceFile()	__builtin_FILE()
+
+
 
 __if_not_exists(ptrdiff_t)
 {
@@ -79,6 +78,61 @@ __if_not_exists(ptrdiff_t)
 	CTFE stuff for compile-time tricks
 */
 #include	"ctfe.hpp"
+
+#if 0
+	#define		funcName()		__builtin_FUNCTION()
+	#define		sourceLine()	__builtin_LINE()
+	#define		sourceFile()	__builtin_FILE()
+#else
+	#define		funcName()		__FUNCTION__
+	#define		sourceLine()	__LINE__
+	#define		sourceFile()	__FILE__
+#endif
+
+template<int line, const char* filename, const char* functionName>
+struct __sourcePositionStringBuilder
+{
+	static constexpr size_t filenameLength 	= cloture::util::ctfe::cstrlen(filename);
+	static constexpr size_t functionLength 	= cloture::util::ctfe::cstrlen(functionName);
+	static constexpr auto lineText 			= cloture::util::ctfe::parser::toString<line>;
+	static constexpr size_t lineInfoLength	= lineText.size();
+
+
+	static constexpr auto build()
+	{
+		char temp[4096] = {};
+
+		//for(size_t i = 0; i < 4096; ++i)
+		//	temp[i] = 0;
+		size_t position = 0;
+		{
+			const char* msg = "at line ";
+			for(size_t i = 0; msg[i]; ++i, ++position)
+				temp[position] = msg[i];
+		}
+		for(size_t i = 0; lineText[i]; ++i, ++position)
+			temp[position] = lineText[i];
+
+		{
+			const char* msg = " in file ";
+			for(size_t i = 0; msg[i]; ++i, ++position)
+				temp[position] = msg[i];
+		}
+		for(size_t i = 0; filename[i]; ++i, ++position)
+			temp[position] = filename[i];
+
+		{
+			const char* msg = " in function ";
+			for(size_t i = 0; msg[i]; ++i, ++position)
+				temp[position] = msg[i];
+		}
+		for(size_t i = 0; functionName[i]; ++i, ++position)
+			temp[position] = functionName[i];
+		return temp;
+	}
+
+	static constexpr auto sourceInfo = build();
+};
 
 #include 	"ctfe_math.hpp"
 #include	"extended_types.hpp"

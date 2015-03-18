@@ -222,6 +222,14 @@ namespace ctfe
 		}
 	};
 
+	template <char... characters>
+	static constexpr CString<sizeof...(characters)>
+	operator "" _constexprString()
+	{
+		constexpr char temp[] = {characters...};
+		return CString<sizeof...(characters)>(temp);
+	}
+
 	template<size_t sz, bool reverse = false>
 	class charStream : public CString<sz>
 	{

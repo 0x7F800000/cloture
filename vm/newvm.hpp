@@ -45,7 +45,7 @@ namespace vm			{
 	void remove(Program prog, Edict* e);
 
 	Edict* find(Program prog, Edict* start, const char* field, const char* match );
-	void findfloat (Program prog);
+	Edict* findFloat(Program prog, Edict* start, const char* field, const float match);
 	void findchain (Program prog);
 	void findchainfloat (Program prog);
 	void findflags (Program prog);
