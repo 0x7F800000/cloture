@@ -121,11 +121,13 @@ namespace cloture::engine::vm
 		// QuakeC fields (stored in dynamically resized array)
 		union
 		{
-			prvm_vec_t *fp;
-			prvm_int_t *ip;
-
-		} fields;
-
+			union
+			{
+				prvm_vec_t *fp;
+				prvm_int_t *ip;
+			} fields;
+			entvars_t* entity;
+		};
 
 		template<typename T> __pseudopure __forceinline
 		auto getField(const unsigned int offset) RESTRICT const
@@ -158,6 +160,178 @@ namespace cloture::engine::vm
 			return fields.fp[offset];
 		}
 
+		#if 0
+		float	modelindex;
+		float	absmin[3];
+		float	absmax[3];
+		float	ltime;
+		float	movetype;
+		float	solid;
+		float	origin[3];
+		float	oldorigin[3];
+		float	velocity[3];
+		float	angles[3];
+		float	avelocity[3];
+		float	punchangle[3];
+		string_t	classname;
+		string_t	model;
+		float	frame;
+		float	skin;
+		float	effects;
+		float	mins[3];
+		float	maxs[3];
+		float	size[3];
+		func_t	touch;
+		func_t	use;
+		func_t	think;
+		func_t	blocked;
+		float	nextthink;
+		int	groundentity;
+		float	health;
+		float	frags;
+		float	weapon;
+		string_t	weaponmodel;
+		float	weaponframe;
+		float	currentammo;
+		float	ammo_shells;
+		float	ammo_nails;
+		float	ammo_rockets;
+		float	ammo_cells;
+		float	items;
+		float	takedamage;
+		int	chain;
+		float	deadflag;
+		float	view_ofs[3];
+		float	button0;
+		float	button1;
+		float	button2;
+		float	impulse;
+		float	fixangle;
+		float	v_angle[3];
+		float	idealpitch;
+		string_t	netname;
+		int	enemy;
+		float	flags;
+		float	colormap;
+		float	team;
+		float	max_health;
+		float	teleport_time;
+		float	armortype;
+		float	armorvalue;
+		float	waterlevel;
+		float	watertype;
+		float	ideal_yaw;
+		float	yaw_speed;
+		int	aiment;
+		int	goalentity;
+		float	spawnflags;
+		string_t	target;
+		string_t	targetname;
+		float	dmg_take;
+		float	dmg_save;
+		int	dmg_inflictor;
+		int	owner;
+		float	movedir[3];
+		string_t	message;
+		float	sounds;
+		string_t	noise;
+		string_t	noise1;
+		string_t	noise2;
+		string_t	noise3;
+		#endif
+
+		#define		EDICT_VECTOR_FIELD_WRAPPER(setgetSuffix, field)						\
+		__forceinline util::math::vector::vector3f get##setgetSuffix () const			\
+		{																				\
+			const float* RESTRICT const o = entity->field;								\
+			return vector3f(o[0], o[1], o[2]);											\
+		}																				\
+		__forceinline void set##setgetSuffix (const util::math::vector::vector3f vecIn)	\
+		{																				\
+			float* RESTRICT const o = entity->field;									\
+			o[0] = vecIn[0], o[1] = vecIn[1], o[2] = vecIn[2];							\
+		}
+
+		#define		EDICT_FLOAT_FIELD_WRAPPER(setgetSuffix, field)						\
+		__forceinline float get##setgetSuffix () const									\
+		{																				\
+			return entity->field;														\
+		}																				\
+		__forceinline void set##setgetSuffix (const float newValue)						\
+		{																				\
+			entity->field = newValue;													\
+		}
+
+		#define		EDICT_INT_FIELD_WRAPPER(setgetSuffix, field)						\
+		__forceinline int get##setgetSuffix () const									\
+		{																				\
+			return static_cast<int>(entity->field);										\
+		}																				\
+		__forceinline void set##setgetSuffix (const int newValue)						\
+		{																				\
+			entity->field = static_cast<typeof(entity->field)>(newValue);				\
+		}
+
+		#define		EDICT_STRING_FIELD_WRAPPER(setgetSuffix, field)  \
+					EDICT_INT_FIELD_WRAPPER(setgetSuffix, field)
+
+		#define		EDICT_FUNCTION_FIELD_WRAPPER(setgetSuffix, field)  \
+					EDICT_INT_FIELD_WRAPPER(setgetSuffix, field)
+
+		EDICT_INT_FIELD_WRAPPER(ModelIndex, modelindex)
+		EDICT_VECTOR_FIELD_WRAPPER(AbsMin, absmin)
+		EDICT_VECTOR_FIELD_WRAPPER(AbsMax, absmax)
+
+		/*
+		 * dunno what ltime is for yet
+		 */
+		EDICT_FLOAT_FIELD_WRAPPER(LTime, ltime)
+		EDICT_INT_FIELD_WRAPPER(MoveType, movetype)
+		EDICT_INT_FIELD_WRAPPER(Solid, solid)
+		EDICT_VECTOR_FIELD_WRAPPER(Origin, origin)
+		EDICT_VECTOR_FIELD_WRAPPER(OldOrigin, oldorigin)
+		EDICT_VECTOR_FIELD_WRAPPER(Velocity, velocity)
+		EDICT_VECTOR_FIELD_WRAPPER(Angles, angles)
+		EDICT_VECTOR_FIELD_WRAPPER(AngularVelocity, avelocity)
+		EDICT_VECTOR_FIELD_WRAPPER(PunchAngle, punchangle)
+
+		EDICT_STRING_FIELD_WRAPPER(ClassName, classname)
+
+
+		EDICT_STRING_FIELD_WRAPPER(Model, model)
+		EDICT_INT_FIELD_WRAPPER(Frame, frame)
+		EDICT_INT_FIELD_WRAPPER(Skin, skin)
+		EDICT_INT_FIELD_WRAPPER(Effects, effects)
+		EDICT_VECTOR_FIELD_WRAPPER(Mins, mins)
+		EDICT_VECTOR_FIELD_WRAPPER(Maxs, maxs)
+		EDICT_VECTOR_FIELD_WRAPPER(Size, size)
+
+		EDICT_FUNCTION_FIELD_WRAPPER(OnTouch, touch)
+		EDICT_FUNCTION_FIELD_WRAPPER(OnUse, use)
+		EDICT_FUNCTION_FIELD_WRAPPER(OnThink, think)
+		EDICT_FUNCTION_FIELD_WRAPPER(OnBlocked, blocked)
+		EDICT_FLOAT_FIELD_WRAPPER(NextThink, nextthink)
+		EDICT_INT_FIELD_WRAPPER(GroundEntity, groundentity)
+		EDICT_FLOAT_FIELD_WRAPPER(Health, health)
+/*
+ * 		float	frags;
+		float	weapon;
+		string_t	weaponmodel;
+		float	weaponframe;
+		float	currentammo;
+		float	ammo_shells;
+		float	ammo_nails;
+		float	ammo_rockets;
+		float	ammo_cells;
+		float	items;
+		float	takedamage;
+		int	chain;
+ */
+		EDICT_FLOAT_FIELD_WRAPPER(Frags, frags)
+		EDICT_FLOAT_FIELD_WRAPPER(Weapon, weapon)
+		EDICT_STRING_FIELD_WRAPPER(WeaponModel, weaponmodel)
+		EDICT_INT_FIELD_WRAPPER(WeaponFrame, weaponframe)
+		EDICT_INT_FIELD_WRAPPER(CurrentAmmo, currentammo)
 	}; //prvm_edict_t;
 
 }//namespace cloture::engine::vm
@@ -852,11 +1026,14 @@ typedef struct prvm_prog_s
 	int				explicit_covered;
 	int				numexplicitcoveragestatements;
 
-	union {
-		prvm_vec_t *fp;
-		prvm_int_t *ip;
-	} globals;
-
+	union
+	{
+		union {
+			prvm_vec_t *fp;
+			prvm_int_t *ip;
+		} globals;
+		globalvars_t* state;
+	};
 	int					maxknownstrings;
 	int					numknownstrings;
 	// this is updated whenever a string is removed or added

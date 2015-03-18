@@ -12,17 +12,30 @@ namespace math
 {
 namespace matrix
 {
-	
 	using columnType = cloture::util::math::vector::vector4f;
 	
-	struct //alignas(16)
+	struct alignas(mSimdAlign)
 	matrix4D
 	{
 		using matType	=	matrix4D;
 		static constexpr size_t numberOfRows = 4;
 		static constexpr size_t numberOfColumns = 4;
-		columnType m[numberOfRows];
 		
+		#if		mNativeVectorSize == 32
+			union
+			{
+				columnType	m[numberOfRows];
+				__m256		matrixRegisters[2];
+			};
+		#elif	mNativeVectorSize == 64
+			union
+			{
+				columnType	m[numberOfRows];
+				__m512		matrixRegister;
+			};
+		#else
+			columnType m[numberOfRows];
+		#endif
 		
 		
 		MATRIX_INLINE void copyFrom(const matType* RESTRICT const in) 
@@ -302,22 +315,30 @@ namespace matrix
 
 		MATRIX_INLINE void createIdentity() 
 		{
-			m[0][0]		=	1.0f;
-			m[0][1]		=	.0f;
-			m[0][2]		=	.0f;
-			m[0][3]		=	.0f;
-			m[1][0]		=	.0f;
-			m[1][1]		=	1.0f;
-			m[1][2]		=	.0f;
-			m[1][3]		=	.0f;
-			m[2][0]		=	.0f;
-			m[2][1]		=	.0f;
-			m[2][2]		=	1.0f;
-			m[2][3]		=	.0f;
-			m[3][0]		=	.0f;
-			m[3][1]		=	.0f;
-			m[3][2]		=	.0f;
-			m[3][3]		=	1.0f;
+			#if mNativeVectorSize >= 64
+				matrixRegister = _mm512_setzero();
+				m[3][3] = m[2][2] = m[1][1] = m[0][0] = 1.0f;
+			#elif mNativeVectorSize == 32
+				matrixRegisters[1] = matrixRegisters[0] = _mm256_setzero_ps();
+				m[3][3] = m[2][2] = m[1][1] = m[0][0] = 1.0f;
+			#else
+				m[0][0]		=	1.0f;
+				m[0][1]		=	.0f;
+				m[0][2]		=	.0f;
+				m[0][3]		=	.0f;
+				m[1][0]		=	.0f;
+				m[1][1]		=	1.0f;
+				m[1][2]		=	.0f;
+				m[1][3]		=	.0f;
+				m[2][0]		=	.0f;
+				m[2][1]		=	.0f;
+				m[2][2]		=	1.0f;
+				m[2][3]		=	.0f;
+				m[3][0]		=	.0f;
+				m[3][1]		=	.0f;
+				m[3][2]		=	.0f;
+				m[3][3]		=	1.0f;
+			#endif
 		}
 
 		MATRIX_INLINE void createTranslate(const float x, const float y, const float z) 
@@ -341,46 +362,97 @@ namespace matrix
 		}
 		MATRIX_INLINE void fabs() 
 		{
-			m[0][0] = fabsf(	m[0][0]	);
-			m[0][1] = fabsf(	m[0][1]	);
-			m[0][2] = fabsf(	m[0][2]	);
-			m[1][0] = fabsf(	m[1][0]	);
-			m[1][1] = fabsf(	m[1][1]	);
-			m[1][2] = fabsf(	m[1][2]	);
-			m[2][0] = fabsf(	m[2][0]	);
-			m[2][1] = fabsf(	m[2][1]	);
-			m[2][2] = fabsf(	m[2][2]	);
+			#if mNativeVectorSize >= 64
+				matrixRegister = _mm512_abs_ps(matrixRegister);
+			#elif mNativeVectorSize == 32
+				matrixRegisters[0] = _mm256_abs_ps(matrixRegisters[0]);
+				matrixRegisters[0] = _mm256_abs_ps(matrixRegisters[1]);
+			#else
+				m[0][0] = fabsf(	m[0][0]	);
+				m[0][1] = fabsf(	m[0][1]	);
+				m[0][2] = fabsf(	m[0][2]	);
+				m[1][0] = fabsf(	m[1][0]	);
+				m[1][1] = fabsf(	m[1][1]	);
+				m[1][2] = fabsf(	m[1][2]	);
+				m[2][0] = fabsf(	m[2][0]	);
+				m[2][1] = fabsf(	m[2][1]	);
+				m[2][2] = fabsf(	m[2][2]	);
+			#endif
 		}
 		
 		MATRIX_INLINE matrix4D(const matrix4D& other) 
 		{
-			m[0] = other.m[0];
-			m[1] = other.m[1];
-			m[2] = other.m[2];
-			m[3] = other.m[3];			
+			#if mNativeVectorSize >= 64
+				matrixRegister = other.matrixRegister;
+			#elif mNativeVectorSize >= 32
+				matrixRegisters[0] = other.matrixRegisters[0];
+				matrixRegisters[1] = other.matrixRegisters[1];
+			#else
+				m[0] = other.m[0];
+				m[1] = other.m[1];
+				m[2] = other.m[2];
+				m[3] = other.m[3];
+			#endif
 		}
 		MATRIX_INLINE matrix4D() : m{}
 		{}
-	/*	MATRIX_INLINE matrix4D(float m0[4], float m1[4], float m2[4], float m3[4])
-		{
-			using cloture::util::math::vector::vector4f;
-			m[0] = vector4f(m0[0], m0[1], m0[2], m0[3]);//other.m[0];
-			m[1] = vector4f(m1[0], m1[1], m1[2], m1[3]);//other.m[1];
-			m[2] = vector4f(m2[0], m2[1], m2[2], m2[3]);//other.m[2];
-			m[3] = vector4f(m3[0], m3[1], m3[2], m3[3]);//other.m[3];
-		}*/
 		MATRIX_INLINE matrix4D(float *m0, float *m1, float* m2, float *m3)
 		{
 			using cloture::util::math::vector::vector4f;
-			m[0] = vector4f(m0[0], m0[1], m0[2], m0[3]);//other.m[0];
-			m[1] = vector4f(m1[0], m1[1], m1[2], m1[3]);//other.m[1];
-			m[2] = vector4f(m2[0], m2[1], m2[2], m2[3]);//other.m[2];
-			m[3] = vector4f(m3[0], m3[1], m3[2], m3[3]);//other.m[3];
+			m[0] = vector4f(m0[0], m0[1], m0[2], m0[3]);
+			m[1] = vector4f(m1[0], m1[1], m1[2], m1[3]);
+			m[2] = vector4f(m2[0], m2[1], m2[2], m2[3]);
+			m[3] = vector4f(m3[0], m3[1], m3[2], m3[3]);
 		}
+
+		#if mNativeVectorSize >= 16
+			MATRIX_INLINE matrix4D(const __m128 m0, const __m128 m1, const __m128 m2, const __m128 m3)
+			{
+				m[0] = m0;
+				m[1] = m1;
+				m[2] = m2;
+				m[3] = m3;
+			}
+		#endif
+
+		#if mNativeVectorSize >= 32
+			MATRIX_INLINE matrix4D(const __m256 m01, const __m256 m23)
+			{
+				matrixRegisters[0] 	= m01;
+				matrixRegisters[1] 	= m23;
+			}
+		#endif
+		#if mNativeVectorSize >= 64
+			MATRIX_INLINE matrix4D(const __m512 mat)
+			{
+				matrixRegister = mat;
+			}
+		#endif
+
 		MATRIX_INLINE operator void*() 
 		{
 			return &m[0];
 		}
+		MATRIX_INLINE operator __m128*()
+		{
+			return reinterpret_cast<__m128*>(&m[0]);
+		}
+		#if mNativeVectorSize >= 32
+			MATRIX_INLINE operator __m256*()
+			{
+				return &matrixRegisters[0];
+			}
+		#endif
+		#if mNativeVectorSize >= 64
+			MATRIX_INLINE operator __m512*()
+			{
+				return &matrixRegister;
+			}
+			MATRIX_INLINE operator __m512()
+			{
+				return matrixRegister;
+			}
+		#endif
 	};
 }
 }

@@ -798,7 +798,7 @@ Edict* vm::find(Program prog, Edict* start, const char* field, const char* match
 	return &localEdicts[0];
 }
 
-#if 0
+
 /*
 =========
 VM_findfloat
@@ -807,7 +807,7 @@ VM_findfloat
   entity	findentity(entity start, .entity field, entity match)
 =========
 */
-Edict* vm::findfloat(Program prog, Edict* start, const char* field, const float match)
+Edict* vm::findFloat(Program prog, Edict* start, const char* field, const float match)
 {
 	size32 e = PRVM_NUM_FOR_EDICT(start);
 	const size32 f = vm::findField(prog, field);
@@ -826,6 +826,7 @@ Edict* vm::findfloat(Program prog, Edict* start, const char* field, const float 
 	return &prog->edicts[0];
 }
 
+#if 0
 /*
 =========
 VM_findchain
@@ -835,7 +836,7 @@ entity	findchain(.string field, string match)
 */
 // chained search for strings in entity fields
 // entity(.string field, string match) findchain = #402;
-void VM_findchain(Program prog)
+void vm::findChain(Program prog)
 {
 	int		i;
 	int		f;
@@ -1334,185 +1335,6 @@ void VM_strlennocol(Program prog)
 	PRVM_G_FLOAT(OFS_RETURN) = nCnt;
 }
 
-// DRESK - String to Uppercase and Lowercase
-/*
-=========
-VM_strtolower
-
-string	strtolower(string s)
-=========
-*/
-// string (string s) strtolower = #480; // returns passed in string in lowercase form
-void VM_strtolower(Program prog)
-{
-	char szNewString[VM_STRINGTEMP_LENGTH];
-	const char *szString;
-
-	// Prepare Strings
-	VM_SAFEPARMCOUNT(1,VM_strtolower);
-	szString = PRVM_G_STRING(OFS_PARM0);
-
-	COM_ToLowerString(szString, szNewString, sizeof(szNewString) );
-
-	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, szNewString);
-}
-
-/*
-=========
-VM_strtoupper
-
-string	strtoupper(string s)
-=========
-*/
-// string (string s) strtoupper = #481; // returns passed in string in uppercase form
-void VM_strtoupper(Program prog)
-{
-	char szNewString[VM_STRINGTEMP_LENGTH];
-	const char *szString;
-
-	// Prepare Strings
-	VM_SAFEPARMCOUNT(1,VM_strtoupper);
-	szString = PRVM_G_STRING(OFS_PARM0);
-
-	COM_ToUpperString(szString, szNewString, sizeof(szNewString) );
-
-	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, szNewString);
-}
-
-
-/*
-=========
-VM_strreplace
-
-string(string search, string replace, string subject) strreplace = #484;
-=========
-*/
-// replaces all occurrences of search with replace in the string subject, and returns the result
-void VM_strreplace(Program prog)
-{
-	int i, j, si;
-	const char *search, *replace, *subject;
-	char string[VM_STRINGTEMP_LENGTH];
-	int search_len, replace_len, subject_len;
-
-	VM_SAFEPARMCOUNT(3,VM_strreplace);
-
-	search = PRVM_G_STRING(OFS_PARM0);
-	replace = PRVM_G_STRING(OFS_PARM1);
-	subject = PRVM_G_STRING(OFS_PARM2);
-
-	search_len = (int)strlen(search);
-	replace_len = (int)strlen(replace);
-	subject_len = (int)strlen(subject);
-
-	si = 0;
-	for (i = 0; i <= subject_len - search_len; i++)
-	{
-		for (j = 0; j < search_len; j++) // thus, i+j < subject_len
-			if (subject[i+j] != search[j])
-				break;
-		if (j == search_len)
-		{
-			// NOTE: if search_len == 0, we always hit THIS case, and never the other
-			// found it at offset 'i'
-			for (j = 0; j < replace_len && si < (int)sizeof(string) - 1; j++)
-				string[si++] = replace[j];
-			if(search_len > 0)
-			{
-				i += search_len - 1;
-			}
-			else
-			{
-				// the above would subtract 1 from i... so we
-				// don't do that, but instead output the next
-				// char
-				if (si < (int)sizeof(string) - 1)
-					string[si++] = subject[i];
-			}
-		}
-		else
-		{
-			// in THIS case, we know search_len > 0, thus i < subject_len
-			// not found
-			if (si < (int)sizeof(string) - 1)
-				string[si++] = subject[i];
-		}
-	}
-	// remaining chars (these cannot match)
-	for (; i < subject_len; i++)
-		if (si < (int)sizeof(string) - 1)
-			string[si++] = subject[i];
-	string[si] = '\0';
-
-	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, string);
-}
-
-/*
-=========
-VM_strireplace
-
-string(string search, string replace, string subject) strireplace = #485;
-=========
-*/
-// case-insensitive version of strreplace
-void VM_strireplace(Program prog)
-{
-	int i, j, si;
-	const char *search, *replace, *subject;
-	char string[VM_STRINGTEMP_LENGTH];
-	int search_len, replace_len, subject_len;
-
-	VM_SAFEPARMCOUNT(3,VM_strreplace);
-
-	search = PRVM_G_STRING(OFS_PARM0);
-	replace = PRVM_G_STRING(OFS_PARM1);
-	subject = PRVM_G_STRING(OFS_PARM2);
-
-	search_len = (int)strlen(search);
-	replace_len = (int)strlen(replace);
-	subject_len = (int)strlen(subject);
-
-	si = 0;
-	for (i = 0; i <= subject_len - search_len; i++)
-	{
-		for (j = 0; j < search_len; j++) // thus, i+j < subject_len
-			if (tolower(subject[i+j]) != tolower(search[j]))
-				break;
-		if (j == search_len)
-		{
-			// NOTE: if search_len == 0, we always hit THIS case, and never the other
-			// found it at offset 'i'
-			for (j = 0; j < replace_len && si < (int)sizeof(string) - 1; j++)
-				string[si++] = replace[j];
-			if(search_len > 0)
-			{
-				i += search_len - 1;
-			}
-			else
-			{
-				// the above would subtract 1 from i... so we
-				// don't do that, but instead output the next
-				// char
-				if (si < (int)sizeof(string) - 1)
-					string[si++] = subject[i];
-			}
-		}
-		else
-		{
-			// in THIS case, we know search_len > 0, thus i < subject_len
-			// not found
-			if (si < (int)sizeof(string) - 1)
-				string[si++] = subject[i];
-		}
-	}
-	// remaining chars (these cannot match)
-	for (; i < subject_len; i++)
-		if (si < (int)sizeof(string) - 1)
-			string[si++] = subject[i];
-	string[si] = '\0';
-
-	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, string);
-}
 
 /*
 =========
@@ -1532,41 +1354,7 @@ void VM_stov(Program prog)
 	Math_atov(string, PRVM_G_VECTOR(OFS_RETURN));
 }
 
-/*
-=========
-VM_strzone
 
-string	strzone(string s)
-=========
-*/
-//string(string s, ...) strzone = #118; // makes a copy of a string into the string zone and returns it, this is often used to keep around a tempstring for longer periods of time (tempstrings are replaced often)
-void VM_strzone(Program prog)
-{
-	char *out;
-	char string[VM_STRINGTEMP_LENGTH];
-	size_t alloclen;
-
-	VM_SAFEPARMCOUNT(1,VM_strzone);
-
-	VM_VarString(prog, 0, string, sizeof(string));
-	alloclen = strlen(string) + 1;
-	PRVM_G_INT(OFS_RETURN) = PRVM_AllocString(prog, alloclen, &out);
-	memcpy(out, string, alloclen);
-}
-
-/*
-=========
-VM_strunzone
-
-strunzone(string s)
-=========
-*/
-//void(string s) strunzone = #119; // removes a copy of a string from the string zone (you can not use that string again or it may crash!!!)
-void VM_strunzone(Program prog)
-{
-	VM_SAFEPARMCOUNT(1,VM_strunzone);
-	PRVM_FreeString(prog, PRVM_G_INT(OFS_PARM0));
-}
 
 /*
 =========
@@ -1600,225 +1388,14 @@ void VM_clcommand (Program prog)
 
 /*
 =========
-VM_tokenize
-
-float tokenize(string s)
-=========
-*/
-//float(string s) tokenize = #441; // takes apart a string into individal words (access them with argv), returns how many
-//this function originally written by KrimZon, made shorter by LordHavoc
-//20040203: rewritten by LordHavoc (no longer uses allocations)
-static int num_tokens = 0;
-static int tokens[VM_STRINGTEMP_LENGTH / 2];
-static int tokens_startpos[VM_STRINGTEMP_LENGTH / 2];
-static int tokens_endpos[VM_STRINGTEMP_LENGTH / 2];
-static char tokenize_string[VM_STRINGTEMP_LENGTH];
-void VM_tokenize (Program prog)
-{
-	const char *p;
-
-	VM_SAFEPARMCOUNT(1,VM_tokenize);
-
-	strlcpy(tokenize_string, PRVM_G_STRING(OFS_PARM0), sizeof(tokenize_string));
-	p = tokenize_string;
-
-	num_tokens = 0;
-	for(;;)
-	{
-		if (num_tokens >= (int)(sizeof(tokens)/sizeof(tokens[0])))
-			break;
-
-		// skip whitespace here to find token start pos
-		while(*p && ISWHITESPACE(*p))
-			++p;
-
-		tokens_startpos[num_tokens] = p - tokenize_string;
-		if(!COM_ParseToken_VM_Tokenize(&p, false))
-			break;
-		tokens_endpos[num_tokens] = p - tokenize_string;
-		tokens[num_tokens] = PRVM_SetTempString(prog, com_token);
-		++num_tokens;
-	}
-
-	PRVM_G_FLOAT(OFS_RETURN) = num_tokens;
-}
-
-//float(string s) tokenize = #514; // takes apart a string into individal words (access them with argv), returns how many
-void VM_tokenize_console (Program prog)
-{
-	const char *p;
-
-	VM_SAFEPARMCOUNT(1,VM_tokenize);
-
-	strlcpy(tokenize_string, PRVM_G_STRING(OFS_PARM0), sizeof(tokenize_string));
-	p = tokenize_string;
-
-	num_tokens = 0;
-	for(;;)
-	{
-		if (num_tokens >= (int)(sizeof(tokens)/sizeof(tokens[0])))
-			break;
-
-		// skip whitespace here to find token start pos
-		while(*p && ISWHITESPACE(*p))
-			++p;
-
-		tokens_startpos[num_tokens] = p - tokenize_string;
-		if(!COM_ParseToken_Console(&p))
-			break;
-		tokens_endpos[num_tokens] = p - tokenize_string;
-		tokens[num_tokens] = PRVM_SetTempString(prog, com_token);
-		++num_tokens;
-	}
-
-	PRVM_G_FLOAT(OFS_RETURN) = num_tokens;
-}
-
-/*
-=========
-VM_tokenizebyseparator
-
-float tokenizebyseparator(string s, string separator1, ...)
-=========
-*/
-//float(string s, string separator1, ...) tokenizebyseparator = #479; // takes apart a string into individal words (access them with argv), returns how many
-//this function returns the token preceding each instance of a separator (of
-//which there can be multiple), and the text following the last separator
-//useful for parsing certain kinds of data like IP addresses
-//example:
-//numnumbers = tokenizebyseparator("10.1.2.3", ".");
-//returns 4 and the tokens "10" "1" "2" "3".
-void VM_tokenizebyseparator (Program prog)
-{
-	int j, k;
-	int numseparators;
-	int separatorlen[7];
-	const char *separators[7];
-	const char *p, *p0;
-	const char *token;
-	char tokentext[MAX_INPUTLINE];
-
-	VM_SAFEPARMCOUNTRANGE(2, 8,VM_tokenizebyseparator);
-
-	strlcpy(tokenize_string, PRVM_G_STRING(OFS_PARM0), sizeof(tokenize_string));
-	p = tokenize_string;
-
-	numseparators = 0;
-	for (j = 1;j < prog->argc;j++)
-	{
-		// skip any blank separator strings
-		const char *s = PRVM_G_STRING(OFS_PARM0+j*3);
-		if (!s[0])
-			continue;
-		separators[numseparators] = s;
-		separatorlen[numseparators] = (int)strlen(s);
-		numseparators++;
-	}
-
-	num_tokens = 0;
-	j = 0;
-
-	while (num_tokens < (int)(sizeof(tokens)/sizeof(tokens[0])))
-	{
-		token = tokentext + j;
-		tokens_startpos[num_tokens] = p - tokenize_string;
-		p0 = p;
-		while (*p)
-		{
-			for (k = 0;k < numseparators;k++)
-			{
-				if (!strncmp(p, separators[k], separatorlen[k]))
-				{
-					p += separatorlen[k];
-					break;
-				}
-			}
-			if (k < numseparators)
-				break;
-			if (j < (int)sizeof(tokentext)-1)
-				tokentext[j++] = *p;
-			p++;
-			p0 = p;
-		}
-		tokens_endpos[num_tokens] = p0 - tokenize_string;
-		if (j >= (int)sizeof(tokentext))
-			break;
-		tokentext[j++] = 0;
-		tokens[num_tokens++] = PRVM_SetTempString(prog, token);
-		if (!*p)
-			break;
-	}
-
-	PRVM_G_FLOAT(OFS_RETURN) = num_tokens;
-}
-
-//string(float n) argv = #442; // returns a word from the tokenized string (returns nothing for an invalid index)
-//this function originally written by KrimZon, made shorter by LordHavoc
-void VM_argv (Program prog)
-{
-	int token_num;
-
-	VM_SAFEPARMCOUNT(1,VM_argv);
-
-	token_num = (int)PRVM_G_FLOAT(OFS_PARM0);
-
-	if(token_num < 0)
-		token_num += num_tokens;
-
-	if (token_num >= 0 && token_num < num_tokens)
-		PRVM_G_INT(OFS_RETURN) = tokens[token_num];
-	else
-		PRVM_G_INT(OFS_RETURN) = OFS_NULL;
-}
-
-//float(float n) argv_start_index = #515; // returns the start index of a token
-void VM_argv_start_index (Program prog)
-{
-	int token_num;
-
-	VM_SAFEPARMCOUNT(1,VM_argv);
-
-	token_num = (int)PRVM_G_FLOAT(OFS_PARM0);
-
-	if(token_num < 0)
-		token_num += num_tokens;
-
-	if (token_num >= 0 && token_num < num_tokens)
-		PRVM_G_FLOAT(OFS_RETURN) = tokens_startpos[token_num];
-	else
-		PRVM_G_FLOAT(OFS_RETURN) = -1;
-}
-
-//float(float n) argv_end_index = #516; // returns the end index of a token
-void VM_argv_end_index (Program prog)
-{
-	int token_num;
-
-	VM_SAFEPARMCOUNT(1,VM_argv);
-
-	token_num = (int)PRVM_G_FLOAT(OFS_PARM0);
-
-	if(token_num < 0)
-		token_num += num_tokens;
-
-	if (token_num >= 0 && token_num < num_tokens)
-		PRVM_G_FLOAT(OFS_RETURN) = tokens_endpos[token_num];
-	else
-		PRVM_G_FLOAT(OFS_RETURN) = -1;
-}
-
-/*
-=========
 VM_isserver
 
 float	isserver()
 =========
 */
-void VM_isserver(Program prog)
+bool vm::isServer(const Program prog)
 {
-	VM_SAFEPARMCOUNT(0,VM_serverstate);
-
-	PRVM_G_FLOAT(OFS_RETURN) = sv.active;
+	return sv.active;
 }
 
 /*
@@ -1828,11 +1405,9 @@ VM_clientcount
 float	clientcount()
 =========
 */
-void VM_clientcount(Program prog)
+size32 vm::clientCount(const Program prog)
 {
-	VM_SAFEPARMCOUNT(0,VM_clientcount);
-
-	PRVM_G_FLOAT(OFS_RETURN) = svs.maxclients;
+	return static_cast<size32>(svs.maxclients);
 }
 
 /*
@@ -1847,7 +1422,8 @@ void VM_clientstate(Program prog)
 	VM_SAFEPARMCOUNT(0,VM_clientstate);
 
 
-	switch( cls.state ) {
+	switch( cls.state )
+	{
 		case ca_uninitialized:
 		case ca_dedicated:
 			PRVM_G_FLOAT(OFS_RETURN) = 0;
@@ -1871,9 +1447,6 @@ VM_gettime
 float	gettime(Program prog)
 =========
 */
-#ifdef CONFIG_CD
-float CDAudio_GetPosition(void);
-#endif
 void VM_gettime(Program prog)
 {
 	int timer_index;
@@ -1901,11 +1474,6 @@ void VM_gettime(Program prog)
 			case 3: // GETTIME_UPTIME
 				PRVM_G_FLOAT(OFS_RETURN) = realtime;
 				break;
-#ifdef CONFIG_CD
-			case 4: // GETTIME_CDTRACK
-				PRVM_G_FLOAT(OFS_RETURN) = CDAudio_GetPosition();
-				break;
-#endif
 			default:
 				VM_Warning(prog, "VM_gettime: %s: unsupported timer specified, returning realtime\n", prog->name);
 				PRVM_G_FLOAT(OFS_RETURN) = realtime;
@@ -2268,7 +1836,7 @@ float	stringwidth(string text, float allowColorCodes, float size)
 void VM_stringwidth(Program prog)
 {
 	const char  *string;
-	vec2_t szv;
+	vector2f szv;
 	float mult; // sz is intended font size so we can later add freetype support, mult is font size multiplier in pixels per character cell
 	int colors;
 	float sx, sy;
@@ -2788,11 +2356,9 @@ VM_stringtokeynum
 float stringtokeynum(string key)
 =========
 */
-void VM_stringtokeynum (Program prog)
+int vm::stringToKeynum(const Program prog, const char* key)
 {
-	VM_SAFEPARMCOUNT( 1, VM_keynumtostring );
-
-	PRVM_G_FLOAT(OFS_RETURN) = Key_StringToKeynum(PRVM_G_STRING(OFS_PARM0));
+	return Key_StringToKeynum(key);
 }
 
 /*
@@ -2802,16 +2368,11 @@ VM_getkeybind
 string getkeybind(float key, float bindmap)
 =========
 */
-void VM_getkeybind (Program prog)
+const char* vm::getKeyBind (Program prog, int key, int bindmap = 0)
 {
-	int bindmap;
-	VM_SAFEPARMCOUNTRANGE(1, 2, VM_CL_getkeybind);
-	if(prog->argc == 2)
-		bindmap = bound(-1, PRVM_G_FLOAT(OFS_PARM1), MAX_BINDMAPS-1);
-	else
-		bindmap = 0; // consistent to "bind"
-
-	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, Key_GetBind((int)PRVM_G_FLOAT(OFS_PARM0), bindmap));
+	if(bindmap)
+		bindmap = bound(-1, bindmap, MAX_BINDMAPS-1);
+	return Key_GetBind(key, bindmap);
 }
 
 /*
@@ -8139,48 +7700,22 @@ Should be fast but can be inexact.
 float checkpvs(vector viewpos, entity viewee) = #240;
 =================
 */
-void VM_CL_checkpvs (prvm_prog_t *prog)
+int vm::client::checkPVS(Program prog, vector3f viewpos, Edict* viewee)
 {
-	vec3_t viewpos;
-	prvm_edict_t *viewee;
 	vec3_t mi, ma;
-#if 1
 	unsigned char *pvs;
-#else
-	int fatpvsbytes;
-	unsigned char fatpvs[MAX_MAP_LEAFS/8];
-#endif
 
-	VM_SAFEPARMCOUNT(2, VM_SV_checkpvs);
-	VectorCopy(PRVM_G_VECTOR(OFS_PARM0), viewpos);
-	viewee = PRVM_G_EDICT(OFS_PARM1);
 
-	if(viewee->priv.required->free)
+	if(unlikely(viewee->priv.required->free))
 	{
-		VM_Warning(prog, "checkpvs: can not check free entity\n");
-		PRVM_G_FLOAT(OFS_RETURN) = 4;
-		return;
+		vm::warn(prog, "checkpvs: can not check free entity\n");
+		return 4;
 	}
 
-	VectorAdd(PRVM_serveredictvector(viewee, origin), PRVM_serveredictvector(viewee, mins), mi);
-	VectorAdd(PRVM_serveredictvector(viewee, origin), PRVM_serveredictvector(viewee, maxs), ma);
+	//VectorAdd(PRVM_serveredictvector(viewee, origin), PRVM_serveredictvector(viewee, mins), mi);
+	//VectorAdd(PRVM_serveredictvector(viewee, origin), PRVM_serveredictvector(viewee, maxs), ma);
+	vector3f mi = viewee->entity->origin
 
-#if 1
-	if(!cl.worldmodel || !cl.worldmodel->brush.GetPVS || !cl.worldmodel->brush.BoxTouchingPVS)
-	{
-		// no PVS support on this worldmodel... darn
-		PRVM_G_FLOAT(OFS_RETURN) = 3;
-		return;
-	}
-	pvs = cl.worldmodel->brush.GetPVS(cl.worldmodel, viewpos);
-	if(!pvs)
-	{
-		// viewpos isn't in any PVS... darn
-		PRVM_G_FLOAT(OFS_RETURN) = 2;
-		return;
-	}
-	PRVM_G_FLOAT(OFS_RETURN) = cl.worldmodel->brush.BoxTouchingPVS(cl.worldmodel, pvs, mi, ma);
-#else
 	// using fat PVS like FTEQW does (slow)
 	if(!cl.worldmodel || !cl.worldmodel->brush.FatPVS || !cl.worldmodel->brush.BoxTouchingPVS)
 	{
@@ -8196,7 +7731,7 @@ void VM_CL_checkpvs (prvm_prog_t *prog)
 		return;
 	}
 	PRVM_G_FLOAT(OFS_RETURN) = cl.worldmodel->brush.BoxTouchingPVS(cl.worldmodel, fatpvs, mi, ma);
-#endif
+
 }
 
 // #263 float(float modlindex) skel_create = #263; // (FTE_CSQC_SKELETONOBJECTS) create a skeleton (be sure to assign this value into .skeletonindex for use), returns skeleton index (1 or higher) on success, returns 0 on failure  (for example if the modelindex is not skeletal), it is recommended that you create a new skeleton if you change modelindex.

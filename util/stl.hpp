@@ -56,6 +56,7 @@ __if_not_exists(ptrdiff_t)
 	if needed
 */
 #include	"generic.hpp"
+#include	"classid.hpp"
 
 #include	"casts.hpp"
 
@@ -85,7 +86,7 @@ __if_not_exists(ptrdiff_t)
 /*
 	templates/macros for implementing custom type traits that can be used
 	for basic compile-time reflection.
-	Verry basic reflection.
+	Verry basic reflection.//
 */
 
 #include	"reflect.hpp"

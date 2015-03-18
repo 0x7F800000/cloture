@@ -60,7 +60,7 @@ namespace common
 		"common::powerOfTwo requires an integral type"
 		);
 
-		return (x & (x - static_cast<T>(1))) == static_cast<T>(0);
+		return x != static_cast<T>(0) && (x & (x - static_cast<T>(1))) == static_cast<T>(0);
 	}
 
 	template<typename T>
@@ -85,6 +85,7 @@ namespace common
 	static_assert(
 	findBitSet(1) == 0
 	);
+	static_assert(!powerOfTwo(0));
 }
 }
 };

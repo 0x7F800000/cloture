@@ -16,12 +16,17 @@
 
 #include "util/common.hpp"
 #include "util/bitops.hpp"
-using namespace cloture::util;
+
+using namespace cloture;
+using namespace util;
+using namespace common;
+using namespace system;
+
 
 // =======================================================================
 // General routines
 // =======================================================================
-void Sys_Shutdown (void)
+void Sys_Shutdown ()
 {
 #ifdef FNDELAY
 	fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) & ~FNDELAY);
@@ -78,7 +83,7 @@ void Sys_PrintToTerminal(const char *text)
 	//fprintf(stdout, "%s", text);
 }
 
-char *Sys_ConsoleInput(void)
+char *Sys_ConsoleInput()
 {
 	//if (cls.state == ca_dedicated)
 	{
@@ -123,7 +128,7 @@ char *Sys_ConsoleInput(void)
 		FD_SET(0, &fdset); // stdin
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 0;
-		if (select (1, &fdset, NULL, NULL, &timeout) != -1 && FD_ISSET(0, &fdset))
+		if (select (1, &fdset, nullptr, nullptr, &timeout) != -1 && FD_ISSET(0, &fdset))
 		{
 			len = read (0, text, sizeof(text) - 1);
 			if (len >= 1)
@@ -138,15 +143,15 @@ char *Sys_ConsoleInput(void)
 		}
 #endif
 	}
-	return NULL;
+	return nullptr;
 }
 
-char *Sys_GetClipboardData (void)
+char *Sys_GetClipboardData ()
 {
-	return NULL;
+	return nullptr;
 }
 
-void Sys_InitConsole (void)
+void Sys_InitConsole ()
 {
 }
 
@@ -154,9 +159,6 @@ void Sys_InitConsole (void)
 int main (int argc, char **argv)
 {
 	signal(SIGFPE, SIG_IGN);
-	using cloture::util::stream::sstream;
-	sstream<1024> strtest;
-	strtest = "lol";
 
 	com_argc = argc;
 	com_argv = (const char **)argv;
@@ -180,13 +182,75 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-qboolean sys_supportsdlgetticks = false;
-unsigned int Sys_SDL_GetTicks (void)
+bool sys_supportsdlgetticks = false;
+
+unsigned int Sys_SDL_GetTicks ()
 {
 	Sys_Error("Called Sys_SDL_GetTicks on non-SDL target");
 	return 0;
 }
+
 void Sys_SDL_Delay (unsigned int milliseconds)
 {
 	Sys_Error("Called Sys_SDL_Delay on non-SDL target");
+}
+
+#include <sys/mman.h>
+bool system::memprotect(void* mem, MemTraits traits, size32 sz)
+{
+	//assert(mem != nullptr);
+	//assert(sz != 0);
+	if(unlikely(mem == nullptr))
+	{
+		system::error(
+			"system::memprotect: mem was NULL. sz = 0x%X, traits = 0x%X.\n",
+			static_cast<uint32>(sz),
+			static_cast<uint32>(traits)
+		);
+		return false;
+	}
+
+	if(unlikely(sz == 0))
+	{
+		system::error(
+				"system::memprotect: sz was 0. traits = 0x%X.\n",
+				static_cast<uint32>(traits)
+				);
+		return false;
+	}
+	int prot = 0;
+	switch(traits)
+	{
+	case MemTraits::readWriteExecute:
+		prot = PROT_READ | PROT_EXEC | PROT_WRITE;
+		break;
+	case MemTraits::readWrite:
+		prot = PROT_READ | PROT_WRITE;
+		break;
+	case MemTraits::readExecute:
+		prot = PROT_READ | PROT_EXEC;
+		break;
+	case MemTraits::writeExecute:
+		prot = PROT_WRITE | PROT_EXEC;
+		break;
+	case MemTraits::read:
+		prot = PROT_READ;
+		break;
+	case MemTraits::write:
+		prot = PROT_WRITE;
+		break;
+	case MemTraits::execute:
+		prot = PROT_EXEC;
+		break;
+	}
+	if(unlikely(mprotect(mem, sz, prot) == -1))
+	{
+		system::error(
+			"system::memprotect: mprotect returned -1! sz = 0x%X, traits = 0x%X.\n",
+			static_cast<uint32>(sz),
+			static_cast<uint32>(traits)
+		);
+		return false;
+	}
+	return true;
 }

@@ -65,14 +65,6 @@ namespace vm			{
 	void randomvec (Program prog);
 	void registercvar (Program prog);
 
-	void Files_Init(Program prog);
-	void Files_CloseAll(Program prog);
-
-	void substring(Program prog);
-	void stov(Program prog);
-	void strzone(Program prog);
-	void strunzone(Program prog);
-
 	// KrimZon - DP_QC_ENTITYDATA
 	void numentityfields(Program prog);
 	void entityfieldname(Program prog);
@@ -84,15 +76,8 @@ namespace vm			{
 	void strlennocol(Program prog);
 	// DRESK - Decolorized String
 	void strdecolorize(Program prog);
-	// DRESK - String Uppercase and Lowercase Support
-	void strtolower(Program prog);
-	void strtoupper(Program prog);
 
 	void clcommand (Program prog);
-
-	void tokenize (Program prog);
-	void tokenizebyseparator (Program prog);
-	void argv (Program prog);
 
 	void isserver(Program prog);
 	void clientcount(Program prog);
@@ -194,12 +179,8 @@ namespace vm			{
 	void strpad (Program prog);
 	void infoadd (Program prog);
 	void infoget (Program prog);
-	void strncasecmp (Program prog);
 	void registercvar (Program prog);
 	void wasfreed (Program prog);
-
-	void strreplace (Program prog);
-	void strireplace (Program prog);
 
 	void crc16(Program prog);
 	void digest_hex(Program prog);
@@ -214,10 +195,6 @@ namespace vm			{
 	void etof (Program prog);
 	void uri_get (Program prog);
 	void netaddress_resolve (Program prog);
-
-	void tokenize_console (Program prog);
-	void argv_start_index (Program prog);
-	void argv_end_index (Program prog);
 
 	void buf_cvarlist(Program prog);
 	void cvar_description(Program prog);

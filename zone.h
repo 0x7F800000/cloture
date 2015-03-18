@@ -42,7 +42,9 @@ namespace cvars
 namespace memory
 {
 	using allocsize_t	=	cloture::util::common::size32;
-	static constexpr size_t poolAllocAlign	=	SIMD_ALIGN;
+	static constexpr size_t poolAllocAlign	=	mSimdAlign; //defined in util/simd_generic.hpp
+	static constexpr size_t poolAllocPad	=	poolAllocAlign * 4;
+
 	struct Header
 	{
 		// address returned by Chunk_Alloc (may be significantly before this header to satisify alignment)

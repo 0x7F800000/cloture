@@ -472,8 +472,18 @@ void *_Mem_Alloc(mempool_t *pool, void *olddata, allocsize_t size
 	static constexpr size32 headerSize		= sizeof(memheader_t);
 	static constexpr size32 sentinelSize 	= sizeof(sentinelType);
 	static constexpr size32 poolAlign32		= poolAllocAlign;
-
+	static constexpr size32 poolPad32		= poolAllocPad;
 	memheader_t *oldmem;
+/*
+ * 	static constexpr size_t poolAlignFactor = headerSize + (poolAllocAlign-1);
+	static constexpr size_t poolAlignMask	= ~(poolAllocAlign-1);
+
+	memheader_t *mem = reinterpret_cast<memheader_t*>(
+	((reinterpret_cast<size_t>(base) + poolAlignFactor) & poolAlignMask) - headerSize
+	);
+ */
+	size += (poolPad32 - 1);
+	size &= ~(poolPad32 - 1);
 
 	if (size <= 0)
 	{
@@ -590,6 +600,7 @@ void *_Mem_Alloc(mempool_t *pool, void *olddata, allocsize_t size
 	}
 
 	void* result = reinterpret_cast<void*>(reinterpret_cast<uint8*>(mem) + headerSize);
+
 	__builtin_memset(reinterpret_cast<uint8*>(result) + sharedsize, 0, remainsize);
 	return result;
 }

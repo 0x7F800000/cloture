@@ -17,7 +17,7 @@
 #include "mdfour.h"
 
 extern cvar_t prvm_backtraceforwarnings;
-
+using namespace cloture::util::math::vector;
 
 // LordHavoc: changed this to NOT use a return statement, so that it can be used in functions that must return a value
 void VM_Warning(prvm_prog_t *prog, const char *fmt, ...)
@@ -3496,7 +3496,7 @@ float	stringwidth(string text, float allowColorCodes, float size)
 void VM_stringwidth(prvm_prog_t *prog)
 {
 	const char  *string;
-	vec2_t szv;
+	vector2f szv;
 	float mult; // sz is intended font size so we can later add freetype support, mult is font size multiplier in pixels per character cell
 	int colors;
 	float sx, sy;

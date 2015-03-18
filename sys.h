@@ -181,5 +181,18 @@ namespace system	{
 	{
 		Sys_Error(format, params...);
 	}
+
+	enum class MemTraits
+	{
+		readWriteExecute,
+		readWrite,
+		readExecute,
+		writeExecute,
+		write,
+		read,
+		execute
+	};
+
+	bool memprotect(void* mem, MemTraits traits, cloture::util::common::size32 sz);
 }//namespace system
 }//namespace cloture

@@ -2,6 +2,11 @@
 #include "quakedef.h"
 #include "r_shadow.h"
 
+using namespace cloture;
+using namespace util;
+using namespace common;
+using namespace math::vector;
+
 extern cvar_t r_labelsprites_scale;
 extern cvar_t r_labelsprites_roundtopixels;
 extern cvar_t r_track_sprites;
@@ -65,10 +70,9 @@ static void R_TrackSprite(const entity_render_t *ent, vec3_t origin, vec3_t left
 	bCoord[2] *= r_refdef.view.frustum_x;
 	bCoord[1] *= r_refdef.view.frustum_y;
 
-	//Con_Printf("%f %f %f\n", bCoord[0], bCoord[1], bCoord[2]);
 	
-	ax = fabs(bCoord[1]);
-	ay = fabs(bCoord[2]);
+	ax = math::fabsf(bCoord[1]);
+	ay = math::fabsf(bCoord[2]);
 	// get the greater value and determine the screen edge it's on
 	if(ax < ay)
 	{
@@ -163,7 +167,7 @@ static void R_RotateSprite(const mspriteframe_t *frame, vec3_t origin, vec3_t le
 		matrix4x4_t rotm;
 		vec3_t axis;
 		vec3_t temp;
-		vec2_t dir;
+		vector2f dir;
 		float angle;
 
 		if(edge < 1 || edge > 4)
