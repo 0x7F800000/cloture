@@ -89,8 +89,8 @@ static memexpandablearray_t texturearray;
 // dynamic texture (treat texnum == 0 differently)
 #define GLTEXF_DYNAMIC		0x00080000
 
-//typedef struct textypeinfo_s
-__align(16) struct textypeinfo_s
+
+struct textypeinfo_t
 {
 	const char *name;
 	textype_t textype;
@@ -101,8 +101,6 @@ __align(16) struct textypeinfo_s
 	int glformat;
 	int gltype;
 };
-using textypeinfo_t = textypeinfo_s;
-//textypeinfo_t;
 
 #ifdef USE_GLES2
 	// we use these internally even if we never deliver such data to the driver
@@ -201,7 +199,6 @@ static int cubemapside[6] =
 	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 };
 
-__align(16)
 struct gltexture_t
 {
 	// this portion of the struct is exposed to the R_GetTexture macro for

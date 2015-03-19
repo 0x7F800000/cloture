@@ -223,8 +223,8 @@ namespace ctfe
 	};
 
 	template <char... characters>
-	static constexpr CString<sizeof...(characters)>
-	operator "" _constexprString()
+	static constexpr auto //CString<sizeof...(characters)>
+	operator "" _constexprString() noexcept
 	{
 		constexpr char temp[] = {characters...};
 		return CString<sizeof...(characters)>(temp);
