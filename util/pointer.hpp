@@ -11,13 +11,13 @@ namespace pointers	{
  * 	basic pointer-wrapping template
  *
  */
-template<typename T, DP_FUNC_PRINTF(1) DP_FUNC_NORETURN void (*onError)(const char*, ...) = nullptr>
+template<typename T, __printf_type(1) __noreturn void (*onError)(const char*, ...) = nullptr>
 class wrapped_ptr
 {
 	T* ptr;
 public:
 
-	template<DP_FUNC_PRINTF(1) DP_FUNC_NORETURN void (*onError_)(const char*, ...) = nullptr>
+	template<__printf_type(1) __noreturn void (*onError_)(const char*, ...) = nullptr>
 	__noinline __cold
 	static void PtrNullError()
 	{

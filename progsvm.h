@@ -992,7 +992,7 @@ public:
 	void				(*init_cmd)(struct prvm_prog_s *prog); // [INIT] used by PRVM_InitProg
 	void				(*reset_cmd)(struct prvm_prog_s *prog); // [INIT] used by PRVM_ResetProg
 
-	void				(*error_cmd)(const char *format, ...) DP_FUNC_PRINTF(1); // [INIT]
+	void				(*error_cmd)(const char *format, ...) __printf_type(1); // [INIT]
 
 	void				(*ExecuteProgram)(struct prvm_prog_s *prog, size_t fnum, const char *errormessage); // pointer to one of the *VM_ExecuteProgram functions
 	
@@ -1372,7 +1372,7 @@ void PRVM_StackTrace(prvm_prog_t *prog);
 void PRVM_Breakpoint(prvm_prog_t *prog, int stack_index, const char *text);
 void PRVM_Watchpoint(prvm_prog_t *prog, int stack_index, const char *text, etype_t type, prvm_eval_t *o, prvm_eval_t *n);
 
-void VM_Warning(prvm_prog_t *prog, const char *fmt, ...) DP_FUNC_PRINTF(2);
+void VM_Warning(prvm_prog_t *prog, const char *fmt, ...) __printf_type(2);
 
 void VM_GenerateFrameGroupBlend(prvm_prog_t *prog, framegroupblend_t *framegroupblend, const prvm_edict_t *ed);
 void VM_FrameBlendFromFrameGroupBlend(frameblend_t *frameblend, const framegroupblend_t *framegroupblend, const dp_model_t *model, double curtime);

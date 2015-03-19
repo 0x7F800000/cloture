@@ -1,26 +1,9 @@
 #pragma once
 
-//moved this here from qtypes.h
-#if defined(__GNUC__) || defined(__clang__) || (defined(_MSC_VER) && _MSC_VER >= 1400)
-	#define RESTRICT __restrict
-#else
-	#define RESTRICT
-#endif
-
 #if !defined(__clang__)
 	#define	HAS_CHOOSE_EXPR	0
 #else
 	#define HAS_CHOOSE_EXPR 1
-#endif
-
-#if defined(__GNUC__) && (__GNUC__ > 2)
-#define DP_FUNC_PRINTF(n) __attribute__ ((format (printf, n, n+1)))
-#define DP_FUNC_PURE      __attribute__ ((pure))
-#define DP_FUNC_NORETURN  __attribute__ ((noreturn))
-#else
-#define DP_FUNC_PRINTF(n)
-#define DP_FUNC_PURE
-#define DP_FUNC_NORETURN
 #endif
 
 #if defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER)
@@ -45,7 +28,7 @@
 	#define		__returns_unaliased						__attribute__((malloc))
 
 	#define		unreachable()							__builtin_unreachable()
-
+	#define		__printf_type(n)						__attribute__ ((format (printf, n, n+1)))
 
 	#ifdef		__GNUC__
 		#define 	__assume(x)								if(!(x))	unreachable()
@@ -60,6 +43,7 @@
 	#define 	likely(x)								__builtin_expect(!!(x), true)
 	#define 	unlikely(x)								__builtin_expect(!!(x), false)
 	#define		__expect(x, value)						__builtin_expect(x, value)
+	#define 	RESTRICT 								__restrict
 #else
 	#ifndef _MSVC_VER
 		#define	__forceinline	inline
@@ -68,12 +52,14 @@
 		#define	__pure	
 		#define	__assume(x)
 		#define	__align(a)	
+		#define	RESTRICT
 	#else
 		#define	__noreturn			__declspec(noreturn)
 		#define	__noinline			__declspec(noinline)
 		#define	__pure				__declspec(noalias)
 		#define	__align(a)			__declspec( align( a))
 		#define	__returns_unaliased	__declspec(restrict)
+		#define RESTRICT 			__restrict
 	#endif
 	#define	__pseudopure	
 	#define unlikely(x)		(x)
@@ -89,29 +75,74 @@
 #endif
 
 #if defined(__clang__) || defined(_MSVC_VER) || defined(__INTEL_COMPILER)
-	#define	__novtbl	__declspec(novtable)
+
+	#define	__assertExists(identifier, ...)		\
+	__if_not_exists(identifier) 				\
+	{											\
+		static_assert(false, __VA_ARGS__);		\
+	}
+
+	#define	__novtbl								__declspec(novtable)
 	#define	__msvc_property_true(gt, st)			__declspec( property(get = gt, put = st))
 	#define	__msvc_property_false(gt, ...)			__declspec( property(get = gt))
 
 	#define	__expand_msvc_property__(call, gt, ...)	call(gt, __VA_ARGS__)
-
-	#define	__msvc_property(readWrite, gt, ...)		__expand_msvc_property__(__msvc_property_##readWrite, gt, __VA_ARGS__)
-
+	#define	__property(rW, gt, ...)					__expand_msvc_property__(__msvc_property_##readWrite, gt, __VA_ARGS__)
 	#define	__naked									__declspec(naked)
 #else
 	#define	__novtbl	
 	#define	__msvc_property(readWrite, gt, ...)	
 	#define	__returns_unaliased			
+	#define	__assertExists(identifier, ...)
 #endif
 
 #if defined(__clang__)
 	#define		vectorizeLoop	_Pragma("clang loop vectorize(enable)")
-	#define		__flag_enum		__attribute__((flag_enum))
 #elif defined(__INTEL_COMPILER)
 	#define		vectorizeLoop	_Pragma("simd")
+#elif defined(__GNUC__)
+	#define		vectorizeLoop	_Pragma("GCC ivdep")
 #else
 	#define		vectorizeLoop
 #endif
+
+#if defined(__clang__)
+	#define		__flag_enum				__attribute__((flag_enum))
+	#define		__addressof(x)			__builtin_addressof(x)
+
+	#define		__shuffleVector(...)	__builtin_shufflevector(__VA_ARGS__)
+	#define		__unroll				_Pragma("clang loop unroll(full)")
+	#define		__pointerAlignment(x)	__attribute__((align_value(x)))
+
+	/*
+	 * 	typestate attributes
+	*/
+
+	#define		callableWhen(...)		__attribute__((callable_when(__VA_ARGS__)))
+	#define		consumableClass(x)		__attribute__((consumable(x)))
+	/*
+	 * applied to function parameters
+	 */
+	#define		paramTypestate(x)		__attribute__((param_typestate(x)))
+	/*
+	 * applied to functions or function parameters
+	 * on functions, this sets the typestate of the return value
+	 * on parameters, this sets the typestate of the parameter after the function
+	 * returns
+	 *
+	 *
+	 */
+	#define		returnTypestate(x)		__attribute__((return_typestate(x)))
+
+	//signals that a call to the method transitions the object into state x
+	#define		methodSetsTypestate(x)	__attribute__((set_typestate(x)))
+	#define		returnsTrueIfState(x)	__attribute__((test_typestate(x)))
+
+	#define		__optnone				__attribute__((optnone))
+#else
+
+#endif
+
 /**
 	choose_expr
 

@@ -3,8 +3,9 @@
 #define		mUse128ForVec2f		1
 #define		mNoVectorDefault	0
 
-#define		VECTOR_INLINE		__forceinline
 
+#define		mVecInline			__forceinline
+#define		mVecCall			constexpr mVecInline
 #define		vecIndexValue(ix)	vec[ix]
 
 #define		vecX()				vecIndexValue(0)
@@ -12,8 +13,55 @@
 #define		vecZ()				vecIndexValue(2)
 #define		vecW()				vecIndexValue(3)
 
-#define		mVecPure			VECTOR_INLINE __pure
-#define		mVecPureOp			VECTOR_INLINE __pure vecType operator
+#define		mVecPure			mVecInline __pure
+#define		mVecPureCtfe		mVecCall __pure
+#define		mVecPureOp			mVecInline __pure vecType operator
+
+#define		mMarkAggregateVec()	static constexpr bool isAggregateVector = true
+//using isAggregateVector = bool
+
+namespace cloture::util::math::vector
+{
+	mCreateIdentifierChecker(isAggregateVector);
+
+	template<typename T>
+	static constexpr bool isAggregateVector = mCallIdentifierChecker(T, isAggregateVector);
+}
+
+namespace cloture::util::templates::casts
+{
+	mCreateTypeResolver(nativeType);
+
+
+	template<typename toType, typename FromType>
+	__enableIf(
+	!math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
+	"Enabled if both types are not aggregate vector types."
+	)
+	static constexpr FromType vector_cast(const FromType from)
+	{
+		using nativeFrom 	= mGetTypeResolverTypename(FromType, nativeType);
+		using nativeTo 		= mGetTypeResolverTypename(toType, nativeType);
+		return static_cast<toType>(
+				__builtin_convertvector(static_cast<nativeFrom>(from), nativeTo)
+		);
+	}
+
+	template<typename toType, typename FromType>
+	__enableIf(
+	math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
+	"Enabled if casting from an aggregate vector to a non-aggregate vector."
+	)
+	static constexpr FromType vector_cast(const FromType from)
+	{
+		using nativeFrom 	= mGetTypeResolverTypename(FromType, nativeType);
+		using nativeTo 		= mGetTypeResolverTypename(toType, nativeType);
+		return static_cast<toType>(
+				__builtin_convertvector(static_cast<nativeFrom>(from.vec1), nativeTo)
+		);
+	}
+}
+
 namespace cloture
 {
 namespace util
@@ -25,23 +73,23 @@ namespace vector
 	#if defined(__i386__) || defined(__x86_64__)
 
 		#if defined(__SSE__)
-			#include "vector_x86.hpp"
+			#include "libVector/vector_x86.hpp"
 		#else
-			#error Uhhh, SSE is unavailable...
+			#warning "Building for x86 with __SSE__ not defined... Choosing generic vector implementation."
+			#include "libVector/vector_generic.hpp"
 		#endif
 
 	#elif defined(__ARM_ARCH)
 
 		#if defined(__ARM_NEON__)
-			#include "vector_arm.hpp"
+			#include "libVector/vector_arm.hpp"
 		#else
-			#error Architecture is ARM, but neon is unavailable.
+			#warning "Architecture is arm, but __ARM_NEON__ is not defined. Using generic vector classes."
+			#include "libVector/vector_generic.hpp"
 		#endif
 
 	#else
-
-		#error Generic version of vector classes unimplemented.
-
+		#include "libVector/vector_generic.hpp"
 	#endif
 } //namespace vector
 } //namespace math

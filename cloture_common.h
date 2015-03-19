@@ -210,7 +210,7 @@ void COM_Init ();
 void COM_Shutdown ();
 void COM_InitGameType ();
 
-char *va(char *buf, size_t buflen, const char *format, ...) DP_FUNC_PRINTF(3);
+char *va(char *buf, size_t buflen, const char *format, ...) __printf_type(3);
 // does a varargs printf into provided buffer, returns buffer (so it can be called in-line unlike dpsnprintf)
 
 
@@ -228,7 +228,7 @@ char *va(char *buf, size_t buflen, const char *format, ...) DP_FUNC_PRINTF(3);
 // return the number of printed characters, excluding the final '\0'
 // or return -1 if the buffer isn't big enough to contain the entire string.
 // buffer is ALWAYS null-terminated
-extern int dpsnprintf (char *buffer, size_t buffersize, const char *format, ...) DP_FUNC_PRINTF(3);
+extern int dpsnprintf (char *buffer, size_t buffersize, const char *format, ...) __printf_type(3);
 extern int dpvsnprintf (char *buffer, size_t buffersize, const char *format, va_list args);
 
 // A bunch of functions are forbidden for security reasons (and also to please MSVS 2005, for some of them)

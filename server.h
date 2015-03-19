@@ -568,9 +568,9 @@ void SV_AddUpdates ();
 void SV_ClientThink ();
 
 void SV_ClientPrint(const char *msg);
-void SV_ClientPrintf(const char *fmt, ...) DP_FUNC_PRINTF(1);
+void SV_ClientPrintf(const char *fmt, ...) __printf_type(1);
 void SV_BroadcastPrint(const char *msg);
-void SV_BroadcastPrintf(const char *fmt, ...) DP_FUNC_PRINTF(1);
+void SV_BroadcastPrintf(const char *fmt, ...) __printf_type(1);
 
 void SV_Physics ();
 void SV_Physics_ClientMove ();

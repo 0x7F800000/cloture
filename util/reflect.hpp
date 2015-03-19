@@ -36,6 +36,103 @@
 			static constexpr bool value = sizeof(f<derived>(0)) == 2;	\
 }
 
+#define		___CHECKER_DUMMY_STATIC_FUNCTION_ATTRIBUTES __unused __cold
+
+
+#define		___DO_EXPANSION(x, y)		x##y
+
+#define		__MANGLE_IDENTIFIER_CHECKER_DUMMY_STATFUNC_NAME(x)		\
+			___DO_EXPANSION(___IDENTIFIER_CHECKER_DUMMY_STATFUNC_, x)
+
+#define		__MANGLE_IDENTIFIER_CHECKER_STRUCT_NAME(identifier)	\
+			___DO_EXPANSION(___IDENTIFER_CHECKER_STRUCTURE_, identifier)
+
+#define		__MANGLE_IDENTIFIER_CHECKER_STRUCT_TYPENAME_ARG(identifier)	\
+			___DO_EXPANSION(___IDENTIFER_CHECKER_TEMPLATE_TYPENAME_, identifier)
+
+
+#define		mCreateIdentifierChecker(identifier)										\
+	template<																			\
+	typename 																			\
+	__MANGLE_IDENTIFIER_CHECKER_STRUCT_TYPENAME_ARG(identifier)							\
+	> 																					\
+	class __MANGLE_IDENTIFIER_CHECKER_STRUCT_NAME(identifier)							\
+	{																					\
+		___CHECKER_DUMMY_STATIC_FUNCTION_ATTRIBUTES 									\
+		static auto 																	\
+		__MANGLE_IDENTIFIER_CHECKER_DUMMY_STATFUNC_NAME(identifier)		()				\
+		{																				\
+			__if_exists(																\
+			__MANGLE_IDENTIFIER_CHECKER_STRUCT_TYPENAME_ARG(identifier)::identifier)	\
+			{																			\
+				return .0f;																\
+			}																			\
+			__if_not_exists(															\
+			__MANGLE_IDENTIFIER_CHECKER_STRUCT_TYPENAME_ARG(identifier)::identifier)	\
+			{																			\
+				return 0LL;																\
+			}																			\
+		}																				\
+	public:																				\
+		static constexpr bool value = sizeof(__typeof(									\
+		__MANGLE_IDENTIFIER_CHECKER_DUMMY_STATFUNC_NAME(identifier) () )) 				\
+		== sizeof(float);																\
+	}
+
+
+#define		mCallIdentifierChecker(TYPENAME, identifier)							\
+	__MANGLE_IDENTIFIER_CHECKER_STRUCT_NAME(identifier) <TYPENAME>::value
+
+
+#define		__MANGLE_TYPE_RESOLVER_DUMMY_STATFUNC_NAME(x)		\
+			___DO_EXPANSION(___TYPE_RESOLVER_DUMMY_STATFUNC_, x)
+
+#define		__MANGLE_TYPE_RESOLVER_STRUCT_NAME(identifier)	\
+			___DO_EXPANSION(___TYPE_RESOLVER_STRUCTURE_, identifier)
+
+#define		__MANGLE_TYPE_RESOLVER_STRUCT_TYPENAME_ARG(identifier)	\
+			___DO_EXPANSION(___TYPE_RESOLVER_TEMPLATE_TYPENAME_, identifier)
+
+
+/*
+ * if the typename subTypeName exists in the class, type is declare to be
+ * the type of T::subTypeName
+ * else type is T
+ */
+#define		mCreateTypeResolver(subTypeName)											\
+	template<																			\
+	typename 																			\
+	__MANGLE_TYPE_RESOLVER_STRUCT_TYPENAME_ARG(subTypeName)								\
+	> 																					\
+	class __MANGLE_TYPE_RESOLVER_STRUCT_NAME(subTypeName)								\
+	{																					\
+		___CHECKER_DUMMY_STATIC_FUNCTION_ATTRIBUTES 									\
+		static auto 																	\
+		__MANGLE_TYPE_RESOLVER_DUMMY_STATFUNC_NAME(subTypeName)		()					\
+		{																				\
+			__if_exists(																\
+			__MANGLE_TYPE_RESOLVER_STRUCT_TYPENAME_ARG(subTypeName)::subTypeName)		\
+			{																			\
+				return (																\
+				typename __MANGLE_TYPE_RESOLVER_STRUCT_TYPENAME_ARG(subTypeName)::subTypeName*	\
+				) nullptr;																\
+			}																			\
+			__if_not_exists(															\
+			__MANGLE_TYPE_RESOLVER_STRUCT_TYPENAME_ARG(subTypeName)::subTypeName)		\
+			{																			\
+				return (__MANGLE_TYPE_RESOLVER_STRUCT_TYPENAME_ARG(subTypeName)*)		\
+				 nullptr;																\
+			}																			\
+		}																				\
+	public:																				\
+		static constexpr auto type__ = 													\
+		__MANGLE_TYPE_RESOLVER_DUMMY_STATFUNC_NAME(subTypeName) () ;					\
+		using type = __typeof(*type__);													\
+	}
+
+#define		mGetTypeResolverTypename(TYPENAME, subTypeName)	\
+		typename __MANGLE_TYPE_RESOLVER_STRUCT_NAME(subTypeName) <TYPENAME>::type
+
 /*
 	if the value is true, then the typename is defined as an alias
 	of bool

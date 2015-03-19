@@ -275,6 +275,105 @@ public:
 	using type = typename helper<T, isPointerType>::type;
 };
 
+enum class Signedness
+{
+	Unsigned,
+	Signed
+};
+
+enum class NumberType
+{
+	Integral,
+	Real,
+	Imaginary
+};
+
+template<typename T, Signedness signedness>
+struct setSignedness{};
+
+template<typename T>
+struct setSignedness<T, Signedness::Signed>
+{
+	using type = typename __make_signed__<T>::___type___;
+};
+
+template<typename T>
+struct setSignedness<T, Signedness::Unsigned>
+{
+	using type = typename __make_unsigned__<T>::___type___;
+};
+
+template<size_t bytes, NumberType numType = NumberType::Integral, Signedness signedness = Signedness::Signed>
+class basicTypeFromSize
+{
+	template<size_t bytes_>
+	struct sChooser{using type = void;};
+
+	template<> struct sChooser<1>
+	{	using type = common::int8;	};
+
+	template<> struct sChooser<2>
+	{	using type = common::int16;	};
+
+	template<> struct sChooser<4>
+	{	using type = common::int32;	};
+
+	template<> struct sChooser<8>
+	{	using type = common::int64;	};
+
+	template<size_t bytes_>
+	struct fChooser {using type = void; };
+
+	template<> struct fChooser<32>
+	{using type = common::real32;	};
+	template<> struct fChooser<64>
+	{using type = common::real32;	};
+
+	template<NumberType numType_>
+	struct chooserChooser{};
+
+	template<>
+	struct chooserChooser<NumberType::Integral>
+	{
+		template<size_t bytes_>
+		struct choose
+		{
+			using chosen = typename sChooser<bytes_>::type;
+		};
+	};
+
+	template<>
+	struct chooserChooser<NumberType::Real>
+	{
+		template<size_t bytes_>
+		struct choose
+		{
+			using chosen = typename fChooser<bytes_>::type;
+		};
+	};
+
+	template<size_t bytes_,  Signedness signedness_, NumberType numType_>
+	struct CHOOSE
+	{
+
+	};
+	template<size_t bytes_>
+	struct CHOOSE<bytes_,  Signedness::Signed, NumberType::Real>
+	{
+		using type = typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen;
+	};
+
+	template<size_t bytes_, Signedness signedness_>
+	struct CHOOSE<bytes_,  signedness_, NumberType::Integral>
+	{
+		using type = typename setSignedness<
+		typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen,
+		signedness_>::type;
+	};
+public:
+	using type = typename CHOOSE<bytes, signedness, numType>::type;
+};
+
 }//namespace generic
 }//namespace util
 }//namespace cloture
