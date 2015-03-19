@@ -29,8 +29,11 @@ using namespace console;
 using namespace engine::vm;
 using cloture::engine::memory::Pool;
 
-prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
-
+#if !mAllocProgsWithNew
+		prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
+#else
+		prvm_prog_t* prvm_prog_list[PRVM_PROG_MAX];
+#endif
 int		prvm_type_size[8] = {1,sizeof(string_t)/4,1,3,1,1,sizeof(func_t)/4,sizeof(void *)/4};
 
 prvm_eval_t prvm_badvalue; // used only for error returns
@@ -2370,6 +2373,7 @@ static void PRVM_Prog_FinishLoad(prvm_prog_t* prog)
 			if((globalDef->type & ~DEF_SAVEGLOBAL) == ev_string)
 			{
 				val->string = PRVM_SetEngineString(prog, cvar->string);
+
 				cvar->globaldefindex_stringno[prog - prvm_prog_list] = val->string;
 			}
 			if(!cvar)

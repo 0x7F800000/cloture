@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 const char *cvar_dummy_description = "custom cvar";
 
-cvar_t *cvar_vars = NULL;
+cvar_t *cvar_vars = nullptr;
 cvar_t *cvar_hashtable[CVAR_HASHSIZE];
 const char *cvar_null_string = "";
 
@@ -43,7 +43,7 @@ cvar_t *Cvar_FindVar (const char *var_name)
 		if (!strcmp (var_name, var->name))
 			return var;
 
-	return NULL;
+	return nullptr;
 }
 
 cvar_t *Cvar_FindVarAfter (const char *prev_var_name, int neededflags)
@@ -54,7 +54,7 @@ cvar_t *Cvar_FindVarAfter (const char *prev_var_name, int neededflags)
 	{
 		var = Cvar_FindVar (prev_var_name);
 		if (!var)
-			return NULL;
+			return nullptr;
 		var = var->next;
 	}
 	else
@@ -77,8 +77,8 @@ static cvar_t *Cvar_FindVarLink (const char *var_name, cvar_t **parent, cvar_t *
 
 	// use hash lookup to minimize search time
 	hashindex = CRC_Block((const unsigned char *)var_name, strlen(var_name));
-	if(parent) *parent = NULL;
-	if(prev_alpha) *prev_alpha = NULL;
+	if(parent) *parent = nullptr;
+	if(prev_alpha) *prev_alpha = nullptr;
 	if(link) *link = &cvar_hashtable[hashindex];
 	for (var = cvar_hashtable[hashindex];var;var = var->nextonhashchain)
 	{
@@ -97,7 +97,7 @@ static cvar_t *Cvar_FindVarLink (const char *var_name, cvar_t **parent, cvar_t *
 		if(parent) *parent = var;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -184,14 +184,14 @@ const char *Cvar_CompleteVariable (const char *partial)
 	len = strlen(partial);
 
 	if (!len)
-		return NULL;
+		return nullptr;
 
 // check functions
 	for (cvar=cvar_vars ; cvar ; cvar=cvar->next)
 		if (!strncasecmp (partial,cvar->name, len))
 			return cvar->name;
 
-	return NULL;
+	return nullptr;
 }
 
 
@@ -247,7 +247,7 @@ const char **Cvar_CompleteBuildList (const char *partial)
 		if (!strncasecmp(partial, cvar->name, len))
 			buf[bpos++] = cvar->name;
 
-	buf[bpos] = NULL;
+	buf[bpos] = nullptr;
 	return buf;
 }
 
@@ -272,7 +272,11 @@ static void Cvar_UpdateAutoCvar(cvar_t *var)
 	prvm_prog_t *prog;
 	for (i = 0;i < PRVM_PROG_MAX;i++)
 	{
-		prog = &prvm_prog_list[i];
+		#if !mAllocProgsWithNew
+			prog = &prvm_prog_list[i];
+		#else
+			prog = prvm_prog_list[i];
+		#endif
 		if (prog->loaded && var->globaldefindex_progid[i] == prog->id)
 		{
 			// MUST BE SYNCED WITH prvm_edict.c PRVM_LoadProgs
@@ -396,7 +400,7 @@ static void Cvar_SetQuick_Internal (cvar_t *var, const char *value)
 
 void Cvar_SetQuick (cvar_t *var, const char *value)
 {
-	if (var == NULL)
+	if (var == nullptr)
 	{
 		Con_Print("Cvar_SetQuick: var == NULL\n");
 		return;
@@ -412,7 +416,7 @@ void Cvar_Set (const char *var_name, const char *value)
 {
 	cvar_t *var;
 	var = Cvar_FindVar (var_name);
-	if (var == NULL)
+	if (var == nullptr)
 	{
 		Con_Printf("Cvar_Set: variable %s not found\n", var_name);
 		return;
@@ -526,7 +530,7 @@ void Cvar_RegisterVariable (cvar_t *variable)
 
 // link the variable in
 // alphanumerical order
-	for( current = NULL, next = cvar_vars ; next && strcmp( next->name, variable->name ) < 0 ; current = next, next = next->next )
+	for( current = nullptr, next = cvar_vars ; next && strcmp( next->name, variable->name ) < 0 ; current = next, next = next->next )
 		;
 	if( current ) {
 		current->next = variable;
@@ -579,14 +583,14 @@ cvar_t *Cvar_Get (const char *name, const char *value, int flags, const char *ne
 	if (!*name)
 	{
 		Con_Printf("Cvar_Get: invalid variable name\n");
-		return NULL;
+		return nullptr;
 	}
 
 // check for overlap with a command
 	if (Cmd_Exists (name))
 	{
 		Con_Printf("Cvar_Get: %s is a command\n", name);
-		return NULL;
+		return nullptr;
 	}
 
 // allocate a new cvar, cvar name, and cvar string
@@ -607,7 +611,7 @@ cvar_t *Cvar_Get (const char *name, const char *value, int flags, const char *ne
 
 // link the variable in
 // alphanumerical order
-	for( current = NULL, next = cvar_vars ; next && strcmp( next->name, cvar->name ) < 0 ; current = next, next = next->next )
+	for( current = nullptr, next = cvar_vars ; next && strcmp( next->name, cvar->name ) < 0 ; current = next, next = next->next )
 		;
 	if( current )
 		current->next = cvar;
@@ -848,7 +852,7 @@ void Cvar_List_f (void)
 	}
 	else
 	{
-		partial = NULL;
+		partial = nullptr;
 		len = 0;
 		ispattern = false;
 	}
@@ -898,7 +902,7 @@ void Cvar_Set_f (void)
 		Con_DPrint("Set: ");
 
 	// all looks ok, create/modify the cvar
-	Cvar_Get(Cmd_Argv(1), Cmd_Argv(2), 0, Cmd_Argc() > 3 ? Cmd_Argv(3) : NULL);
+	Cvar_Get(Cmd_Argv(1), Cmd_Argv(2), 0, Cmd_Argc() > 3 ? Cmd_Argv(3) : nullptr);
 }
 
 void Cvar_SetA_f (void)
@@ -924,7 +928,7 @@ void Cvar_SetA_f (void)
 		Con_DPrint("SetA: ");
 
 	// all looks ok, create/modify the cvar
-	Cvar_Get(Cmd_Argv(1), Cmd_Argv(2), CVAR_SAVE, Cmd_Argc() > 3 ? Cmd_Argv(3) : NULL);
+	Cvar_Get(Cmd_Argv(1), Cmd_Argv(2), CVAR_SAVE, Cmd_Argc() > 3 ? Cmd_Argv(3) : nullptr);
 }
 
 void Cvar_Del_f (void)

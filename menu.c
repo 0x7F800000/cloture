@@ -5407,8 +5407,30 @@ static void MP_Init ()
 	// allocate the mempools
 	prog->progs_mempool = Mem_AllocPool(menu_progs.string, 0, NULL);
 
-	PRVM_Prog_Load(prog, menu_progs.string, NULL, 0, m_numrequiredfunc, m_required_func, m_numrequiredfields, m_required_fields, m_numrequiredglobals, m_required_globals);
+	prog->type 			= cloture::engine::vm::VMType::Menu;
+	prog->clientProgram	= CLVM_prog;
+	prog->serverProgram	= SVVM_prog;
+	prog->menuProgram	= MVM_prog;
+	prog->clientStatic	= &cls;
+	prog->clientState	= &cl;
+	prog->serverStatic	= &svs;
+	prog->server		= &sv;
 
+	#if !mNoQuakeC
+		PRVM_Prog_Load(
+		prog,
+		menu_progs.string,
+		NULL,
+		0,
+		m_numrequiredfunc,
+		m_required_func,
+		m_numrequiredfields,
+		m_required_fields,
+		m_numrequiredglobals,
+		m_required_globals
+		);
+	#endif
+	newVM_InitGame(prog);
 	// note: OP_STATE is not supported by menu qc, we don't even try to detect
 	// it here
 

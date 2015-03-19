@@ -1160,6 +1160,7 @@ void Host_UnlockSession(void)
 Host_Init
 ====================
 */
+extern void newVM_Init();
 static void Host_Init (void)
 {
 	int i;
@@ -1264,7 +1265,7 @@ static void Host_Init (void)
 	NetConn_Init();
 	Curl_Init();
 	
-
+	newVM_Init();
 	PRVM_Init();
 
 	Mod_Init();

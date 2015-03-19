@@ -27,6 +27,98 @@ using server::Server;
 using client::Client;
 using memory::Pool;
 
+#if mAllocProgsWithNew
+	void *VMProgram::operator new(size_t size)
+	{
+		if(size == sizeof(SVVMProgram))
+		{
+			Pool* pool = Mem_AllocPool("Server Progs", 0, nullptr);
+			SVVMProgram* prog = pool->alloc<SVVMProgram>(1);
+			prog->progs_mempool = pool;
+			return reinterpret_cast<void*>(prog);
+		}
+		else if(size == sizeof(MVMProgram))
+		{
+			Pool* pool = Mem_AllocPool("Menu Progs", 0, nullptr);
+			MVMProgram* prog = pool->alloc<MVMProgram>(1);
+			prog->progs_mempool = pool;
+			return reinterpret_cast<void*>(prog);
+		}
+		else if(size == sizeof(CLVMProgram))
+		{
+			Pool* pool = Mem_AllocPool("Client Progs", 0, nullptr);
+			CLVMProgram* prog = pool->alloc<CLVMProgram>(1);
+			prog->progs_mempool = pool;
+			return reinterpret_cast<void*>(prog);
+		}
+		else
+		{
+			assert(false);
+		}
+	}
+
+	void VMProgram::operator delete(void* mem)
+	{
+
+	}
+
+#endif
+
+//called from Host_Init before PRVM_Init
+void newVM_Init()
+{
+
+}
+
+void newVM_InitGame(VMProgram* prag)
+{
+	vm::Program prog = vm::Program(prag);
+	#if mNoQuakeC
+	if(prog->type == vm::VMType::Server)
+	{
+		constexpr size32 defaultStringSize = 2048;
+		prog->strings 		= prog.alloc<char>(defaultStringSize);
+		prog->stringssize 	= defaultStringSize;
+
+		prog->numknownstrings		= 0;
+		prog->maxknownstrings		= 0;
+		prog->knownstrings			= nullptr;
+		prog->knownstrings_freeable = nullptr;
+
+		Mem_ExpandableArray_NewArray(
+				&prog->stringbuffersarray,
+				prog->progs_mempool,
+				sizeof(prvm_stringbuffer_t),
+				64
+		);
+
+		// we need to expand the globaldefs and fielddefs to include engine defs
+		prog->globaldefs = prog.alloc<ddef_t>(prog->progs_numglobaldefs + 200);
+
+		prog->globals.fp = prog.alloc<prvm_vec_t>(prog->progs_numglobals + 200 + 2);
+		// + 2 is because of an otherwise occurring overrun in RETURN instruction
+		// when trying to return the last or second-last global
+		// (RETURN always returns a vector, there is no RETURN_F instruction)
+
+		prog->fielddefs = prog.alloc<ddef_t>(prog->progs_numfielddefs + 200);
+		// we need to convert the statements to our memory format
+		prog->statements = prog.alloc<mstatement_t>(200);
+		prog->edicts	= prog.alloc<vm::Edict>(200);
+		// allocate space for profiling statement usage
+		//prog->statement_profile = (double *)Mem_Alloc(prog->progs_mempool, prog->progs_numstatements * sizeof(*prog->statement_profile));
+		//prog->explicit_profile = (double *)Mem_Alloc(prog->progs_mempool, prog->progs_numstatements * sizeof(*prog->statement_profile));
+		// functions need to be converted to the memory format
+		prog->functions = (mfunction_t *)Mem_Alloc(prog->progs_mempool, sizeof(mfunction_t) * 200);
+		prog->init_cmd(prog.getPtr());
+		for(size32 i = 0; i < 200; ++i)
+		{
+			prog[i]->priv.server = prog.alloc<edict_engineprivate_t>(1);
+			prog[i]->entity = prog.alloc<entvars_t>(1);
+		}
+	}
+	#endif
+}
+
 namespace cloture::engine::vm
 {
 	void warn(const Program prog, const char *fmt, ...)
@@ -1417,22 +1509,19 @@ VM_clientstate
 float	clientstate()
 =========
 */
-void VM_clientstate(Program prog)
+int vm::clientState(const Program prog)
 {
-	VM_SAFEPARMCOUNT(0,VM_clientstate);
-
-
 	switch( cls.state )
 	{
 		case ca_uninitialized:
 		case ca_dedicated:
-			PRVM_G_FLOAT(OFS_RETURN) = 0;
+			return 0;
 			break;
 		case ca_disconnected:
-			PRVM_G_FLOAT(OFS_RETURN) = 1;
+			return 1;
 			break;
 		case ca_connected:
-			PRVM_G_FLOAT(OFS_RETURN) = 2;
+			return 2;
 			break;
 		default:
 			// should never be reached!
@@ -1447,39 +1536,36 @@ VM_gettime
 float	gettime(Program prog)
 =========
 */
-void VM_gettime(Program prog)
+float vm::getTime(const Program prog, int timer_index = none)
 {
-	int timer_index;
-
-	VM_SAFEPARMCOUNTRANGE(0,1,VM_gettime);
-
-	if(prog->argc == 0)
+	double result;
+	if(prog->argc == none)
 	{
-		PRVM_G_FLOAT(OFS_RETURN) = (prvm_vec_t) realtime;
+		result = realtime;
 	}
 	else
 	{
-		timer_index = (int) PRVM_G_FLOAT(OFS_PARM0);
 		switch(timer_index)
 		{
 			case 0: // GETTIME_FRAMESTART
-				PRVM_G_FLOAT(OFS_RETURN) = realtime;
+				result = realtime;
 				break;
 			case 1: // GETTIME_REALTIME
-				PRVM_G_FLOAT(OFS_RETURN) = Sys_DirtyTime();
+				result = system::dirtyTime();
 				break;
 			case 2: // GETTIME_HIRES
-				PRVM_G_FLOAT(OFS_RETURN) = (Sys_DirtyTime() - host_dirtytime);
+				result = (system::dirtyTime() - host_dirtytime);
 				break;
 			case 3: // GETTIME_UPTIME
-				PRVM_G_FLOAT(OFS_RETURN) = realtime;
+				result = realtime;
 				break;
 			default:
-				VM_Warning(prog, "VM_gettime: %s: unsupported timer specified, returning realtime\n", prog->name);
-				PRVM_G_FLOAT(OFS_RETURN) = realtime;
+				vm::warn(prog, "VM_gettime: %s: unsupported timer specified, returning realtime\n", prog->name);
+				result = realtime;
 				break;
 		}
 	}
+	return static_cast<float>(result);
 }
 
 /*

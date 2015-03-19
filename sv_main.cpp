@@ -3816,26 +3816,43 @@ static void SV_VM_InitCallbacks(Program prog)
 
 static void SV_VM_Setup()
 {
+	#if mAllocProgsWithNew
+		if(!SVVM_prog)
+			prvm_prog_list[PRVM_PROG_SERVER] = new SVVMProgram();
+	#endif
 	Program prog = Program(SVVM_prog);
+
 	PRVM_Prog_Init(prog.getPtr());
 
 	// allocate the mempools
 	// TODO: move the magic numbers/constants into #defines [9/13/2006 Black]
 	prog->progs_mempool = Mem_AllocPool("Server Progs", 0, nullptr);
-	prog->builtins = vm_sv_builtins;
-	prog->numbuiltins = vm_sv_numbuiltins;
-	prog->max_edicts = 512;
-	prog->limit_edicts = MAX_EDICTS;
-	prog->reserved_edicts = svs.maxclients;
+
+	prog->type 			= cloture::engine::vm::VMType::Server;
+	prog->clientProgram	= CLVM_prog;
+	prog->serverProgram	= SVVM_prog;
+	prog->menuProgram	= MVM_prog;
+	prog->clientStatic	= &cls;
+	prog->clientState	= &cl;
+	prog->serverStatic	= &svs;
+	prog->server		= &sv;
+
+	prog->builtins 		= vm_sv_builtins;
+	prog->numbuiltins 	= vm_sv_numbuiltins;
+	prog->max_edicts 	= 512;
+	prog->limit_edicts 	= MAX_EDICTS;
+
+	prog->reserved_edicts 	= svs.maxclients;
 	prog->edictprivate_size = sizeof(edict_engineprivate_t);
-	prog->name = "server";
-	prog->extensionstring = vm_sv_extensions;
-	prog->loadintoworld = true;
+	prog->name 				= "server";
+	prog->extensionstring 	= vm_sv_extensions;
+	prog->loadintoworld 	= true;
 
 	SV_VM_InitCallbacks(prog);
-
+	#if !mNoQuakeC
 	PRVM_Prog_Load(prog.getPtr(), sv_progs.string, nullptr, 0, SV_REQFUNCS, sv_reqfuncs, SV_REQFIELDS, sv_reqfields, SV_REQGLOBALS, sv_reqglobals);
-
+	#endif
+	newVM_InitGame(prog.getPtr());
 	// some mods compiled with scrambling compilers lack certain critical
 	// global names and field names such as "self" and "time" and "nextthink"
 	// so we have to set these offsets manually, matching the entvars_t

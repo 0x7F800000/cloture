@@ -36,7 +36,8 @@
 
 	#define		__cold									__attribute__((cold))
 	#define		__hot									__attribute__((hot))
-
+	#define		__used									__attribute__((used))
+	#define		__unused								__attribute__((unused))
 	#define		__align(alignment)						__attribute__((aligned(alignment)))
 	#define		__returns_aligned(alignment)			__attribute__((assume_aligned(alignment)))
 	#define		__nonull_args(...)						__attribute__((nonnull(__VA_ARGS__)))

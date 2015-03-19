@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # include <TargetConditionals.h>
 #endif
 
-
+#define		prvm_prog_s		VMProgram
 
 #include "stddef.h"
 #if defined(__INTEL_COMPILER)

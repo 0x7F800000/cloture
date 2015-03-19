@@ -1045,6 +1045,15 @@ void CL_VM_Init ()
 	// allocate the mempools
 	prog->progs_mempool = Mem_AllocPool(csqc_progname.string, 0, nullptr);
 
+	prog->type 			= cloture::engine::vm::VMType::Client;
+	prog->clientProgram	= CLVM_prog;
+	prog->serverProgram	= SVVM_prog;
+	prog->menuProgram	= MVM_prog;
+	prog->clientStatic	= &cls;
+	prog->clientState	= &cl;
+	prog->serverStatic	= &svs;
+	prog->server		= &sv;
+
 	#if !EDICTPRIVATE_CONSTEXPR
 	prog->edictprivate_size = 0; // no private struct used
 	#else
@@ -1058,6 +1067,9 @@ void CL_VM_Init ()
 	prog->edictprivate_size = sizeof(edict_engineprivate_t);
 	#else
 	#endif
+
+
+
 	// TODO: add a shared extension string #define and add real support for csqc extension strings [12/5/2007 Black]
 	prog->extensionstring = vm_sv_extensions;
 	prog->builtins = vm_cl_builtins;
@@ -1075,7 +1087,10 @@ void CL_VM_Init ()
 	prog->error_cmd             = Host_Error;
 	prog->ExecuteProgram        = CLVM_ExecuteProgram;
 
-	PRVM_Prog_Load(prog, csprogsfn, csprogsdata, csprogsdatasize, cl_numrequiredfunc, cl_required_func, CL_REQFIELDS, cl_reqfields, CL_REQGLOBALS, cl_reqglobals);
+	#if !mNoQuakeC
+		PRVM_Prog_Load(prog, csprogsfn, csprogsdata, csprogsdatasize, cl_numrequiredfunc, cl_required_func, CL_REQFIELDS, cl_reqfields, CL_REQGLOBALS, cl_reqglobals);
+	#endif
+	newVM_InitGame(prog);
 
 	if (!prog->loaded)
 	{

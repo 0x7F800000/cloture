@@ -37,9 +37,10 @@ The code uses void pointers instead.
 
 #define	EDICTPRIVATE_CONSTEXPR	0
 #define	CONSTEXPR_OFFSETS		0
-
+#define	mAllocProgsWithNew		0
 #define	mDebugGlobalVM			1
 
+#define		mNoQuakeC			1
 typedef struct prvm_stack_s
 {
 	int				s;
@@ -83,11 +84,11 @@ typedef struct prvm_edict_private_s
 
 #if 0
 
-// FIXME: make these go away?
-#define	PRVM_E_FLOAT(e,o) (e->fields.fp[o])
-#define	PRVM_E_INT(e,o) (e->fields.ip[o])
-//#define	PRVM_E_VECTOR(e,o) (&(e->fields.fp[o]))
-#define	PRVM_E_STRING(e,o) (PRVM_GetString(prog, e->fields.ip[o]))
+	// FIXME: make these go away?
+	#define	PRVM_E_FLOAT(e,o) (e->fields.fp[o])
+	#define	PRVM_E_INT(e,o) (e->fields.ip[o])
+	//#define	PRVM_E_VECTOR(e,o) (&(e->fields.fp[o]))
+	#define	PRVM_E_STRING(e,o) (PRVM_GetString(prog, e->fields.ip[o]))
 #endif
 namespace cloture::engine::vm
 {
@@ -375,11 +376,19 @@ extern prvm_eval_t prvm_badvalue;
 #define PRVM_gameglobalfunction(fieldname)    (PRVM_GLOBALFIELDFUNCTION(prog->globaloffsets.fieldname))
 #define PRVM_gamefunction(funcname)           (prog->funcoffsets.funcname)
 
-#define PRVM_serveredictfloat(ed, fieldname)    (PRVM_EDICTFIELDFLOAT(ed, prog->fieldoffsets.fieldname))
-#define PRVM_serveredictvector(ed, fieldname)   (PRVM_EDICTFIELDVECTOR(ed, prog->fieldoffsets.fieldname))
-#define PRVM_serveredictstring(ed, fieldname)   (PRVM_EDICTFIELDSTRING(ed, prog->fieldoffsets.fieldname))
-#define PRVM_serveredictedict(ed, fieldname)    (PRVM_EDICTFIELDEDICT(ed, prog->fieldoffsets.fieldname))
-#define PRVM_serveredictfunction(ed, fieldname) (PRVM_EDICTFIELDFUNCTION(ed, prog->fieldoffsets.fieldname))
+#if mNoQuakeC
+	#define PRVM_serveredictfloat(ed, fieldname)    (PRVM_EDICTFIELDFLOAT(ed, prog->fieldoffsets.fieldname))
+	#define PRVM_serveredictvector(ed, fieldname)   (PRVM_EDICTFIELDVECTOR(ed, prog->fieldoffsets.fieldname))
+	#define PRVM_serveredictstring(ed, fieldname)   (PRVM_EDICTFIELDSTRING(ed, prog->fieldoffsets.fieldname))
+	#define PRVM_serveredictedict(ed, fieldname)    (PRVM_EDICTFIELDEDICT(ed, prog->fieldoffsets.fieldname))
+	#define PRVM_serveredictfunction(ed, fieldname) (PRVM_EDICTFIELDFUNCTION(ed, prog->fieldoffsets.fieldname))
+#else
+	#define PRVM_serveredictfloat(ed, fieldname)    (ed->entity->fieldname)
+	#define PRVM_serveredictvector(ed, fieldname)   (ed->entity->fieldname)
+	#define PRVM_serveredictstring(ed, fieldname)   (ed->entity->fieldname)
+	#define PRVM_serveredictedict(ed, fieldname)    (ed->entity->fieldname)
+	#define PRVM_serveredictfunction(ed, fieldname) (ed->entity->fieldname)
+#endif
 #define PRVM_serverglobalfloat(fieldname)       (PRVM_GLOBALFIELDFLOAT(prog->globaloffsets.fieldname))
 #define PRVM_serverglobalvector(fieldname)      (PRVM_GLOBALFIELDVECTOR(prog->globaloffsets.fieldname))
 #define PRVM_serverglobalstring(fieldname)      (PRVM_GLOBALFIELDSTRING(prog->globaloffsets.fieldname))
@@ -443,6 +452,20 @@ extern prvm_eval_t prvm_badvalue;
 
 struct prvm_prog_s;
 typedef void (*prvm_builtin_t) (struct prvm_prog_s *prog);
+
+namespace cloture::engine::vm
+{
+	struct VMGlobalFunction;
+	class Program;
+
+	enum class VMType : util::common::uint8
+	{
+		unknown,
+		Server,
+		Client,
+		Menu
+	};
+}
 
 // NOTE: field offsets use -1 for NULL
 //typedef struct prvm_prog_fieldoffsets_s
@@ -850,10 +873,26 @@ typedef struct prvm_stringbuffer_s
 }
 prvm_stringbuffer_t;
 
+namespace cloture::engine::server
+{
+	struct Server;
+}
+
 // [INIT] variables flagged with this token can be initialized by 'you'
 // NOTE: external code has to create and free the mempools but everything else is done by prvm !
-typedef struct prvm_prog_s
+//typedef struct prvm_prog_s
+struct VMProgram
 {
+	friend class cloture::engine::vm::Program;
+protected:
+	struct cloture::engine::vm::VMGlobalFunction* globalFunctions;
+public:
+
+	#if mAllocProgsWithNew
+		void * operator new(size_t size);
+		void operator delete(void* mem);
+	#endif
+
 	double				starttime; // system time when PRVM_Prog_Load was called
 	double				profiletime; // system time when last PRVM_CallProfile was called (or PRVM_Prog_Load initially)
 	unsigned int		id; // increasing unique id of progs instance
@@ -923,12 +962,16 @@ typedef struct prvm_prog_s
 	 *
 	 *
 	 */
-	bool				isNative;
-	struct prvm_prog_s*	clientProgram;
-	struct prvm_prog_s* serverProgram;
-	client_static_t*	clientStatic;
-	client_state_t*		clientState;
+	bool					isNative;
+	struct VMProgram*		clientProgram;
+	struct VMProgram* 		serverProgram;
+	struct VMProgram*		menuProgram;
+	client_static_t*		clientStatic;
+	client_state_t*			clientState;
 	struct server_static_t*	serverStatic;
+	struct cloture::engine::server::Server*		server;
+
+	cloture::engine::vm::VMType	type;
 	// translation buffer (only needs to be freed on unloading progs, type is private to prvm_edict.c)
 	void *po;
 
@@ -1103,7 +1146,37 @@ typedef struct prvm_prog_s
 	{
 		return edict == edicts;
 	}
-} prvm_prog_t;
+}; //prvm_prog_t;
+
+using prvm_prog_t = VMProgram;
+
+struct SVVMProgram : public VMProgram
+{
+private:
+	__used char makeExclusive;
+	__used void* makeEx2[3];
+};
+
+struct MVMProgram : public VMProgram
+{
+private:
+	__used short makeExclusive;
+	__used void* makeEx2[2];
+};
+
+struct CLVMProgram : public VMProgram
+{
+private:
+	__used short makeExclusive;
+	__used void* makeEx2;
+};
+
+static_assert(
+		sizeof(SVVMProgram) 	!=	sizeof(MVMProgram)
+&& 		sizeof(MVMProgram) 		!=	sizeof(CLVMProgram)
+&& 		sizeof(SVVMProgram) 	!=	sizeof(CLVMProgram),
+"Each VMProgram struct should have a different size"
+);
 
 
 
@@ -1115,18 +1188,33 @@ typedef enum prvm_progindex_e
 	PRVM_PROG_MAX
 }
 prvm_progindex_t;
-
-extern prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
-prvm_prog_t *PRVM_ProgFromString(const char *str);
-prvm_prog_t *PRVM_FriendlyProgFromString(const char *str); // for console commands (prints error if name unknown and returns NULL, prints error if prog not loaded and returns NULL)
-#define PRVM_GetProg(n) (&prvm_prog_list[(n)])
-#define PRVM_ProgLoaded(n) (PRVM_GetProg(n)->loaded)
-#define SVVM_prog (&prvm_prog_list[PRVM_PROG_SERVER])
-#define CLVM_prog (&prvm_prog_list[PRVM_PROG_CLIENT])
-#ifdef CONFIG_MENU
-#define MVM_prog (&prvm_prog_list[PRVM_PROG_MENU])
+#if !mAllocProgsWithNew
+	extern prvm_prog_t prvm_prog_list[PRVM_PROG_MAX];
+#else
+	extern prvm_prog_t* prvm_prog_list[PRVM_PROG_MAX];
 #endif
 
+
+prvm_prog_t *PRVM_ProgFromString(const char *str);
+prvm_prog_t *PRVM_FriendlyProgFromString(const char *str); // for console commands (prints error if name unknown and returns NULL, prints error if prog not loaded and returns NULL)
+
+#if !mAllocProgsWithNew
+	#define PRVM_GetProg(n) (&prvm_prog_list[(n)])
+	#define PRVM_ProgLoaded(n) (PRVM_GetProg(n)->loaded)
+	#define SVVM_prog (&prvm_prog_list[PRVM_PROG_SERVER])
+	#define CLVM_prog (&prvm_prog_list[PRVM_PROG_CLIENT])
+	#ifdef CONFIG_MENU
+		#define MVM_prog (&prvm_prog_list[PRVM_PROG_MENU])
+	#endif
+#else
+	#define PRVM_GetProg(n) (prvm_prog_list[(n)])
+	#define PRVM_ProgLoaded(n) (PRVM_GetProg(n)->loaded)
+	#define SVVM_prog (prvm_prog_list[PRVM_PROG_SERVER])
+	#define CLVM_prog (prvm_prog_list[PRVM_PROG_CLIENT])
+	#ifdef CONFIG_MENU
+		#define MVM_prog (prvm_prog_list[PRVM_PROG_MENU])
+	#endif
+#endif
 //============================================================================
 // prvm_cmds part
 
@@ -1305,98 +1393,103 @@ namespace cloture	{
 namespace engine	{
 namespace vm		{
 
+using	sigprim_t		=	util::common::uint64;
+//set if the function takes a variable number of arguments
+static constexpr sigprim_t sigVariadicFlag	=	1;
 
+static constexpr util::common::size32 globalFunctionsPrealloc = 256;
+
+template<typename returnType, typename... ArgTypes>
+static constexpr sigprim_t calculateFunctionSignature()
+{
+	static_assert(
+		sizeof...(ArgTypes) <= 9,
+		"calculateFunctionMagic only accounts for up to 9 arguments at the moment"
+	);
+
+	#define	vargNotRef(n)	!util::generic::isReference<getNthTypename(n, ArgTypes)>()
+
+		static_assert(
+			vargNotRef(1) && vargNotRef(2) && vargNotRef(3) &&
+			vargNotRef(4) && vargNotRef(5) && vargNotRef(6) &&
+			vargNotRef(7) && vargNotRef(8) && vargNotRef(9),
+			"For ease of debugging don't use reference parameters with VMGlobalFunction"
+		);
+	#undef vargNotRef
+	constexpr sigprim_t returnSize	= sizeof(returnType);
+	constexpr sigprim_t ArgCount	= sizeof...(ArgTypes);
+
+	constexpr sigprim_t Arg1sz		= getNthTypenameSize(1, ArgTypes);
+	constexpr sigprim_t Arg2sz		= getNthTypenameSize(2, ArgTypes);
+	constexpr sigprim_t Arg3sz		= getNthTypenameSize(3, ArgTypes);
+	constexpr sigprim_t Arg4sz		= getNthTypenameSize(4, ArgTypes);
+
+	constexpr sigprim_t Arg5sz		= getNthTypenameSize(5, ArgTypes);
+	constexpr sigprim_t Arg6sz		= getNthTypenameSize(6, ArgTypes);
+	constexpr sigprim_t Arg7sz		= getNthTypenameSize(7, ArgTypes);
+	constexpr sigprim_t Arg8sz		= getNthTypenameSize(8, ArgTypes);
+	constexpr sigprim_t Arg9sz		= getNthTypenameSize(9, ArgTypes);
+
+	static_assert(
+				Arg1sz <= 32
+			&& 	Arg2sz <= 32
+			&& 	Arg3sz <= 32
+			&& 	Arg4sz <= 32
+			&& 	Arg5sz <= 32
+			&& 	Arg6sz <= 32
+			&& 	Arg7sz <= 32
+			&& 	Arg8sz <= 32
+			&& 	Arg9sz <= 32,
+			"Argument sizes are encoded with five bits. One of the arguments exceeds 32."
+			);
+
+	sigprim_t result = 0;
+
+	result |= Arg1sz;
+	result <<= 5;
+
+	result |= Arg2sz;
+	result <<= 5;
+
+	result |= Arg3sz;
+	result <<= 5;
+
+	result |= Arg4sz;
+	result <<= 5;
+
+	result |= Arg5sz;
+	result <<= 5;
+
+	result |= Arg6sz;
+	result <<= 5;
+
+	result |= Arg7sz;
+	result <<= 5;
+
+	result |= Arg8sz;
+	result <<= 5;
+
+	result |= Arg9sz;
+	result <<= 5;
+
+	result |= returnSize;
+	result <<= 5;
+
+	result |= ArgCount;
+	result <<= 5;
+
+	return result;
+}
 struct VMGlobalFunction
 {
-	using magicType		=	util::common::uint64;
 	const char*	name;
 	void* 		funcptr;
-	magicType	magic;
+	sigprim_t	magic;
+
+
 	static constexpr auto clotureTypeName()
 	{
 		return "VMGlobalFunction";
-	}
-
-	template<typename returnType, typename... ArgTypes>
-	static constexpr magicType calculateFunctionMagic()
-	{
-		static_assert(
-			sizeof...(ArgTypes) <= 9,
-			"calculateFunctionMagic only accounts for up to 9 arguments at the moment"
-		);
-
-		#define	vargNotRef(n)	!util::generic::isReference<getNthTypename(n, ArgTypes)>()
-
-			static_assert(
-				vargNotRef(1) && vargNotRef(2) && vargNotRef(3) &&
-				vargNotRef(4) && vargNotRef(5) && vargNotRef(6) &&
-				vargNotRef(7) && vargNotRef(8) && vargNotRef(9),
-				"For ease of debugging don't use reference parameters with VMGlobalFunction"
-			);
-		#undef vargNotRef
-		constexpr magicType returnSize	= sizeof(returnType);
-		constexpr magicType ArgCount	= sizeof...(ArgTypes);
-
-		constexpr magicType Arg1sz		= getNthTypenameSize(1, ArgTypes);
-		constexpr magicType Arg2sz		= getNthTypenameSize(2, ArgTypes);
-		constexpr magicType Arg3sz		= getNthTypenameSize(3, ArgTypes);
-		constexpr magicType Arg4sz		= getNthTypenameSize(4, ArgTypes);
-
-		constexpr magicType Arg5sz		= getNthTypenameSize(5, ArgTypes);
-		constexpr magicType Arg6sz		= getNthTypenameSize(6, ArgTypes);
-		constexpr magicType Arg7sz		= getNthTypenameSize(7, ArgTypes);
-		constexpr magicType Arg8sz		= getNthTypenameSize(8, ArgTypes);
-		constexpr magicType Arg9sz		= getNthTypenameSize(9, ArgTypes);
-
-		static_assert(
-					Arg1sz <= 32
-				&& 	Arg2sz <= 32
-				&& 	Arg3sz <= 32
-				&& 	Arg4sz <= 32
-				&& 	Arg5sz <= 32
-				&& 	Arg6sz <= 32
-				&& 	Arg7sz <= 32
-				&& 	Arg8sz <= 32
-				&& 	Arg9sz <= 32,
-				"Argument sizes are encoded with five bits. One of the arguments exceeds 32."
-				);
-
-		magicType result = 0;
-
-		result |= Arg1sz;
-		result <<= 5;
-
-		result |= Arg2sz;
-		result <<= 5;
-
-		result |= Arg3sz;
-		result <<= 5;
-
-		result |= Arg4sz;
-		result <<= 5;
-
-		result |= Arg5sz;
-		result <<= 5;
-
-		result |= Arg6sz;
-		result <<= 5;
-
-		result |= Arg7sz;
-		result <<= 5;
-
-		result |= Arg8sz;
-		result <<= 5;
-
-		result |= Arg9sz;
-		result <<= 5;
-
-		result |= returnSize;
-		result <<= 5;
-
-		result |= ArgCount;
-		result <<= 5;
-
-		return result;
 	}
 
 
@@ -1442,7 +1535,7 @@ struct VMGlobalFunction
 		(ArgTypes... 		arguments)
 	#endif
 	{
-		if(	unlikely(	(calculateFunctionMagic<returnType, ArgTypes...>() != this->magic)))
+		if(	unlikely(	(calculateFunctionSignature<returnType, ArgTypes...>() != this->magic)))
 		{
 			CallFailure<returnType, ArgTypes...>(
 			arguments...
@@ -1455,8 +1548,10 @@ struct VMGlobalFunction
 	}
 };
 
-class Program : public util::pointers::wrapped_ptr<prvm_prog_t>
+class Program : public util::pointers::wrapped_ptr<VMProgram>
 {
+	VMGlobalFunction* lookupGlobalFunctionInternal(const char* name, const sigprim_t signature);
+	bool registerGlobalFunctionInternal(const char* name, void* funcptr, const sigprim_t signature);
 public:
 	static constexpr auto clotureTypeName()
 	{
@@ -1573,10 +1668,58 @@ public:
 	PROGRAM_FUNCTION_FIELD_WRAPPER(SetNewParms, SetNewParms)
 	PROGRAM_FUNCTION_FIELD_WRAPPER(SetChangeParms, SetChangeParms)
 
-	VMGlobalFunction* lookupGlobalFunction(const char* name);
 
+
+
+	/*
+	 * precalculates the signature, then calls lookupGlobalFunctionInternal
+	 * with the calculated signature and the function name
+	 * this allows for overloaded global functions
+	 */
+	template<typename returnType, typename... ArgTypes>
+	__forceinline VMGlobalFunction* lookupGlobalFunction(const char* name)
+	{
+		VMGlobalFunction* global = lookupGlobalFunctionInternal
+		(
+				name,
+				calculateFunctionSignature<returnType, ArgTypes...>()
+		);
+		return global;
+	}
+	/*
+	 * precalculates the signature and registers the function by calling
+	 * registerGlobalFunctionInternal
+	 */
+	template<typename returnType, typename... ArgTypes>
+	__forceinline bool registerGlobalFunction(const char* name, returnType (*funcptr)(ArgTypes...))
+	{
+		return registerGlobalFunctionInternal
+		(
+				name,
+				reinterpret_cast<void*>(funcptr),
+				calculateFunctionSignature<returnType, ArgTypes...>()
+		);
+	}
+	/*
+	 * overloaded for variadic function pointers (templates can't deduce the ...)
+	 */
+	template<typename returnType, typename... ArgTypes>
+	__forceinline bool registerGlobalFunction(const char* name, returnType (*funcptr)(ArgTypes..., ...))
+	{
+		constexpr sigprim_t signature =
+				calculateFunctionSignature<returnType, ArgTypes...>() | sigVariadicFlag;
+		return registerGlobalFunctionInternal
+		(
+				name,
+				reinterpret_cast<void*>(funcptr),
+				signature
+		);
+	}
 };
 
 }//namespace vm
 }//namespace engine
 }//namespace cloture
+
+extern void newVM_InitGame(VMProgram*);
+
