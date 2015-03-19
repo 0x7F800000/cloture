@@ -11,19 +11,17 @@ extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 #include "dpsoftrast.h"
 
 #ifndef GL_TEXTURE_3D
-#define GL_TEXTURE_3D				0x806F
+	#define GL_TEXTURE_3D				0x806F
 #endif
 
-#include "util/common.hpp"
-#include "util/ctfe.hpp"
-#include "util/bitops.hpp"
 
-#include "util/vector.hpp"
-#include "util/math.hpp"
-
-
-using namespace cloture::util;
+using namespace cloture;
+using namespace util;
 using namespace common;
+
+//after importing this we can use the gl:: namespace
+using namespace engine::renderer;
+
 using math::vector::vector4f;
 using math::vector::vector3f;
 
@@ -72,13 +70,13 @@ DPSOFTRAST_TEXTURE_FILTER dpsoftrast_filter_mipmap = DPSOFTRAST_TEXTURE_FILTER_L
 DPSOFTRAST_TEXTURE_FILTER dpsoftrast_filter_nomipmap = DPSOFTRAST_TEXTURE_FILTER_LINEAR;
 
 #ifdef SUPPORTD3D
-int d3d_filter_flatmin = D3DTEXF_LINEAR;
-int d3d_filter_flatmag = D3DTEXF_LINEAR;
-int d3d_filter_flatmix = D3DTEXF_POINT;
-int d3d_filter_mipmin = D3DTEXF_LINEAR;
-int d3d_filter_mipmag = D3DTEXF_LINEAR;
-int d3d_filter_mipmix = D3DTEXF_LINEAR;
-int d3d_filter_nomip = false;
+	int d3d_filter_flatmin = D3DTEXF_LINEAR;
+	int d3d_filter_flatmag = D3DTEXF_LINEAR;
+	int d3d_filter_flatmix = D3DTEXF_POINT;
+	int d3d_filter_mipmin = D3DTEXF_LINEAR;
+	int d3d_filter_mipmag = D3DTEXF_LINEAR;
+	int d3d_filter_mipmix = D3DTEXF_LINEAR;
+	int d3d_filter_nomip = false;
 #endif
 
 
@@ -107,88 +105,87 @@ using textypeinfo_t = textypeinfo_s;
 //textypeinfo_t;
 
 #ifdef USE_GLES2
+	// we use these internally even if we never deliver such data to the driver
+	#define GL_BGR					0x80E0
+	#define GL_BGRA					0x80E1
 
-// we use these internally even if we never deliver such data to the driver
-#define GL_BGR					0x80E0
-#define GL_BGRA					0x80E1
+	// framebuffer texture formats
+	// GLES2 devices rarely support depth textures, so we actually use a renderbuffer there
+	static textypeinfo_t textype_shadowmap16_comp            = {"shadowmap16_comp",         TEXTYPE_SHADOWMAP16_COMP     ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_shadowmap16_raw             = {"shadowmap16_raw",          TEXTYPE_SHADOWMAP16_RAW      ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_shadowmap24_comp            = {"shadowmap24_comp",         TEXTYPE_SHADOWMAP24_COMP     ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_shadowmap24_raw             = {"shadowmap24_raw",          TEXTYPE_SHADOWMAP24_RAW      ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_depth16                     = {"depth16",                  TEXTYPE_DEPTHBUFFER16        ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_depth24                     = {"depth24",                  TEXTYPE_DEPTHBUFFER24        ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_depth24stencil8             = {"depth24stencil8",          TEXTYPE_DEPTHBUFFER24STENCIL8,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_colorbuffer                 = {"colorbuffer",              TEXTYPE_COLORBUFFER          ,  2,  2,  2.0f, GL_RGB565                         , GL_RGBA           , GL_UNSIGNED_SHORT_5_6_5};
+	static textypeinfo_t textype_colorbuffer16f              = {"colorbuffer16f",           TEXTYPE_COLORBUFFER16F       ,  2,  2,  2.0f, GL_RGB565                         , GL_RGBA           , GL_UNSIGNED_SHORT_5_6_5};
+	static textypeinfo_t textype_colorbuffer32f              = {"colorbuffer32f",           TEXTYPE_COLORBUFFER32F       ,  2,  2,  2.0f, GL_RGB565                         , GL_RGBA           , GL_UNSIGNED_SHORT_5_6_5};
 
-// framebuffer texture formats
-// GLES2 devices rarely support depth textures, so we actually use a renderbuffer there
-static textypeinfo_t textype_shadowmap16_comp            = {"shadowmap16_comp",         TEXTYPE_SHADOWMAP16_COMP     ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_shadowmap16_raw             = {"shadowmap16_raw",          TEXTYPE_SHADOWMAP16_RAW      ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_shadowmap24_comp            = {"shadowmap24_comp",         TEXTYPE_SHADOWMAP24_COMP     ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_shadowmap24_raw             = {"shadowmap24_raw",          TEXTYPE_SHADOWMAP24_RAW      ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_depth16                     = {"depth16",                  TEXTYPE_DEPTHBUFFER16        ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_depth24                     = {"depth24",                  TEXTYPE_DEPTHBUFFER24        ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_depth24stencil8             = {"depth24stencil8",          TEXTYPE_DEPTHBUFFER24STENCIL8,  2,  2,  2.0f, GL_DEPTH_COMPONENT16              , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_colorbuffer                 = {"colorbuffer",              TEXTYPE_COLORBUFFER          ,  2,  2,  2.0f, GL_RGB565                         , GL_RGBA           , GL_UNSIGNED_SHORT_5_6_5};
-static textypeinfo_t textype_colorbuffer16f              = {"colorbuffer16f",           TEXTYPE_COLORBUFFER16F       ,  2,  2,  2.0f, GL_RGB565                         , GL_RGBA           , GL_UNSIGNED_SHORT_5_6_5};
-static textypeinfo_t textype_colorbuffer32f              = {"colorbuffer32f",           TEXTYPE_COLORBUFFER32F       ,  2,  2,  2.0f, GL_RGB565                         , GL_RGBA           , GL_UNSIGNED_SHORT_5_6_5};
-
-// image formats:
-static textypeinfo_t textype_alpha                       = {"alpha",                    TEXTYPE_ALPHA         ,  1,  4,  4.0f, GL_ALPHA                              , GL_ALPHA          , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_palette                     = {"palette",                  TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_palette_alpha               = {"palette_alpha",            TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_rgba                        = {"rgba",                     TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGBA                               , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_rgba_alpha                  = {"rgba_alpha",               TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGBA                               , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_bgra                        = {"bgra",                     TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_bgra_alpha                  = {"bgra_alpha",               TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-#ifdef __ANDROID__
-static textypeinfo_t textype_etc1                        = {"etc1",                     TEXTYPE_ETC1          ,  1,  3,  0.5f, GL_ETC1_RGB8_OES                         , 0                 , 0                };
-#endif
+	// image formats:
+	static textypeinfo_t textype_alpha                       = {"alpha",                    TEXTYPE_ALPHA         ,  1,  4,  4.0f, GL_ALPHA                              , GL_ALPHA          , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_palette                     = {"palette",                  TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_palette_alpha               = {"palette_alpha",            TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_rgba                        = {"rgba",                     TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGBA                               , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_rgba_alpha                  = {"rgba_alpha",               TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGBA                               , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_bgra                        = {"bgra",                     TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_bgra_alpha                  = {"bgra_alpha",               TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	#ifdef __ANDROID__
+		static textypeinfo_t textype_etc1                        = {"etc1",                     TEXTYPE_ETC1          ,  1,  3,  0.5f, GL_ETC1_RGB8_OES                         , 0                 , 0                };
+	#endif
 #else
-// framebuffer texture formats
-static textypeinfo_t textype_shadowmap16_comp            = {"shadowmap16_comp",         TEXTYPE_SHADOWMAP16_COMP     ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_shadowmap16_raw             = {"shadowmap16_raw",          TEXTYPE_SHADOWMAP16_RAW      ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_shadowmap24_comp            = {"shadowmap24_comp",         TEXTYPE_SHADOWMAP24_COMP     ,  4,  4,  4.0f, GL_DEPTH_COMPONENT24_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT  };
-static textypeinfo_t textype_shadowmap24_raw             = {"shadowmap24_raw",          TEXTYPE_SHADOWMAP24_RAW      ,  4,  4,  4.0f, GL_DEPTH_COMPONENT24_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT  };
-static textypeinfo_t textype_depth16                     = {"depth16",                  TEXTYPE_DEPTHBUFFER16        ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
-static textypeinfo_t textype_depth24                     = {"depth24",                  TEXTYPE_DEPTHBUFFER24        ,  4,  4,  4.0f, GL_DEPTH_COMPONENT24_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT  };
-static textypeinfo_t textype_depth24stencil8             = {"depth24stencil8",          TEXTYPE_DEPTHBUFFER24STENCIL8,  4,  4,  4.0f, GL_DEPTH24_STENCIL8_EXT           , GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT};
-static textypeinfo_t textype_colorbuffer                 = {"colorbuffer",              TEXTYPE_COLORBUFFER          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_colorbuffer16f              = {"colorbuffer16f",           TEXTYPE_COLORBUFFER16F       ,  8,  8,  8.0f, GL_RGBA16F_ARB                        , GL_RGBA           , GL_FLOAT         };
-static textypeinfo_t textype_colorbuffer32f              = {"colorbuffer32f",           TEXTYPE_COLORBUFFER32F       , 16, 16, 16.0f, GL_RGBA32F_ARB                        , GL_RGBA           , GL_FLOAT         };
+	// framebuffer texture formats
+	static textypeinfo_t textype_shadowmap16_comp            = {"shadowmap16_comp",         TEXTYPE_SHADOWMAP16_COMP     ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_shadowmap16_raw             = {"shadowmap16_raw",          TEXTYPE_SHADOWMAP16_RAW      ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_shadowmap24_comp            = {"shadowmap24_comp",         TEXTYPE_SHADOWMAP24_COMP     ,  4,  4,  4.0f, GL_DEPTH_COMPONENT24_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT  };
+	static textypeinfo_t textype_shadowmap24_raw             = {"shadowmap24_raw",          TEXTYPE_SHADOWMAP24_RAW      ,  4,  4,  4.0f, GL_DEPTH_COMPONENT24_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT  };
+	static textypeinfo_t textype_depth16                     = {"depth16",                  TEXTYPE_DEPTHBUFFER16        ,  2,  2,  2.0f, GL_DEPTH_COMPONENT16_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT};
+	static textypeinfo_t textype_depth24                     = {"depth24",                  TEXTYPE_DEPTHBUFFER24        ,  4,  4,  4.0f, GL_DEPTH_COMPONENT24_ARB          , GL_DEPTH_COMPONENT, GL_UNSIGNED_INT  };
+	static textypeinfo_t textype_depth24stencil8             = {"depth24stencil8",          TEXTYPE_DEPTHBUFFER24STENCIL8,  4,  4,  4.0f, GL_DEPTH24_STENCIL8_EXT           , GL_DEPTH_STENCIL_EXT, GL_UNSIGNED_INT_24_8_EXT};
+	static textypeinfo_t textype_colorbuffer                 = {"colorbuffer",              TEXTYPE_COLORBUFFER          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_colorbuffer16f              = {"colorbuffer16f",           TEXTYPE_COLORBUFFER16F       ,  8,  8,  8.0f, GL_RGBA16F_ARB                        , GL_RGBA           , GL_FLOAT         };
+	static textypeinfo_t textype_colorbuffer32f              = {"colorbuffer32f",           TEXTYPE_COLORBUFFER32F       , 16, 16, 16.0f, GL_RGBA32F_ARB                        , GL_RGBA           , GL_FLOAT         };
 
-// image formats:
-static textypeinfo_t textype_alpha                       = {"alpha",                    TEXTYPE_ALPHA         ,  1,  4,  4.0f, GL_ALPHA                              , GL_ALPHA          , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_palette                     = {"palette",                  TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGB                                , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_palette_alpha               = {"palette_alpha",            TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_rgba                        = {"rgba",                     TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGB                                , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_rgba_alpha                  = {"rgba_alpha",               TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGBA                               , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_rgba_compress               = {"rgba_compress",            TEXTYPE_RGBA          ,  4,  4,  0.5f, GL_COMPRESSED_RGB_S3TC_DXT1_EXT       , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_rgba_alpha_compress         = {"rgba_alpha_compress",      TEXTYPE_RGBA          ,  4,  4,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_bgra                        = {"bgra",                     TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGB                                , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_bgra_alpha                  = {"bgra_alpha",               TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_bgra_compress               = {"bgra_compress",            TEXTYPE_BGRA          ,  4,  4,  0.5f, GL_COMPRESSED_RGB_S3TC_DXT1_EXT       , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_bgra_alpha_compress         = {"bgra_alpha_compress",      TEXTYPE_BGRA          ,  4,  4,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_dxt1                        = {"dxt1",                     TEXTYPE_DXT1          ,  4,  0,  0.5f, GL_COMPRESSED_RGB_S3TC_DXT1_EXT       , 0                 , 0                };
-static textypeinfo_t textype_dxt1a                       = {"dxt1a",                    TEXTYPE_DXT1A         ,  4,  0,  0.5f, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT      , 0                 , 0                };
-static textypeinfo_t textype_dxt3                        = {"dxt3",                     TEXTYPE_DXT3          ,  4,  0,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT      , 0                 , 0                };
-static textypeinfo_t textype_dxt5                        = {"dxt5",                     TEXTYPE_DXT5          ,  4,  0,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      , 0                 , 0                };
-static textypeinfo_t textype_sRGB_palette                = {"sRGB_palette",             TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_SRGB_EXT                           , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_palette_alpha          = {"sRGB_palette_alpha",       TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_SRGB_ALPHA_EXT                     , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_rgba                   = {"sRGB_rgba",                TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_SRGB_EXT                           , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_rgba_alpha             = {"sRGB_rgba_alpha",          TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_SRGB_ALPHA_EXT                     , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_rgba_compress          = {"sRGB_rgba_compress",       TEXTYPE_RGBA          ,  4,  4,  0.5f, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT      , GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_rgba_alpha_compress    = {"sRGB_rgba_alpha_compress", TEXTYPE_RGBA          ,  4,  4,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_bgra                   = {"sRGB_bgra",                TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_SRGB_EXT                           , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_bgra_alpha             = {"sRGB_bgra_alpha",          TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_SRGB_ALPHA_EXT                     , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_bgra_compress          = {"sRGB_bgra_compress",       TEXTYPE_BGRA          ,  4,  4,  0.5f, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT      , GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_bgra_alpha_compress    = {"sRGB_bgra_alpha_compress", TEXTYPE_BGRA          ,  4,  4,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_BGRA           , GL_UNSIGNED_BYTE };
-static textypeinfo_t textype_sRGB_dxt1                   = {"sRGB_dxt1",                TEXTYPE_DXT1          ,  4,  0,  0.5f, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT      , 0                 , 0                };
-static textypeinfo_t textype_sRGB_dxt1a                  = {"sRGB_dxt1a",               TEXTYPE_DXT1A         ,  4,  0,  0.5f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, 0                 , 0                };
-static textypeinfo_t textype_sRGB_dxt3                   = {"sRGB_dxt3",                TEXTYPE_DXT3          ,  4,  0,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, 0                 , 0                };
-static textypeinfo_t textype_sRGB_dxt5                   = {"sRGB_dxt5",                TEXTYPE_DXT5          ,  4,  0,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, 0                 , 0                };
+	// image formats:
+	static textypeinfo_t textype_alpha                       = {"alpha",                    TEXTYPE_ALPHA         ,  1,  4,  4.0f, GL_ALPHA                              , GL_ALPHA          , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_palette                     = {"palette",                  TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGB                                , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_palette_alpha               = {"palette_alpha",            TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_rgba                        = {"rgba",                     TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGB                                , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_rgba_alpha                  = {"rgba_alpha",               TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_RGBA                               , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_rgba_compress               = {"rgba_compress",            TEXTYPE_RGBA          ,  4,  4,  0.5f, GL_COMPRESSED_RGB_S3TC_DXT1_EXT       , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_rgba_alpha_compress         = {"rgba_alpha_compress",      TEXTYPE_RGBA          ,  4,  4,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_bgra                        = {"bgra",                     TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGB                                , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_bgra_alpha                  = {"bgra_alpha",               TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_RGBA                               , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_bgra_compress               = {"bgra_compress",            TEXTYPE_BGRA          ,  4,  4,  0.5f, GL_COMPRESSED_RGB_S3TC_DXT1_EXT       , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_bgra_alpha_compress         = {"bgra_alpha_compress",      TEXTYPE_BGRA          ,  4,  4,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_dxt1                        = {"dxt1",                     TEXTYPE_DXT1          ,  4,  0,  0.5f, GL_COMPRESSED_RGB_S3TC_DXT1_EXT       , 0                 , 0                };
+	static textypeinfo_t textype_dxt1a                       = {"dxt1a",                    TEXTYPE_DXT1A         ,  4,  0,  0.5f, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT      , 0                 , 0                };
+	static textypeinfo_t textype_dxt3                        = {"dxt3",                     TEXTYPE_DXT3          ,  4,  0,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT3_EXT      , 0                 , 0                };
+	static textypeinfo_t textype_dxt5                        = {"dxt5",                     TEXTYPE_DXT5          ,  4,  0,  1.0f, GL_COMPRESSED_RGBA_S3TC_DXT5_EXT      , 0                 , 0                };
+	static textypeinfo_t textype_sRGB_palette                = {"sRGB_palette",             TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_SRGB_EXT                           , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_palette_alpha          = {"sRGB_palette_alpha",       TEXTYPE_PALETTE       ,  1,  4,  4.0f, GL_SRGB_ALPHA_EXT                     , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_rgba                   = {"sRGB_rgba",                TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_SRGB_EXT                           , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_rgba_alpha             = {"sRGB_rgba_alpha",          TEXTYPE_RGBA          ,  4,  4,  4.0f, GL_SRGB_ALPHA_EXT                     , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_rgba_compress          = {"sRGB_rgba_compress",       TEXTYPE_RGBA          ,  4,  4,  0.5f, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT      , GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_rgba_alpha_compress    = {"sRGB_rgba_alpha_compress", TEXTYPE_RGBA          ,  4,  4,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_RGBA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_bgra                   = {"sRGB_bgra",                TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_SRGB_EXT                           , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_bgra_alpha             = {"sRGB_bgra_alpha",          TEXTYPE_BGRA          ,  4,  4,  4.0f, GL_SRGB_ALPHA_EXT                     , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_bgra_compress          = {"sRGB_bgra_compress",       TEXTYPE_BGRA          ,  4,  4,  0.5f, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT      , GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_bgra_alpha_compress    = {"sRGB_bgra_alpha_compress", TEXTYPE_BGRA          ,  4,  4,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, GL_BGRA           , GL_UNSIGNED_BYTE };
+	static textypeinfo_t textype_sRGB_dxt1                   = {"sRGB_dxt1",                TEXTYPE_DXT1          ,  4,  0,  0.5f, GL_COMPRESSED_SRGB_S3TC_DXT1_EXT      , 0                 , 0                };
+	static textypeinfo_t textype_sRGB_dxt1a                  = {"sRGB_dxt1a",               TEXTYPE_DXT1A         ,  4,  0,  0.5f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT, 0                 , 0                };
+	static textypeinfo_t textype_sRGB_dxt3                   = {"sRGB_dxt3",                TEXTYPE_DXT3          ,  4,  0,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT, 0                 , 0                };
+	static textypeinfo_t textype_sRGB_dxt5                   = {"sRGB_dxt5",                TEXTYPE_DXT5          ,  4,  0,  1.0f, GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT, 0                 , 0                };
+
 #endif
 
-typedef enum gltexturetype_e
+enum gltexturetype_t
 {
 	GLTEXTURETYPE_2D,
 	GLTEXTURETYPE_3D,
 	GLTEXTURETYPE_CUBEMAP,
 	GLTEXTURETYPE_TOTAL
-}
-gltexturetype_t;
+};
 
 static int gltexturetypeenums[GLTEXTURETYPE_TOTAL] = {GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_CUBE_MAP};
 #ifdef GL_TEXTURE_WRAP_R
@@ -204,8 +201,8 @@ static int cubemapside[6] =
 	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 };
 
-//typedef
-__align(16) struct gltexture_s
+__align(16)
+struct gltexture_t
 {
 	// this portion of the struct is exposed to the R_GetTexture macro for
 	// speed reasons, must be identical in rtexture_t!
@@ -226,22 +223,23 @@ __align(16) struct gltexture_s
 	// d3d stuff the backend needs
 	void *d3dtexture;
 	void *d3dsurface;
-#ifdef SUPPORTD3D
-	bool d3disrendertargetsurface;
-	bool d3disdepthstencilsurface;
-	int d3dformat;
-	int d3dusage;
-	int d3dpool;
-	int d3daddressu;
-	int d3daddressv;
-	int d3daddressw;
-	int d3dmagfilter;
-	int d3dminfilter;
-	int d3dmipfilter;
-	int d3dmaxmiplevelfilter;
-	int d3dmipmaplodbias;
-	int d3dmaxmiplevel;
-#endif
+
+	#ifdef SUPPORTD3D
+		bool d3disrendertargetsurface;
+		bool d3disdepthstencilsurface;
+		int d3dformat;
+		int d3dusage;
+		int d3dpool;
+		int d3daddressu;
+		int d3daddressv;
+		int d3daddressw;
+		int d3dmagfilter;
+		int d3dminfilter;
+		int d3dmipfilter;
+		int d3dmaxmiplevelfilter;
+		int d3dmipmaplodbias;
+		int d3dmaxmiplevel;
+	#endif //#ifdef SUPPORTD3D
 
 	// dynamic texture stuff [11/22/2007 Black]
 	updatecallback_t updatecallback;
@@ -253,9 +251,9 @@ __align(16) struct gltexture_s
 	//bool buffermodified;
 
 	// pointer to texturepool (check this to see if the texture is allocated)
-	struct gltexturepool_s *pool;
+	struct gltexturepool_t *pool;
 	// pointer to next texture in texturepool chain
-	struct gltexture_s *chain;
+	struct gltexture_t *chain;
 	// name of the texture (this might be removed someday), no duplicates
 	char identifier[MAX_QPATH + 32];
 	// original data size in *inputtexels
@@ -292,22 +290,17 @@ __align(16) struct gltexture_s
 	// GL_UNSIGNED_BYTE or GL_UNSIGNED_INT or GL_UNSIGNED_SHORT or GL_FLOAT
 	int gltype;
 };
-//gltexture_t;
 
-using gltexture_t = gltexture_s;
 
 #define TEXTUREPOOL_SENTINEL 0xC0DEDBAD
 
-//typedef struct gltexturepool_s
-__align(16) struct gltexturepool_s
+__align(16)
+struct gltexturepool_t
 {
 	unsigned int sentinel;
-	struct gltexture_s *gltchain;
-	struct gltexturepool_s *next;
+	struct gltexture_t *gltchain;
+	struct gltexturepool_t *next;
 };
-
-using gltexturepool_t = gltexturepool_s;
-//gltexturepool_t;
 
 static gltexturepool_t *gltexturepoolchain = nullptr;
 

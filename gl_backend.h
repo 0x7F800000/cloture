@@ -13,13 +13,11 @@ extern bool gl_modelmatrixchanged;
 extern cvar_t gl_vbo_dynamicvertex;
 extern cvar_t gl_vbo_dynamicindex;
 
-//#define POLYGONELEMENTS_MAXPOINTS 258
 constexpr size_t POLYGONELEMENTS_MAXPOINTS = 258;
 
 extern int polygonelement3i[(POLYGONELEMENTS_MAXPOINTS-2)*3];
 extern unsigned short polygonelement3s[(POLYGONELEMENTS_MAXPOINTS-2)*3];
 
-//#define QUADELEMENTS_MAXQUADS 128
 constexpr size_t QUADELEMENTS_MAXQUADS = 128;
 extern int quadelement3i[QUADELEMENTS_MAXQUADS*6];
 extern unsigned short quadelement3s[QUADELEMENTS_MAXQUADS*6];
@@ -124,3 +122,86 @@ void R_Mesh_Draw(int firstvertex, int numvertices, int firsttriangle, int numtri
 bool SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *buffer2, int x, int y, int width, int height, bool flipx, bool flipy, bool flipdiagonal, bool jpeg, bool png, bool gammacorrect, bool keep_alpha);
 // used by R_Envmap_f and internally in backend, clears the frame
 void R_ClearScreen(bool fogcolor);
+
+
+#define		GL_INLINE	__forceinline
+namespace cloture::engine::renderer::gl
+{
+	static GL_INLINE void finish()
+	{
+		GL_Finish();
+	}
+	static GL_INLINE void blendFunc(const int f1, const int f2)
+	{
+		GL_BlendFunc(f1, f2);
+	}
+	static GL_INLINE  void blendEquationSubtract(const bool negated)
+	{
+		GL_BlendEquationSubtract(negated);
+	}
+	static GL_INLINE  void depthMask(const int state)
+	{
+		GL_DepthMask(state);
+	}
+	static GL_INLINE  void depthTest(const int state)
+	{
+		GL_DepthTest(state);
+	}
+	static GL_INLINE  void depthFunc(const int state)
+	{
+		GL_DepthFunc(state);
+	}
+	static GL_INLINE  void depthRange(const float nearfrac, const float farfrac)
+	{
+		GL_DepthRange(nearfrac, farfrac);
+	}
+	static GL_INLINE void polygonOffset(const float planeoffset, const float depthoffset)
+	{
+		GL_PolygonOffset(planeoffset, depthoffset);
+	}
+	static GL_INLINE void cullFace(const int state)
+	{
+		GL_CullFace(state);
+	}
+	static GL_INLINE void alphaTest(const int state)
+	{
+		GL_AlphaTest(state);
+	}
+	static GL_INLINE void alphaToCoverage(const bool state)
+	{
+		GL_AlphaToCoverage(state);
+	}
+	static GL_INLINE void colorMask(const int r, const int g, const int b, const int a)
+	{
+		GL_ColorMask(r, g, b, a);
+	}
+	static GL_INLINE void color(const float cr, const float cg, const float cb, const float ca)
+	{
+		GL_Color(cr, cg, cb, ca);
+	}
+	static GL_INLINE void activeTexture(const unsigned int num)
+	{
+		GL_ActiveTexture(num);
+	}
+	static GL_INLINE void clientActiveTexture(const unsigned int num)
+	{
+		GL_ClientActiveTexture(num);
+	}
+	static GL_INLINE void scissor(const int x, const int y, const int width, const int height)
+	{
+		GL_Scissor(x, y, width, height);
+	}
+	static GL_INLINE void scissorTest(const int state)
+	{
+		GL_ScissorTest(state);
+	}
+	static GL_INLINE void clear(const int mask, const float *colorvalue, const float depthvalue, const int stencilvalue)
+	{
+		GL_Clear(mask, colorvalue, depthvalue, stencilvalue);
+	}
+	static GL_INLINE void readPixelsBGRA(const int x, const int y, const int width, const int height, unsigned char *outpixels)
+	{
+		GL_ReadPixelsBGRA(x, y, width, height, outpixels);
+	}
+
+}

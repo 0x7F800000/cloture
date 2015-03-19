@@ -38,9 +38,9 @@ The code uses void pointers instead.
 #define	EDICTPRIVATE_CONSTEXPR	0
 #define	CONSTEXPR_OFFSETS		0
 #define	mAllocProgsWithNew		0
-#define	mDebugGlobalVM			1
 
-#define		mNoQuakeC			1
+
+#define		mNoQuakeC			0
 typedef struct prvm_stack_s
 {
 	int				s;
@@ -82,14 +82,7 @@ typedef struct prvm_edict_private_s
 	const char *allocation_origin;
 } prvm_edict_private_t;
 
-#if 0
 
-	// FIXME: make these go away?
-	#define	PRVM_E_FLOAT(e,o) (e->fields.fp[o])
-	#define	PRVM_E_INT(e,o) (e->fields.ip[o])
-	//#define	PRVM_E_VECTOR(e,o) (&(e->fields.fp[o]))
-	#define	PRVM_E_STRING(e,o) (PRVM_GetString(prog, e->fields.ip[o]))
-#endif
 namespace cloture::engine::vm
 {
 	//typedef struct prvm_edict_s
@@ -376,7 +369,7 @@ extern prvm_eval_t prvm_badvalue;
 #define PRVM_gameglobalfunction(fieldname)    (PRVM_GLOBALFIELDFUNCTION(prog->globaloffsets.fieldname))
 #define PRVM_gamefunction(funcname)           (prog->funcoffsets.funcname)
 
-#if mNoQuakeC
+#if !mNoQuakeC
 	#define PRVM_serveredictfloat(ed, fieldname)    (PRVM_EDICTFIELDFLOAT(ed, prog->fieldoffsets.fieldname))
 	#define PRVM_serveredictvector(ed, fieldname)   (PRVM_EDICTFIELDVECTOR(ed, prog->fieldoffsets.fieldname))
 	#define PRVM_serveredictstring(ed, fieldname)   (PRVM_EDICTFIELDSTRING(ed, prog->fieldoffsets.fieldname))
@@ -1548,7 +1541,7 @@ struct VMGlobalFunction
 	}
 };
 
-class Program : public util::pointers::wrapped_ptr<VMProgram>
+class Program : public util::pointers::wrapped_ptr<VMProgram, &Sys_Error>
 {
 	VMGlobalFunction* lookupGlobalFunctionInternal(const char* name, const sigprim_t signature);
 	bool registerGlobalFunctionInternal(const char* name, void* funcptr, const sigprim_t signature);

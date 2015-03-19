@@ -19,8 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #pragma once
 
-#define		mDebugMemory	0
-
 static constexpr bool mem_bigendian = false;
 
 

@@ -21,7 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #pragma once
 
-#define		disableProfiling	1
+#include	"debug/debugconf.hpp"
 
 #define USE_QUAKEC
 #ifdef __APPLE__
