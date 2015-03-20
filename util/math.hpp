@@ -8,6 +8,8 @@ namespace util
 {
 namespace math
 {
+	static constexpr common::uint32 fabsMask 	= 0x7FFFFFFF;
+	static constexpr common::uint32 fsignMask 	= 0x80000000;
 	#if MATH_FORCEINLINE
 		#define inline __forceinline
 	#endif

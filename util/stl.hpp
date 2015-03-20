@@ -9,15 +9,6 @@
 	#include "arm_neon.h"
 #endif
 
-#if 0
-	#ifdef __clang__
-		extern char *gets (char *__s) __wur __attribute_deprecated__;
-	#endif
-	#include <stdexcept>
-#endif
-
-
-
 
 __if_not_exists(ptrdiff_t)
 {
@@ -164,11 +155,13 @@ struct __sourcePositionStringBuilder
 using vec_t = float;
 #endif
 
+/*	cmath replacement. mostly inline wrappers around __builtin versions	*/
+#include	"math.hpp"
+
 /*	wrapper for architecture's simd operations	*/
 #include	"vector.hpp"
 
-/*	cmath replacement. mostly inline wrappers around __builtin versions	*/
-#include	"math.hpp"
+
 
 /*
  * input-output streams

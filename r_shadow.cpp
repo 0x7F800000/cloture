@@ -150,9 +150,8 @@ extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 using namespace cloture;
 using namespace util;
 using namespace common;
-using math::vector::vector4f;
-using math::vector::vector3f;
-
+using namespace math::vector;
+using templates::casts::vector_cast;
 
 #include "renderer/r_common.hpp"
 
@@ -1591,6 +1590,265 @@ static int R_Shadow_CalcBBoxSideMask(
 }
 
 #else
+/*
+ * 	movaps	xmm9, xmm2
+	subss	xmm9, xmm0
+	shufps	xmm2, xmm2, -27         # xmm2 = xmm2[1,1,2,3]
+	movaps	xmm5, xmm0
+	shufps	xmm5, xmm5, -27         # xmm5 = xmm5[1,1,2,3]
+	subss	xmm2, xmm5
+	subss	xmm3, xmm1
+	movss	xmm6, dword ptr [rip + .LCPI81_0]
+	mulss	xmm9, xmm6
+	mulss	xmm2, xmm6
+	mulss	xmm3, xmm6
+	addss	xmm0, xmm9
+	addss	xmm5, xmm2
+	addss	xmm1, xmm3
+	movaps	xmm10, xmmword ptr [rdi]
+	movaps	xmm8, xmmword ptr [rdi + 16]
+	movaps	xmm11, xmmword ptr [rdi + 32]
+	movaps	xmm6, xmm0
+	mulss	xmm6, xmm8
+	movaps	xmm7, xmm8
+	shufps	xmm7, xmm7, -27         # xmm7 = xmm7[1,1,2,3]
+	mulss	xmm7, xmm5
+	addss	xmm7, xmm6
+	movaps	xmm6, xmm8
+	shufpd	xmm6, xmm6, 1           # xmm6 = xmm6[1,0]
+	mulss	xmm6, xmm1
+	addss	xmm6, xmm7
+	shufps	xmm8, xmm8, -25         # xmm8 = xmm8[3,1,2,3]
+	addss	xmm8, xmm6
+	shufps	xmm0, xmm0, -32         # xmm0 = xmm0[0,0,2,3]
+	movaps	xmm6, xmm10
+	unpcklps	xmm6, xmm11     # xmm6 = xmm6[0],xmm11[0],xmm6[1],xmm11[1]
+	mulps	xmm6, xmm0
+	shufps	xmm5, xmm5, -32         # xmm5 = xmm5[0,0,2,3]
+	movaps	xmm0, xmm11
+	shufps	xmm0, xmm10, 17         # xmm0 = xmm0[1,0],xmm10[1,0]
+	shufps	xmm0, xmm10, -30        # xmm0 = xmm0[2,0],xmm10[2,3]
+	mulps	xmm0, xmm5
+	addps	xmm0, xmm6
+	shufps	xmm1, xmm1, -32         # xmm1 = xmm1[0,0,2,3]
+	shufpd	xmm11, xmm11, 1         # xmm11 = xmm11[1,0]
+	shufpd	xmm10, xmm10, 1         # xmm10 = xmm10[1,0]
+	movapd	xmm5, xmm10
+	unpcklps	xmm5, xmm11     # xmm5 = xmm5[0],xmm11[0],xmm5[1],xmm11[1]
+	mulps	xmm5, xmm1
+	addps	xmm5, xmm0
+	shufps	xmm11, xmm10, 17        # xmm11 = xmm11[1,0],xmm10[1,0]
+	shufps	xmm11, xmm10, -30       # xmm11 = xmm11[2,0],xmm10[2,3]
+	addps	xmm11, xmm5
+	movaps	xmm7, xmmword ptr [rsi]
+	movaps	xmm5, xmmword ptr [rsi + 16]
+	movaps	xmm1, xmmword ptr [rsi + 32]
+	movaps	xmm0, xmm9
+	mulss	xmm0, xmm5
+	movaps	xmm6, xmm5
+	shufps	xmm6, xmm6, -27         # xmm6 = xmm6[1,1,2,3]
+	mulss	xmm6, xmm2
+	addss	xmm6, xmm0
+	shufpd	xmm5, xmm5, 1           # xmm5 = xmm5[1,0]
+	mulss	xmm5, xmm3
+	addss	xmm5, xmm6
+	shufps	xmm9, xmm9, -32         # xmm9 = xmm9[0,0,2,3]
+	movaps	xmm0, xmm7
+	unpcklps	xmm0, xmm1      # xmm0 = xmm0[0],xmm1[0],xmm0[1],xmm1[1]
+	mulps	xmm0, xmm9
+	shufps	xmm2, xmm2, -32         # xmm2 = xmm2[0,0,2,3]
+	movaps	xmm6, xmm1
+	shufps	xmm6, xmm7, 17          # xmm6 = xmm6[1,0],xmm7[1,0]
+	shufps	xmm6, xmm7, -30         # xmm6 = xmm6[2,0],xmm7[2,3]
+	mulps	xmm6, xmm2
+	addps	xmm6, xmm0
+	shufps	xmm3, xmm3, -32         # xmm3 = xmm3[0,0,2,3]
+	shufpd	xmm1, xmm1, 1           # xmm1 = xmm1[1,0]
+	shufpd	xmm7, xmm7, 1           # xmm7 = xmm7[1,0]
+	unpcklps	xmm7, xmm1      # xmm7 = xmm7[0],xmm1[0],xmm7[1],xmm1[1]
+	mulps	xmm7, xmm3
+	addps	xmm7, xmm6
+	movaps	xmm10, xmm8
+	subss	xmm10, xmm5
+	movaps	xmm9, xmm11
+	subps	xmm9, xmm7
+	addss	xmm5, xmm8
+	addps	xmm7, xmm11
+	movaps	xmm0, xmm7
+	addss	xmm0, xmm5
+	movaps	xmm8, xmm7
+	subss	xmm8, xmm10
+	movss	xmm12, dword ptr [rip + .LCPI81_1]
+	movaps	xmm2, xmm0
+	andps	xmm2, xmm12
+	movaps	xmm14, xmm8
+	andps	xmm14, xmm12
+	movaps	xmm1, xmm9
+	addss	xmm1, xmm10
+	movaps	xmm11, xmm9
+	subss	xmm11, xmm5
+	movaps	xmm6, xmm1
+	andps	xmm6, xmm12
+	movaps	xmm13, xmm11
+	andps	xmm13, xmm12
+	movaps	xmm3, xmm14
+	mulss	xmm3, xmm4
+	mov	eax, 63
+	ucomiss	xmm2, xmm3
+	jbe	.LBB81_3
+# BB#1:
+	movaps	xmm3, xmm13
+	mulss	xmm3, xmm4
+	ucomiss	xmm6, xmm3
+	jbe	.LBB81_3
+# BB#2:
+	xorps	xmm3, xmm3
+	ucomiss	xmm0, xmm3
+	sbb	eax, eax
+	and	eax, 1
+	lea	ecx, [rax + 4*rax + 53]
+	ucomiss	xmm1, xmm3
+	sbb	eax, eax
+	and	eax, 1
+	lea	eax, [rax + 4*rax + 5]
+	or	eax, ecx
+.LBB81_3:
+	mulss	xmm2, xmm4
+	ucomiss	xmm14, xmm2
+	jbe	.LBB81_6
+# BB#4:
+	mulss	xmm6, xmm4
+	ucomiss	xmm13, xmm6
+	jbe	.LBB81_6
+# BB#5:
+	xorps	xmm0, xmm0
+	ucomiss	xmm8, xmm0
+	setae	cl
+	movzx	ecx, cl
+	lea	ecx, [rcx + 2*rcx + 54]
+	ucomiss	xmm11, xmm0
+	setae	dl
+	movzx	edx, dl
+	lea	edx, [rdx + 2*rdx + 6]
+	or	edx, ecx
+	and	eax, edx
+.LBB81_6:
+	movaps	xmm11, xmm7
+	shufps	xmm11, xmm11, -27       # xmm11 = xmm11[1,1,2,3]
+	movaps	xmm1, xmm5
+	addss	xmm1, xmm11
+	movaps	xmm8, xmm9
+	shufps	xmm8, xmm8, -27         # xmm8 = xmm8[1,1,2,3]
+	subss	xmm5, xmm8
+	movaps	xmm2, xmm1
+	andps	xmm2, xmm12
+	movaps	xmm14, xmm5
+	andps	xmm14, xmm12
+	movaps	xmm0, xmm10
+	addss	xmm0, xmm8
+	subss	xmm10, xmm11
+	movaps	xmm6, xmm0
+	andps	xmm6, xmm12
+	movaps	xmm13, xmm10
+	andps	xmm13, xmm12
+	movaps	xmm3, xmm14
+	mulss	xmm3, xmm4
+	ucomiss	xmm2, xmm3
+	jbe	.LBB81_9
+# BB#7:
+	movaps	xmm3, xmm13
+	mulss	xmm3, xmm4
+	ucomiss	xmm6, xmm3
+	jbe	.LBB81_9
+# BB#8:
+	xorps	xmm3, xmm3
+	ucomiss	xmm1, xmm3
+	mov	ecx, 23
+	mov	edx, 43
+	cmovae	edx, ecx
+	ucomiss	xmm0, xmm3
+	mov	ecx, 20
+	mov	esi, 40
+	cmovae	esi, ecx
+	or	esi, edx
+	and	eax, esi
+.LBB81_9:
+	mulss	xmm2, xmm4
+	ucomiss	xmm14, xmm2
+	jbe	.LBB81_12
+# BB#10:
+	mulss	xmm6, xmm4
+	ucomiss	xmm13, xmm6
+	jbe	.LBB81_12
+# BB#11:
+	xorps	xmm0, xmm0
+	ucomiss	xmm5, xmm0
+	mov	ecx, 39
+	mov	edx, 27
+	cmovae	edx, ecx
+	ucomiss	xmm10, xmm0
+	mov	ecx, 36
+	mov	esi, 24
+	cmovae	esi, ecx
+	or	esi, edx
+	and	eax, esi
+.LBB81_12:
+	movaps	xmm1, xmm7
+	addss	xmm1, xmm11
+	subss	xmm11, xmm9
+	movaps	xmm2, xmm1
+	andps	xmm2, xmm12
+	movaps	xmm3, xmm11
+	andps	xmm3, xmm12
+	addss	xmm9, xmm8
+	subss	xmm8, xmm7
+	movaps	xmm0, xmm9
+	andps	xmm0, xmm12
+	andps	xmm12, xmm8
+	movaps	xmm5, xmm3
+	mulss	xmm5, xmm4
+	ucomiss	xmm2, xmm5
+	jbe	.LBB81_15
+# BB#13:
+	movaps	xmm5, xmm12
+	mulss	xmm5, xmm4
+	ucomiss	xmm0, xmm5
+	jbe	.LBB81_15
+# BB#14:
+	xorps	xmm5, xmm5
+	ucomiss	xmm1, xmm5
+	mov	ecx, 29
+	mov	edx, 46
+	cmovae	edx, ecx
+	ucomiss	xmm9, xmm5
+	mov	ecx, 17
+	mov	esi, 34
+	cmovae	esi, ecx
+	or	esi, edx
+	and	eax, esi
+.LBB81_15:
+	mulss	xmm2, xmm4
+	ucomiss	xmm3, xmm2
+	jbe	.LBB81_18
+# BB#16:
+	mulss	xmm0, xmm4
+	ucomiss	xmm12, xmm0
+	jbe	.LBB81_18
+# BB#17:
+	xorps	xmm0, xmm0
+	ucomiss	xmm11, xmm0
+	mov	ecx, 30
+	mov	edx, 45
+	cmovae	edx, ecx
+	ucomiss	xmm8, xmm0
+	mov	ecx, 18
+	mov	esi, 33
+	cmovae	esi, ecx
+	or	esi, edx
+	and	eax, esi
+.LBB81_18:
+	ret
+ */
 static int R_Shadow_CalcBBoxSideMask(
 	const vector3f 					mins,
 	const vector3f 					maxs,
@@ -1601,7 +1859,8 @@ static int R_Shadow_CalcBBoxSideMask(
 {
 	vector3f pmin, pmax;
 	float dp1, dn1, ap1, an1, dp2, dn2, ap2, an2;
-	int mask = 0x3F;
+
+	uint32x2 tempmask1, tempmask2, tempmask3;
 
 	{
 		const vector3f radius = (maxs - mins) * .5f;
@@ -1610,63 +1869,178 @@ static int R_Shadow_CalcBBoxSideMask(
 		pmin = lightcenter - lightradius;
 		pmax = lightcenter + lightradius;
 	}
-	dp1 = pmax[0] + pmax[1];
-	dn1 = pmax[0] - pmin[1];
-	ap1 = math::fabsf(dp1);
-	an1 = math::fabsf(dn1);
 
-	dp2 = pmin[0] + pmin[1];
-	dn2 = pmin[0] - pmax[1];
-	ap2 = math::fabsf(dp2);
-	an2 = math::fabsf(dn2);
+	int mask = 0x3F;
+	{
+		vecmask32x4 dSigns; 	//the sign masks of D
 
-	if(ap1 > bias*an1 && ap2 > bias*an2)
-		mask &= (3<<4)
-			| (dp1 >= .0f ? (1<<0)|(1<<2) : (2<<0)|(2<<2))
-			| (dp2 >= .0f ? (1<<0)|(1<<2) : (2<<0)|(2<<2));
-	if(an1 > bias*ap1 && an2 > bias*ap2)
-		mask &= (3<<4)
-			| (dn1 >= .0f ? (1<<0)|(2<<2) : (2<<0)|(1<<2))
-			| (dn2 >= .0f ? (1<<0)|(2<<2) : (2<<0)|(1<<2));
+		/*
+		 * result of bias * a shuffled and then compared to a
+		 * if(an1 > bias*ap1 && an2 > bias*ap2)
+		 * if(ap1 > bias*an1 && ap2 > bias*an2)
+		 *
+		 * the "true" elements in the vector are set to 0xFFFF
+		 * the false ones are 0
+		 */
+		vecmask32x4 cmpResult;
 
-	dp1 = pmax[1] + pmax[2];
-	dn1 = pmax[1] - pmin[2];
-	ap1 = math::fabsf(dp1);
-	an1 = math::fabsf(dn1);
+		{
+			const vector4f a =
+			({
 
-	dp2 = pmin[1] + pmin[2];
-	dn2 = pmin[1] - pmax[2];
-	ap2 = math::fabsf(dp2);
-	an2 = math::fabsf(dn2);
+				const vector4f d  =
+				{
+						pmax[0] + pmax[1],
+						pmax[0] - pmin[1],
+						pmin[0] + pmin[1],
+						pmin[0] - pmax[1]
+				};
 
-	if(ap1 > bias*an1 && ap2 > bias*an2)
-		mask &= (3<<0)
-			| (dp1 >= .0f ? (1<<2)|(1<<4) : (2<<2)|(2<<4))
-			| (dp2 >= .0f ? (1<<2)|(1<<4) : (2<<2)|(2<<4));
-	if(an1 > bias*ap1 && an2 > bias*ap2)
-		mask &= (3<<0)
-			| (dn1 >= .0f ? (1<<2)|(2<<4) : (2<<2)|(1<<4))
-			| (dn2 >= .0f ? (1<<2)|(2<<4) : (2<<2)|(1<<4));
+				const vector4ui signMasks =
+				{
+						math::fsignMask,
+						math::fsignMask,
+						math::fsignMask,
+						math::fsignMask
+				};
 
-	dp1 = pmax[2] + pmax[0];
-	dn1 = pmax[2] - pmin[0];
-	ap1 = math::fabsf(dp1);
-	an1 = math::fabsf(dn1);
+				dSigns = vector_cast<vecmask32x4>(d) & signMasks;
+				//initialize a with the absolute value of d
+				vector_cast<vector4ui>(d) & (~signMasks);
+			});
 
-	dp2 = pmin[2] + pmin[0];
-	dn2 = pmin[2] - pmax[0];
-	ap2 = math::fabsf(dp2);
-	an2 = math::fabsf(dn2);
+			const vector4f ashuf 	= vector4f(a[1], a[3], a[0], a[2]) * bias;
 
-	if(ap1 > bias*an1 && ap2 > bias*an2)
-		mask &= (3<<2)
-			| (dp1 >= .0f ? (1<<4)|(1<<0) : (2<<4)|(2<<0))
-			| (dp2 >= .0f ? (1<<4)|(1<<0) : (2<<4)|(2<<0));
-	if(an1 > bias*ap1 && an2 > bias*ap2)
-		mask &= (3<<2)
-			| (dn1 >= .0f ? (1<<4)|(2<<0) : (2<<4)|(1<<0))
-			| (dn2 >= .0f ? (1<<4)|(2<<0) : (2<<4)|(1<<0));
+			cmpResult = a > ashuf;
 
+		}
+
+		/*
+		 * cmpResult[0] == ap1 > bias*an1
+		 * cmpResult[1] == ap2 > bias*an2
+		 */
+
+		/*
+		 * shift the sign masks for dp1 and dp2 to the right by 31 bits
+		 * and then AND them with 1
+		 *
+		 * then shift 0b0101 left by the result
+		 *
+		 * this emulates the original logic, as if dp1 was unsigned,
+		 * 5 will not be shifted left at all
+		 */
+
+		{
+
+			const vecmask32x2 orResult =
+			({
+
+				vecmask32x2 masker =
+				{
+						0b0101,
+						0b0101
+				};
+				//get low 2 sign bits (dp1 and dp2)
+				const vecmask32x2 signsShift =  (vector_cast<vecmask32x2>(dSigns) >> 31) & 1;
+
+				masker <<= signsShift;
+
+				const vecmask32x2 booleanAnd =
+				({
+					//get low 2 comparison results (ap1 > bias*an1 && ap2 > bias*an2)
+					const vecmask32x2 cmpLow = vector_cast<vecmask32x2>(cmpResult);
+					vecmask32x2(cmpLow[0] & cmpLow[1]);
+				});
+				booleanAnd & masker;
+			});
+			/*
+			 * if(ap1 > bias*an1 && ap2 > bias*an2) is false,
+			 * booleanAnd will be {0, 0}
+			 *
+			 * if the condition is true, it will be {0xFFFFFFFF, 0xFFFFFFFF}
+			 */
+			mask &= (0b0110000 | orResult[0] | orResult[1]);
+		}
+
+		if(ap1 > bias*an1 && ap2 > bias*an2)
+		{
+			int builtmask = 0b0110000; //48
+
+			if(dp1 >= .0f)
+				builtmask |= 0b0101;//5
+			else
+				builtmask |= 0b01010;//10
+
+			if(dp2 >= .0f)
+				builtmask |= 0b0101;//5
+			else
+				builtmask |= 0b01010;//10
+
+			mask &= builtmask;
+		}
+
+		/*
+		 * cmpResult[2] == an1 > bias*ap1
+		 * cmpResult[3] == an2 > bias*ap2
+		 */
+		if(an1 > bias*ap1 && an2 > bias*ap2)
+		{
+			int builtmask = 0b0110000; //48
+
+			if(dn1 >= .0f)
+				builtmask |= 0b01001;//9
+			else
+				builtmask |= 0b0110;//6
+
+			if(dn2 >= .0f)
+				builtmask |= 0b01001;//9
+			else
+				builtmask |= 0b0110;//6
+
+			mask &= builtmask;
+		}
+
+	}
+	{
+		dp1 = pmax[1] + pmax[2];
+		dn1 = pmax[1] - pmin[2];
+		ap1 = math::fabsf(dp1);
+		an1 = math::fabsf(dn1);
+
+		dp2 = pmin[1] + pmin[2];
+		dn2 = pmin[1] - pmax[2];
+		ap2 = math::fabsf(dp2);
+		an2 = math::fabsf(dn2);
+
+		if(ap1 > bias*an1 && ap2 > bias*an2)
+			mask &= (3<<0)
+				| (dp1 >= .0f ? (1<<2)|(1<<4) : (2<<2)|(2<<4))
+				| (dp2 >= .0f ? (1<<2)|(1<<4) : (2<<2)|(2<<4));
+		if(an1 > bias*ap1 && an2 > bias*ap2)
+			mask &= (3<<0)
+				| (dn1 >= .0f ? (1<<2)|(2<<4) : (2<<2)|(1<<4))
+				| (dn2 >= .0f ? (1<<2)|(2<<4) : (2<<2)|(1<<4));
+	}
+	{
+		dp1 = pmax[2] + pmax[0];
+		dn1 = pmax[2] - pmin[0];
+		ap1 = math::fabsf(dp1);
+		an1 = math::fabsf(dn1);
+
+		dp2 = pmin[2] + pmin[0];
+		dn2 = pmin[2] - pmax[0];
+		ap2 = math::fabsf(dp2);
+		an2 = math::fabsf(dn2);
+
+		if(ap1 > bias*an1 && ap2 > bias*an2)
+			mask &= (3<<2)
+				| (dp1 >= .0f ? (1<<4)|(1<<0) : (2<<4)|(2<<0))
+				| (dp2 >= .0f ? (1<<4)|(1<<0) : (2<<4)|(2<<0));
+		if(an1 > bias*ap1 && an2 > bias*ap2)
+			mask &= (3<<2)
+				| (dn1 >= .0f ? (1<<4)|(2<<0) : (2<<4)|(1<<0))
+				| (dn2 >= .0f ? (1<<4)|(2<<0) : (2<<4)|(1<<0));
+	}
 	return mask;
 }
 

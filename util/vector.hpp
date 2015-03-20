@@ -22,44 +22,211 @@
 
 namespace cloture::util::math::vector
 {
-	mCreateIdentifierChecker(isAggregateVector);
+
 
 	template<typename T>
-	static constexpr bool isAggregateVector = mCallIdentifierChecker(T, isAggregateVector);
+	struct isAggregateVector_resolverHelper
+	{
+	private:
+		template<typename TT, bool b>
+		struct RESOLVE
+		{
+
+		};
+
+		template<typename TT>
+		struct RESOLVE<TT, false>
+		{
+			static constexpr bool value = false;
+			using type = TT;
+		};
+
+		template<typename TT>
+		struct RESOLVE<TT, true>
+		{
+		private:
+			mCreateIdentifierChecker(isAggregateVector);
+		public:
+			static constexpr bool value = mCallIdentifierChecker(TT, isAggregateVector);
+		};
+
+	public:
+		static constexpr bool value = RESOLVE<T, generic::isClass<T>()>::value;
+	};
+
+	template<typename T>
+	static constexpr bool isAggregateVector = isAggregateVector_resolverHelper<T>::value;
+
+	typedef common::int8 	int8x16 	__attribute__((__vector_size__(16)));
+	typedef common::uint8 	uint8x16 	__attribute__((__vector_size__(16)));
+
+	typedef common::int16 	int16x8 	__attribute__((__vector_size__(16)));
+	typedef common::uint16 	uint16x8 	__attribute__((__vector_size__(16)));
+
+	typedef common::int32 	int32x4 	__attribute__((__vector_size__(16)));
+	typedef common::uint32 	uint32x4 	__attribute__((__vector_size__(16)));
+
+	typedef common::real32 	real32x4 	__attribute__((__vector_size__(16)));
+	typedef common::real64 	real64x2 	__attribute__((__vector_size__(16)));
+
+	/*
+	 * __m64 types
+	 */
+	typedef common::int8	int8x8 		__attribute__((__vector_size__(8)));
+	typedef common::uint8	uint8x8 	__attribute__((__vector_size__(8)));
+
+	typedef common::int16	int16x4 	__attribute__((__vector_size__(8)));
+	typedef common::uint16	uint16x4 	__attribute__((__vector_size__(8)));
+
+	typedef common::int32	int32x2 	__attribute__((__vector_size__(8)));
+	typedef common::uint32	uint32x2 	__attribute__((__vector_size__(8)));
+
+}
+
+namespace cloture::util::generic
+{
+	template<typename T>
+	static constexpr bool isVector()
+	{
+		return false;
+	}
+
+	template<typename T>
+	static constexpr bool isVector(const T in)
+	{
+		return false;
+	}
+
+	#define		__declIsVectorSpecial(type)
 }
 
 namespace cloture::util::templates::casts
 {
-	mCreateTypeResolver(nativeType);
+	template<typename T> struct vecResolveNativeType
+	{
+	private:
+		template<typename TT, bool b> struct RESOLVE{};
 
+		template<typename TT>
+		struct RESOLVE<TT, false>
+		{
+			using type = TT;
+		};
 
-	template<typename toType, typename FromType>
+		template<typename TT>
+		struct RESOLVE<TT, true>
+		{
+		private:
+			mCreateTypeResolver(nativeType);
+		public:
+			using type = mGetTypeResolverTypename(TT, nativeType);
+		};
+	public:
+		using type = typename RESOLVE<T, generic::isClass<T>()>::type;
+	};
+
+	#define	_vecFromPrecast(type, tocast)	static_cast<type>(tocast)
+
+	template<bool toTypeIsClass, bool fromTypeIsClass>
+	struct vector_cast_picker
+	{
+
+	};
+	/*
+	 * converting between native vector types - easy
+	 */
+	template<>
+	struct vector_cast_picker<false, false>
+	{
+		template<typename toType, typename FromType>
+		__forceinline __pure static constexpr toType doCast(const FromType from)
+		{
+			return __builtin_convertvector(from, toType);
+		}
+	};
+	/*
+	 * 	converting from native vector type to class vector type
+	 */
+	template<>
+	struct vector_cast_picker<true, false>
+	{
+		template<typename toType, typename FromType>
+		__forceinline __pure static constexpr toType doCast(const FromType from)
+		{
+			using nativeTo = typename vecResolveNativeType<toType>::type;
+			return toType(__builtin_convertvector(from, nativeTo));
+		}
+	};
+	/*
+	 * converting from class vector type to native vector type
+	 */
+	template<>
+	struct vector_cast_picker<false, true>
+	{
+		template<typename toType, typename FromType>
+		__forceinline __pure static constexpr toType doCast(const FromType from)
+		{
+			using nativeFrom = typename vecResolveNativeType<FromType>::type;
+			return __builtin_convertvector(
+				static_cast<nativeFrom>(from),
+				toType
+			);
+		}
+	};
+	/*
+	 * converting from class vector type to class vector type
+	 */
+	template<>
+	struct vector_cast_picker<true, true>
+	{
+		template<typename toType, typename FromType>
+		__forceinline __pure static constexpr toType doCast(const FromType from)
+		{
+			using nativeFrom 	= typename vecResolveNativeType<FromType>::type;
+			using nativeTo 		= typename vecResolveNativeType<toType>::type;
+			return toType(__builtin_convertvector(
+				static_cast<nativeFrom>(from),
+				nativeTo
+			));
+		}
+	};
+	/*
 	__enableIf(
 	!math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
 	"Enabled if both types are not aggregate vector types."
-	)
-	static constexpr FromType vector_cast(const FromType from)
+	)*/
+	template<typename toType, typename FromType>
+	static constexpr toType vector_cast(const FromType from)
 	{
-		using nativeFrom 	= mGetTypeResolverTypename(FromType, nativeType);
-		using nativeTo 		= mGetTypeResolverTypename(toType, nativeType);
+	#if 0
+		using nativeFrom 	= typename vecResolveNativeType<FromType>::type;
+		using nativeTo 		= typename vecResolveNativeType<toType>::type;
 		return static_cast<toType>(
-				__builtin_convertvector(static_cast<nativeFrom>(from), nativeTo)
+				__builtin_convertvector(_vecFromPrecast(nativeFrom, from.vec), nativeTo)
 		);
+	#else
+		constexpr bool toTypeIsClass	= generic::isClass<toType>();
+		constexpr bool fromTypeIsClass	= generic::isClass<FromType>();
+		using caster = vector_cast_picker<toTypeIsClass, fromTypeIsClass>;
+		return caster::doCast<toType, FromType>(from);
+	#endif
 	}
 
-	template<typename toType, typename FromType>
-	__enableIf(
-	math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
-	"Enabled if casting from an aggregate vector to a non-aggregate vector."
-	)
-	static constexpr FromType vector_cast(const FromType from)
-	{
-		using nativeFrom 	= mGetTypeResolverTypename(FromType, nativeType);
-		using nativeTo 		= mGetTypeResolverTypename(toType, nativeType);
-		return static_cast<toType>(
-				__builtin_convertvector(static_cast<nativeFrom>(from.vec1), nativeTo)
-		);
-	}
+	#if 0
+		template<typename toType, typename FromType>
+		__enableIf(
+		math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
+		"Enabled if casting from an aggregate vector to a non-aggregate vector."
+		)
+		static constexpr toType vector_cast(const FromType from)
+		{
+			using nativeFrom 	= typename vecResolveNativeType<FromType>::type;
+			using nativeTo 		= typename vecResolveNativeType<toType>::type;
+			return static_cast<toType>(
+					__builtin_convertvector(_vecFromPrecast(nativeFrom, from.vec), nativeTo)
+			);
+		}
+	#endif
 }
 
 namespace cloture
@@ -70,6 +237,7 @@ namespace math
 {
 namespace vector
 {
+	using templates::casts::vector_cast;
 	#if defined(__i386__) || defined(__x86_64__)
 
 		#if defined(__SSE__)

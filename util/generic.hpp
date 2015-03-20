@@ -16,36 +16,36 @@
 
 #define 	classify_type(object)		__builtin_classify_type(object)
 
+#if 0
+	#define has_nothrow_assign(type)		__has_nothrow_assign(type)
+	#define has_nothrow_copy(type)			__has_nothrow_copy(type)
+	#define has_nothrow_constructor(type)	__has_nothrow_constructor(type)
+	#define	has_trivial_assign(type)		__has_trivial_assign(type)
+	#define has_trivial_copy(type)			__has_trivial_copy(type)
+	#define has_trivial_constructor(type)	__has_trivial_constructor(type)
+	#define has_trivial_destructor(type)	__has_trivial_destructor(type)
+	#define has_virtual_destructor(type)	__has_virtual_destructor(type)
+	#define is_abstract(type)				__is_abstract(type)
+	#define is_base_of(base, derived)		__is_base_of(base, derived)
+	#define is_class(type)					__is_class(type)
+	#define is_empty(type)					__is_empty(type)
+	#define is_enum(type)					__is_enum(type)
+	#define is_literal_type(type)			__is_literal_type(type)
+	#define is_pod(type)					__is_pod(type)
+	#define is_polymorphic(type)			__is_polymorphic(type)
+	#define is_standard_layout(type)		__is_standard_layout(type)
+	#define is_trivial(type)				__is_trivial(type)
+	#define is_union(type)					__is_union(type)
+	#define underlying_type(type)			__underlying_type(type)
 
-#define has_nothrow_assign(type)		__has_nothrow_assign(type)
-#define has_nothrow_copy(type)			__has_nothrow_copy(type)
-#define has_nothrow_constructor(type)	__has_nothrow_constructor(type)
-#define	has_trivial_assign(type)		__has_trivial_assign(type)
-#define has_trivial_copy(type)			__has_trivial_copy(type)
-#define has_trivial_constructor(type)	__has_trivial_constructor(type)
-#define has_trivial_destructor(type)	__has_trivial_destructor(type)
-#define has_virtual_destructor(type)	__has_virtual_destructor(type)
-#define is_abstract(type)				__is_abstract(type)
-#define is_base_of(base, derived)		__is_base_of(base, derived)
-#define is_class(type)					__is_class(type)
-#define is_empty(type)					__is_empty(type)
-#define is_enum(type)					__is_enum(type)
-#define is_literal_type(type)			__is_literal_type(type)
-#define is_pod(type)					__is_pod(type)
-#define is_polymorphic(type)			__is_polymorphic(type)
-#define is_standard_layout(type)		__is_standard_layout(type)
-#define is_trivial(type)				__is_trivial(type)
-#define is_union(type)					__is_union(type)
-#define underlying_type(type)			__underlying_type(type)
+	#define	is_trivially_constructible(type, ...)		__is_trivially_constructible(type, ##__VA_ARGS__)
+	#define is_trivially_assignable(totype, fromtype)	__is_trivially_assignable(totype, fromtype)
 
-#define	is_trivially_constructible(type, ...)		__is_trivially_constructible(type, ##__VA_ARGS__)
-#define is_trivially_assignable(totype, fromtype)	__is_trivially_assignable(totype, fromtype)
-
-/**
-	clang-supported msvc extension
-*/
-#define	is_convertible_to(from, to)	__is_convertible_to(from, to)
-
+	/**
+		clang-supported msvc extension
+	*/
+	#define	is_convertible_to(from, to)	__is_convertible_to(from, to)
+#endif
 
 #define 	macroError(msg)		doPragma( GCC error STRINGIFY(msg) )
 
@@ -252,6 +252,142 @@ template<typename T>
 static constexpr bool isUnsigned(T f)
 {
 	return isUnsigned<T>();
+}
+
+
+
+#define		__declParamlessTrait(traitcall, funcname)			\
+	template<typename T> static constexpr bool funcname ()		\
+	{															\
+		return __##traitcall (T);								\
+	}
+
+#define		__declParamTrait(funcname)							\
+	template<typename T> static constexpr bool funcname (T f)	\
+	{															\
+		return funcname<T>();									\
+	}
+
+#define		__declSingleParamTrait(traitcall, funcname)			\
+		__declParamlessTrait(traitcall, funcname)				\
+		__declParamTrait(funcname)
+
+template<typename from, typename to>
+static constexpr bool isConvertibleTo()
+{
+	return __is_convertible_to(from, to);
+}
+
+template<typename from, typename to>
+static constexpr bool isConvertibleTo(from t1, to t2)
+{
+	return __is_convertible_to(from, to);
+}
+
+template<typename from, typename to>
+static constexpr bool isConvertibleTo(from t1)
+{
+	return __is_convertible_to(from, to);
+}
+
+template<typename from, typename to>
+static constexpr bool isTriviallyAssignable()
+{
+	return __is_trivially_assignable(from, to);
+}
+
+template<typename from, typename to>
+static constexpr bool isTriviallyAssignable(from t1, to t2)
+{
+	return __is_trivially_assignable(from, to);
+}
+
+template<typename from, typename to>
+static constexpr bool isTriviallyAssignable(from t1)
+{
+	return __is_trivially_assignable(from, to);
+}
+
+
+template<typename T, typename... vargs>
+static constexpr bool isTriviallyConstructible()
+{
+	return __is_trivially_constructible(T, vargs...);
+}
+
+template<typename T, typename... vargs>
+static constexpr bool isTriviallyConstructible(vargs... Vargs)
+{
+	return __is_trivially_constructible(T, vargs...);
+}
+
+
+template<typename T, typename... vargs>
+static constexpr bool isConstructible()
+{
+	return __is_constructible(T, vargs...);
+}
+
+template<typename T, typename... vargs>
+static constexpr bool isConstructible(vargs... Vargs)
+{
+	return __is_constructible(T, vargs...);
+}
+
+//get an enum's underlying type
+template<typename T>
+struct underlyingType
+{
+	using type = __underlying_type(T);
+};
+
+__declSingleParamTrait(has_nothrow_assign, hasNoThrowAssign)
+
+__declSingleParamTrait(has_nothrow_copy, hasNoThrowCopy)
+__declSingleParamTrait(has_trivial_assign, hasTrivialAssign)
+
+__declSingleParamTrait(has_trivial_copy, hasTrivialCopy)
+
+
+__declSingleParamTrait(has_trivial_constructor, hasTrivialConstructor)
+__declSingleParamTrait(has_trivial_destructor, hasTrivialDestructor)
+
+__declSingleParamTrait(is_abstract, isAbstract)
+
+__declSingleParamTrait(is_class, isClass)
+__declSingleParamTrait(is_empty, isEmpty)
+
+__declSingleParamTrait(is_enum, isEnum)
+
+__declSingleParamTrait(is_literal_type, isLiteralType)
+__declSingleParamTrait(is_pod, isPod)
+
+__declSingleParamTrait(is_polymorphic, isPolymorphic)
+
+__declSingleParamTrait(is_standard_layout, isStandardLayout)
+__declSingleParamTrait(is_trivial, isTrivial)
+
+__declSingleParamTrait(is_union, isUnion)
+__declSingleParamTrait(is_final, isFinal)
+__declSingleParamTrait(is_interface_class, isInterfaceClass)
+__declSingleParamTrait(is_destructible, isDestructible)
+
+template<typename baseType, typename derivedType>
+static constexpr bool isBaseOf()
+{
+	return __is_base_of(baseType, derivedType);
+}
+
+template<typename baseType, typename derivedType>
+static constexpr bool isBaseOf(baseType t1, derivedType t2)
+{
+	return __is_base_of(baseType, derivedType);
+}
+
+template<typename baseType, typename derivedType>
+static constexpr bool isBaseOf(baseType t1)
+{
+	return __is_base_of(baseType, derivedType);
 }
 
 template<typename T>

@@ -126,7 +126,7 @@
 		}																				\
 	public:																				\
 		static constexpr auto type__ = 													\
-		__MANGLE_TYPE_RESOLVER_DUMMY_STATFUNC_NAME(subTypeName) () ;					\
+		(__typeof(__MANGLE_TYPE_RESOLVER_DUMMY_STATFUNC_NAME(subTypeName) ()))nullptr;	\
 		using type = __typeof(*type__);													\
 	}
 
@@ -277,3 +277,4 @@ namespace reflect	{
 }//namespace reflect
 }//namespace util
 }//namespace cloture
+
