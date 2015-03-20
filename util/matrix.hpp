@@ -380,6 +380,24 @@ namespace matrix
 			#endif
 		}
 		
+		MATRIX_INLINE __pseudopure math::vector3f transform(const math::vector3f v) RESTRICT const
+		{
+			return vector3f
+			(
+				v[0] * m[0][0] + v[1] * m[0][1] + v[2] * m[0][2] + m[0][3],
+				v[0] * m[1][0] + v[1] * m[1][1] + v[2] * m[1][2] + m[1][3],
+				v[0] * m[2][0] + v[1] * m[2][1] + v[2] * m[2][2] + m[2][3]
+			);
+		}
+		MATRIX_INLINE __pseudopure math::vector3f transform3x3(const math::vector3f v) RESTRICT const
+		{
+			return vector3f
+			(
+				v[0] * m[0][0] + v[1] * m[0][1] + v[2] * m[0][2],
+				v[0] * m[1][0] + v[1] * m[1][1] + v[2] * m[1][2],
+				v[0] * m[2][0] + v[1] * m[2][1] + v[2] * m[2][2]
+			);
+		}
 		MATRIX_INLINE matrix4D(const matrix4D& other) 
 		{
 			#if mNativeVectorSize >= 64

@@ -281,7 +281,13 @@ __align(16) struct vector4f
 	{
 		return _mm_sub_ps(vec, other);//vec - other;
 	}
-
+	mVecPure vecType abs() const
+	{
+		const __m128i bits = _mm_castps_si128(vec);
+		return _mm_castsi128_ps(
+				_mm_and_si128(bits, _mm_set1_epi32(0x7FFFFFFF))
+		);
+	}
 	mVecCall operator vec_t*()
 	{
 		return &arr[0];

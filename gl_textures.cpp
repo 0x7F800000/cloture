@@ -205,16 +205,17 @@ struct gltexture_t
 	// speed reasons, must be identical in rtexture_t!
 	int texnum; // GL texture slot number
 	int renderbuffernum; // GL renderbuffer slot number
-	//bool dirty; // indicates that R_RealGetTexture should be called
-	//bool glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
-
+	bool dirty; // indicates that R_RealGetTexture should be called
+	bool glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
+	/*
 	struct
 	{
 		unsigned char
 			dirty 				: 1,
 			glisdepthstencil 	: 1,
 			buffermodified 		: 1;
-	};
+	};*/
+
 
 	int gltexturetypeenum; // used by R_Mesh_TexBind
 	// d3d stuff the backend needs
@@ -245,7 +246,7 @@ struct gltexture_t
 
 	// stores backup copy of texture for deferred texture updates (gl_nopartialtextureupdates cvar)
 	unsigned char *bufferpixels;
-	//bool buffermodified;
+	bool buffermodified;
 
 	// pointer to texturepool (check this to see if the texture is allocated)
 	struct gltexturepool_t *pool;
@@ -291,7 +292,7 @@ struct gltexture_t
 
 #define TEXTUREPOOL_SENTINEL 0xC0DEDBAD
 
-__align(16)
+//__align(16)
 struct gltexturepool_t
 {
 	unsigned int sentinel;

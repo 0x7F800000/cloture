@@ -170,6 +170,28 @@ namespace math
 		return result;
 	}
 	#endif
+
+	template<typename tMin, typename tNum, typename tMax>
+	__pure __forceinline
+	static constexpr auto bound(const tMin min, const tNum num, const tMax max)
+	{
+		return num >= min
+		? (num < max ? num : max)
+		: min;
+	}
+
+	template<typename aType, typename bType>
+	static constexpr auto min(const aType A, const bType B)
+	-> decltype(A < B ? A : B)
+	{
+		return A < B ? A : B;
+	}
+
+	template<typename aType, typename bType>
+	static constexpr auto max(const aType A, const bType B)
+	{
+		return A > B ? A : B;
+	}
 }
 }
 };

@@ -133,7 +133,7 @@ medge_t;
 
 struct entity_render_s;
 struct texture_s;
-struct msurface_s;
+struct msurface_t;
 
 typedef struct mnode_s
 {

@@ -1011,7 +1011,7 @@ void R_Viewport_InitPerspectiveInfinite(r_viewport_t *v, const matrix4x4_t *came
 	Matrix4x4_FromArrayFloatGL(&v->projectmatrix, m);
 }
 
-float cubeviewmatrix[6][16] =
+__align(mSimdAlign) float cubeviewmatrix[6][16] =
 {
     // standard cubemap projections
     { // +X
@@ -1051,7 +1051,8 @@ float cubeviewmatrix[6][16] =
          0, 0, 0, 1,
     },
 };
-float rectviewmatrix[6][16] =
+
+__align(mSimdAlign) float rectviewmatrix[6][16] =
 {
     // sign-preserving cubemap projections
     { // +X

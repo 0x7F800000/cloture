@@ -1501,7 +1501,10 @@ void Image_Resample32(const void *indata, int inwidth, int inheight, int indepth
 {
 	if (indepth != 1 || outdepth != 1)
 	{
-		Con_Printf ("Image_Resample: 3D resampling not supported\n");
+		Con_Printf (
+		"Image_Resample32: 3D resampling not supported.\nIndepth = %i.\nOutdepth = %i.\n",
+			static_cast<int>(indepth), static_cast<int>(outdepth)
+		);
 		return;
 	}
 	if (quality)
@@ -1517,7 +1520,7 @@ void Image_MipReduce32(const unsigned char *in, unsigned char *out, int *width, 
 	int x, y, nextrow;
 	if (*depth != 1 || destdepth != 1)
 	{
-		Con_Printf ("Image_Resample: 3D resampling not supported\n");
+		Con_Printf ("Image_MipReduce32: 3D resampling not supported\n");
 		if (*width > destwidth)
 			*width >>= 1;
 		if (*height > destheight)

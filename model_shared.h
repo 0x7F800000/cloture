@@ -684,11 +684,18 @@ typedef struct msurface_lightmapinfo_s
 msurface_lightmapinfo_t;
 
 struct q3deffect_s;
-typedef struct msurface_s
+//typedef struct msurface_s
+struct msurface_t
 {
+	__import_vector3f();
 	// bounding box for onscreen checks
-	float mins[3];
-	float maxs[3];
+	#if 1
+		float mins[3];
+		float maxs[3];
+	#else
+		vector3f mins;
+		vector3f maxs;
+	#endif
 	// the texture to use on the surface
 	texture_t *texture;
 	// the lightmap texture fragment to use on the rendering mesh
@@ -722,8 +729,8 @@ typedef struct msurface_s
 	int deprecatedq3num_bboxstride;
 	// FIXME: collisionmarkframe should be kept in a separate array
 	int deprecatedq3collisionmarkframe; // q3bsp // don't collide twice in one trace
-}
-msurface_t;
+};
+//msurface_t;
 
 #include "matrixlib.h"
 #include "bih.h"

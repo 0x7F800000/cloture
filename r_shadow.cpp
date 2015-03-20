@@ -147,7 +147,8 @@ extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 #endif
 
 
-using namespace cloture::util;
+using namespace cloture;
+using namespace util;
 using namespace common;
 using math::vector::vector4f;
 using math::vector::vector3f;
@@ -385,10 +386,11 @@ cvar_t r_editlights_current_normalmode = {0, "r_editlights_current_normalmode", 
 cvar_t r_editlights_current_realtimemode = {0, "r_editlights_current_realtimemode", "0", "realtimemode flag of selected light"};
 
 
-__align(16) struct r_shadow_bouncegrid_settings_t
+//__align(16)
+struct r_shadow_bouncegrid_settings_t
 {
 	__import_vector3f();
-	#if 0
+	#if 1
 		float spacing[3];
 	#else
 		vector3f spacing;
@@ -1506,7 +1508,15 @@ int R_Shadow_CalcTriangleSideMask(const vec3_t p1, const vec3_t p2, const vec3_t
 	return mask;
 }
 
-static int R_Shadow_CalcBBoxSideMask(const vec3_t mins, const vec3_t maxs, const matrix4x4_t *worldtolight, const matrix4x4_t *radiustolight, float bias)
+#if 0
+
+static int R_Shadow_CalcBBoxSideMask(
+	const vec3_t mins,
+	const vec3_t maxs,
+	const matrix4x4_t *worldtolight,
+	const matrix4x4_t *radiustolight,
+	float bias
+)
 {
 	vec3_t center, radius, lightcenter, lightradius, pmin, pmax;
 	float dp1, dn1, ap1, an1, dp2, dn2, ap2, an2;
@@ -1580,6 +1590,87 @@ static int R_Shadow_CalcBBoxSideMask(const vec3_t mins, const vec3_t maxs, const
 	return mask;
 }
 
+#else
+static int R_Shadow_CalcBBoxSideMask(
+	const vector3f 					mins,
+	const vector3f 					maxs,
+	const matrix4x4_t *RESTRICT		worldtolight,
+	const matrix4x4_t *RESTRICT		radiustolight,
+	float 							bias
+)
+{
+	vector3f pmin, pmax;
+	float dp1, dn1, ap1, an1, dp2, dn2, ap2, an2;
+	int mask = 0x3F;
+
+	{
+		const vector3f radius = (maxs - mins) * .5f;
+		const vector3f lightcenter = worldtolight->transform(mins + radius);
+		const vector3f lightradius = radiustolight->transform3x3(radius);
+		pmin = lightcenter - lightradius;
+		pmax = lightcenter + lightradius;
+	}
+	dp1 = pmax[0] + pmax[1];
+	dn1 = pmax[0] - pmin[1];
+	ap1 = math::fabsf(dp1);
+	an1 = math::fabsf(dn1);
+
+	dp2 = pmin[0] + pmin[1];
+	dn2 = pmin[0] - pmax[1];
+	ap2 = math::fabsf(dp2);
+	an2 = math::fabsf(dn2);
+
+	if(ap1 > bias*an1 && ap2 > bias*an2)
+		mask &= (3<<4)
+			| (dp1 >= .0f ? (1<<0)|(1<<2) : (2<<0)|(2<<2))
+			| (dp2 >= .0f ? (1<<0)|(1<<2) : (2<<0)|(2<<2));
+	if(an1 > bias*ap1 && an2 > bias*ap2)
+		mask &= (3<<4)
+			| (dn1 >= .0f ? (1<<0)|(2<<2) : (2<<0)|(1<<2))
+			| (dn2 >= .0f ? (1<<0)|(2<<2) : (2<<0)|(1<<2));
+
+	dp1 = pmax[1] + pmax[2];
+	dn1 = pmax[1] - pmin[2];
+	ap1 = math::fabsf(dp1);
+	an1 = math::fabsf(dn1);
+
+	dp2 = pmin[1] + pmin[2];
+	dn2 = pmin[1] - pmax[2];
+	ap2 = math::fabsf(dp2);
+	an2 = math::fabsf(dn2);
+
+	if(ap1 > bias*an1 && ap2 > bias*an2)
+		mask &= (3<<0)
+			| (dp1 >= .0f ? (1<<2)|(1<<4) : (2<<2)|(2<<4))
+			| (dp2 >= .0f ? (1<<2)|(1<<4) : (2<<2)|(2<<4));
+	if(an1 > bias*ap1 && an2 > bias*ap2)
+		mask &= (3<<0)
+			| (dn1 >= .0f ? (1<<2)|(2<<4) : (2<<2)|(1<<4))
+			| (dn2 >= .0f ? (1<<2)|(2<<4) : (2<<2)|(1<<4));
+
+	dp1 = pmax[2] + pmax[0];
+	dn1 = pmax[2] - pmin[0];
+	ap1 = math::fabsf(dp1);
+	an1 = math::fabsf(dn1);
+
+	dp2 = pmin[2] + pmin[0];
+	dn2 = pmin[2] - pmax[0];
+	ap2 = math::fabsf(dp2);
+	an2 = math::fabsf(dn2);
+
+	if(ap1 > bias*an1 && ap2 > bias*an2)
+		mask &= (3<<2)
+			| (dp1 >= .0f ? (1<<4)|(1<<0) : (2<<4)|(2<<0))
+			| (dp2 >= .0f ? (1<<4)|(1<<0) : (2<<4)|(2<<0));
+	if(an1 > bias*ap1 && an2 > bias*ap2)
+		mask &= (3<<2)
+			| (dn1 >= .0f ? (1<<4)|(2<<0) : (2<<4)|(1<<0))
+			| (dn2 >= .0f ? (1<<4)|(2<<0) : (2<<4)|(1<<0));
+
+	return mask;
+}
+
+#endif
 #define R_Shadow_CalcEntitySideMask(ent, worldtolight, radiustolight, bias) R_Shadow_CalcBBoxSideMask((ent)->mins, (ent)->maxs, worldtolight, radiustolight, bias)
 
 int R_Shadow_CalcSphereSideMask(const vec3_t p, float radius, float bias)
@@ -4346,8 +4437,8 @@ static void R_Shadow_DrawLight(rtlight_t *rtlight)
 		int castermask = 0;
 		int receivermask = 0;
 		matrix4x4_t radiustolight = rtlight->matrix_worldtolight;
-		Matrix4x4_Abs(&radiustolight);
-
+		//Matrix4x4_Abs(&radiustolight);
+		radiustolight.fabs();
 		r_shadow_shadowmaplod = 0;
 		for (i = 1;i < R_SHADOW_SHADOWMAP_NUMCUBEMAPS;i++)
 			if ((r_shadow_shadowmapmaxsize >> i) > lodlinear)

@@ -48,13 +48,19 @@ extern vec3_t vec3_origin;
 #define PRVM_IS_NAN(x) FLOAT_IS_NAN(x)
 #endif
 
-#define bound(min,num,max) ((num) >= (min) ? ((num) < (max) ? (num) : (max)) : (min))
+#if 1
+	#define bound(min,num,max) ((num) >= (min) ? ((num) < (max) ? (num) : (max)) : (min))
 
-#ifndef min
-#define min(A,B) ((A) < (B) ? (A) : (B))
-#define max(A,B) ((A) > (B) ? (A) : (B))
+	#ifndef min
+		#define min(A,B) ((A) < (B) ? (A) : (B))
+		#define max(A,B) ((A) > (B) ? (A) : (B))
+	#endif
+#else
+	//this causes a crash
+	using cloture::util::math::bound;
+	using cloture::util::math::min;
+	using cloture::util::math::max;
 #endif
-
 /// LordHavoc: this function never returns exactly MIN or exactly MAX, because
 /// of a QuakeC bug in id1 where the line
 /// self.nextthink = self.nexthink + random() * 0.5;

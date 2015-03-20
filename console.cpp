@@ -1077,17 +1077,17 @@ static char Sys_Con_NearestColor(const unsigned char _r, const unsigned char _g,
 	float r = ((float)_r)/255.0;
 	float g = ((float)_g)/255.0;
 	float b = ((float)_b)/255.0;
-	float min = min(r, min(g, b));
-	float max = max(r, max(g, b));
+	float min_ = min(r, min(g, b));
+	float max_ = max(r, max(g, b));
 
 	int h; ///< Hue angle [0,360]
 	float s; ///< Saturation [0,1]
-	float v = max; ///< In HSV v == max [0,1]
+	float v = max_; ///< In HSV v == max [0,1]
 
-	if(max == min)
+	if(max_ == min_)
 		s = 0;
 	else
-		s = 1.0 - (min/max);
+		s = 1.0 - (min_/max_);
 
 	// Saturation threshold. We now say 0.2 is the minimum value for a color!
 	if(s < 0.2)
@@ -1100,14 +1100,14 @@ static char Sys_Con_NearestColor(const unsigned char _r, const unsigned char _g,
 	}
 
 	// Let's get the hue angle to define some colors:
-	if(max == min)
+	if(max_ == min_)
 		h = 0;
-	else if(max == r)
-		h = (int)(60.0 * (g-b)/(max-min))%360;
-	else if(max == g)
-		h = (int)(60.0 * (b-r)/(max-min) + 120);
-	else // if(max == b) redundant check
-		h = (int)(60.0 * (r-g)/(max-min) + 240);
+	else if(max_ == r)
+		h = (int)(60.0 * (g-b)/(max_-min_))%360;
+	else if(max_ == g)
+		h = (int)(60.0 * (b-r)/(max_-min_) + 120);
+	else // if(max_ == b) redundant check
+		h = (int)(60.0 * (r-g)/(max_-min_) + 240);
 
 	if(h < 36) // *red* to orange
 		return '1';
@@ -2231,7 +2231,12 @@ endcomplete:
 	if(p > o && completedname && completednamebufferlength > 0)
 	{
 		memset(completedname, 0, completednamebufferlength);
-		memcpy(completedname, (t->filenames[0]+5), min(p, completednamebufferlength - 1));
+		#if !defined(min)
+			int sz = cloture::util::math::min(p, completednamebufferlength - 1);
+			memcpy(completedname, (t->filenames[0]+5), sz);
+		#else
+			memcpy(completedname, (t->filenames[0]+5), min(p, completednamebufferlength - 1));
+		#endif
 	}
 	Z_Free(len);
 	FS_FreeSearch(t);
