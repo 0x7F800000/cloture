@@ -78,6 +78,7 @@ namespace cloture::util::ctfe
 cloture::util::ctfe::CString<cloture::util::ctfe::cstrlen(s)>::CString<cloture::util::ctfe::cstrlen(s)>(s)
 
 
-#include "libCtfe/constcontainers.hpp"
-#include "libCtfe/constparse.hpp"
-#include "libCtfe/constmath.hpp"
+#include 	"libCtfe/constcontainers.hpp"
+#include 	"libCtfe/constparse.hpp"
+#include 	"libCtfe/constmath.hpp"
+#include 	"libCtfe/constcrc.hpp"
