@@ -9,13 +9,10 @@
 
 // up / down
 static constexpr cloture::util::common::size32 PITCH 	= 0;
-//#define	PITCH	0
 
 // left / right
-//#define	YAW		1
 static constexpr cloture::util::common::size32 YAW 		= 1;
 // fall over
-//#define	ROLL	2
 static constexpr cloture::util::common::size32 ROLL 	= 2;
 
 
