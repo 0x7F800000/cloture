@@ -31,6 +31,7 @@ __if_not_exists(ptrdiff_t)
 
 
 #include	"codecontext.hpp"
+#include	"libMeta/metaApi.hpp"
 
 /*
 	common compiler extensions
@@ -76,11 +77,13 @@ __if_not_exists(ptrdiff_t)
 */
 
 #include	"reflect.hpp"
+
+
 /*
 	CTFE stuff for compile-time tricks
 */
 #include	"ctfe.hpp"
-
+#include	"extended_types.hpp"
 
 template<int line, const char* filename, const char* functionName>
 class __sourcePositionStringBuilder
@@ -127,7 +130,6 @@ public:
 	static constexpr auto sourceInfo = build();
 };
 
-#include	"extended_types.hpp"
 
 
 #include	"typenames.hpp"

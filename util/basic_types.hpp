@@ -43,8 +43,125 @@ namespace common  {
 	template<typename T> static constexpr T minValue 		= 0;
 	template<> static constexpr real64 	minValue<real64> 	= 2.22507e-308;
 	template<> static constexpr real32 	minValue<real32> 	= 1.17549e-38f;
-	//template<> static constexpr real80 	maxValue<real80>	= (sizeof(real80) > sizeof(double) ? 1.18973e+4932L : maxValue<real64>);
 
+#if defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)
+	#define	mCompilerSupportsInt128	1
+#else
+	#define	mCompilerSupportsInt128	0
+#endif
+
+#if mCompilerSupportsInt128 && defined(__x86_64__)
+	using int128	= __int128;
+	using uint128	= unsigned __int128;
+#else
+	/*
+	 * include some header here containing a class to emulate __int128
+	 */
+	 #include "int128.hpp"
+#endif
+
+/*
+ * todo: use some ctfe:: functions in here to clean this up
+ * maybe make this ctfe::parser::parse<uint128>
+ */
+constexpr uint128 toU128(const char* str)
+{
+	constexpr uint128 ZERO 		= static_cast<uint128>(0);
+	constexpr uint128 TEN 		= static_cast<uint128>(10);
+	constexpr uint128 SIXTEEN	= static_cast<uint128>(16);
+	constexpr uint128 SIGN		= static_cast<uint128>(0x8000000000000000ULL) << 64;
+
+	constexpr char digitSeperator = '\'';
+
+	uint128 result = ZERO;
+	size_t pos = 0;
+	//hexadecimal literal
+	if(str[0] == '0' && (str[1] == 'x' || str[1] == 'X'))
+	{
+		const char* s = &str[2];
+		while(true)
+		{
+			const unsigned char c = static_cast<unsigned char>(s[pos++]);
+			if(!c)
+				return result;
+
+			if(c == digitSeperator)
+				continue;
+
+			uint128 digit = ZERO;
+
+			if(c >= '0' && c <= '9')
+				digit = static_cast<uint128>(c - '0');
+			else if(c >= 'a' && c <= 'z')
+				digit = static_cast<uint128>(c - ('a' - 10));
+			else
+				digit = static_cast<uint128>(c - ('A' - 10));
+			result *= SIXTEEN;
+			result += digit;
+		}
+	}
+	//binary literal
+	else if(str[0] == '0' && (str[1] == 'b' || str[1] == 'B'))
+	{
+		const char* s = &str[2];
+
+		while(true)
+		{
+			const char c = s[pos++];
+			if(!c)
+				return result;
+			if(c == digitSeperator)
+				continue;
+			const uint128 bit = static_cast<uint128>(c - '0');
+			result <<= 1;
+			result |= bit;
+		}
+	}
+	//decimal literal
+	else
+	{
+		const bool negative = str[0] == '-';
+
+		if(negative || str[0] == '+')
+			++pos;
+
+		bool first = true;
+		for(char c = 0; 0 <= (c = str[pos] - '0' ) && c <= 9; ++pos)
+		{
+			if(!first)
+				result *= TEN;
+			if(c == digitSeperator)
+				continue;
+			uint128 c128 = static_cast<uint128>(c);
+			result += c128;
+			if(first)
+				first = false;
+		}
+
+		return negative ? result | SIGN : result;
+	}
+}
+
+constexpr uint128 operator"" _u128(const char *str)
+{
+	return toU128(str);
+}
+constexpr int128 operator"" _i128(const char *str)
+{
+	return static_cast<int128>(toU128(str));
+}
 }//namespace common
 }//namespace util
 }//namespace cloture
+
+#define		mClotureImportBasicTypes()			\
+	using uint8 = cloture::util::common::uint8;		\
+	using int8 = cloture::util::common::int8;		\
+	using uint16 = cloture::util::common::uint16;	\
+	using int16 = cloture::util::common::int16;		\
+	using uint32 = cloture::util::common::uint32;	\
+	using int32 = cloture::util::common::int32;		\
+	using uint64 = cloture::util::common::uint64;	\
+	using int64 = cloture::util::common::int64;		\
+	using real32 = cloture::util::common::real32;	\
+	using real64 = cloture::util::common::real64

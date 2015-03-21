@@ -2,8 +2,9 @@
 
 namespace cloture::util::ctfe
 {
-	class CRC : __markAsCtfe()
+	class CRC : __markAsCtfe(), __markApiObject()
 	{
+
 		static constexpr size_t crcTableLength 	= 256;
 		using crcType 		= common::uint16;
 		using crcTableType	= Array<crcType, crcTableLength>;
@@ -46,15 +47,15 @@ namespace cloture::util::ctfe
 		};
 	public:
 		template<typename T>
-		static constexpr crcType calculate(T data, size_t size)
+		static constexpr crcType calculate(T data, const size_t size_)
 		{
 			static_assert(
-			isArray(data) || isPointer(data)
-			static_assert(sizeof(T) == 1);
+			generic::isArray<T>() || generic::isPointer<T>());
+
 			crcType crc = 0xFFFF;
 
 			size_t i = 0;
-
+			size_t size = size_;
 			if(!size)
 				return 0xFFFF;
 
@@ -66,6 +67,5 @@ namespace cloture::util::ctfe
 			return crc;
 		}
 
-		static constexpr crcType testCRC = calculate<const char*>("Sup", 4);
 	};
 }

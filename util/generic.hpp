@@ -81,8 +81,12 @@ enum
 
 namespace cloture::util::generic
 {
+	//class generic
+	///{
+	//public:
 
 	using namespace cloture::util::common;
+	//mClotureImportBasicTypes();
 	template<typename T> struct __make_unsigned__
 	{
 		typedef T ___type___;
@@ -365,6 +369,7 @@ namespace cloture::util::generic
 	struct removeConst
 	{
 	private:
+
 		template<typename TT>
 		struct nestedChecker
 		{
@@ -376,9 +381,11 @@ namespace cloture::util::generic
 			{
 				return (TT*)nullptr;
 			}
+
 		};
+
 	public:
-		using type = __typeof(nestedChecker<T>::checkConst((T*)nullptr));
+		using type = __typeof(*nestedChecker<T>::checkConst((T*)nullptr));
 	};
 
 	static_assert(!isTriviallyAssignable<const int*, typename removeConst<const int*>::type >());
@@ -588,6 +595,7 @@ namespace cloture::util::generic
 		return isBaseOf<cloture::apiObject, T>();
 	}
 
+	//};//class generic
 }//namespace cloture::util::generic
 
 #define 	make_unsigned(type)		typename __make_unsigned__<type>::___type___

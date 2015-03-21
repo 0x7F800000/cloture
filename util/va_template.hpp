@@ -141,7 +141,7 @@ struct paramPack
 {
 	static constexpr size_t size = sizeof...(pack);
 	using type = T;
-	static constexpr T packArray[] =
+	static constexpr T arr[] =
 	{
 			pack...
 	};
@@ -149,12 +149,12 @@ struct paramPack
 
 	constexpr T operator[](size_t index) const
 	{
-		return packArray[index];
+		return arr[index];
 	};
 
 	constexpr T& operator[](size_t index)
 	{
-		return packArray[index];
+		return arr[index];
 	}
 };
 template<>

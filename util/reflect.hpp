@@ -264,6 +264,8 @@ class Reflect : __markAsCtfe()
 		struct indexerSwitch<T, true>
 		{
 			//if it is a class, then we need to check for operator[]
+
+
 		};
 
 

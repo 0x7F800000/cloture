@@ -202,7 +202,7 @@ namespace cloture::util::ctfe::parser
 	}
 
 	template<common::int32 val>
-	struct toStringHelper_int32
+	struct toStringHelper_int32 : __markAsCtfe()
 	{
 		static constexpr size_t sLen = calcRepresentationLen<val>() + 1;
 		using sType = charStream< sLen, false>;
