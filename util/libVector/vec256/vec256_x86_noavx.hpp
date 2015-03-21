@@ -134,7 +134,8 @@ private:
 		typedef unsigned short type __attribute__((__vector_size__(16)));
 	};
 public:
-	using nativeType = typename getNativeType<T>::type;
+	using nativeType	=	typename getNativeType<T>::type;
+	using elementType	=	T;
 	nativeType vec1;
 	nativeType vec2;
 
@@ -294,6 +295,14 @@ public:
 	mVecInline __pseudopure T& operator[](const common::size32 index)
 	{
 		return reinterpret_cast<T*>(this)[index];
+	}
+	mVecCall operator nativeType()
+	{
+		return vec1;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec1;
 	}
 };
 

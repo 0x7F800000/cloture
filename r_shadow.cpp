@@ -192,10 +192,13 @@ r_shadow_rendermode_t r_shadow_rendermode = R_SHADOW_RENDERMODE_NONE;
 r_shadow_rendermode_t r_shadow_lightingrendermode = R_SHADOW_RENDERMODE_NONE;
 r_shadow_rendermode_t r_shadow_shadowingrendermode_zpass = R_SHADOW_RENDERMODE_NONE;
 r_shadow_rendermode_t r_shadow_shadowingrendermode_zfail = R_SHADOW_RENDERMODE_NONE;
-bool r_shadow_usingshadowmap2d;
-bool r_shadow_usingshadowmaportho;
+
 int r_shadow_shadowmapside;
+
+__align(mSimdAlign)
 float r_shadow_shadowmap_texturescale[2];
+
+__align(mSimdAlign)
 float r_shadow_shadowmap_parameters[4];
 
 int r_shadow_cullface_front, r_shadow_cullface_back;
@@ -204,15 +207,25 @@ r_shadow_shadowmode_t r_shadow_shadowmode;
 int r_shadow_shadowmapfilterquality;
 int r_shadow_shadowmapdepthbits;
 int r_shadow_shadowmapmaxsize;
-bool r_shadow_shadowmapvsdct;
-bool r_shadow_shadowmapsampler;
-bool r_shadow_shadowmapshadowsampler;
+
+
+
 int r_shadow_shadowmappcf;
 int r_shadow_shadowmapborder;
 matrix4x4_t r_shadow_shadowmapmatrix;
-int r_shadow_lightscissor[4];
+
+__align(mSimdAlign)
+vector4si r_shadow_lightscissor;
+
+
+bool r_shadow_shadowmapvsdct;
+bool r_shadow_shadowmapsampler;
+bool r_shadow_shadowmapshadowsampler;
+bool r_shadow_usingshadowmap2d;
+bool r_shadow_usingshadowmaportho;
 bool r_shadow_usingdeferredprepass;
 bool r_shadow_shadowmapdepthtexture;
+
 int maxshadowtriangles;
 int *shadowelements;
 
@@ -1507,7 +1520,7 @@ int R_Shadow_CalcTriangleSideMask(const vec3_t p1, const vec3_t p2, const vec3_t
 	return mask;
 }
 
-#if 0
+#if 1
 
 static int R_Shadow_CalcBBoxSideMask(
 	const vec3_t mins,
@@ -1590,265 +1603,6 @@ static int R_Shadow_CalcBBoxSideMask(
 }
 
 #else
-/*
- * 	movaps	xmm9, xmm2
-	subss	xmm9, xmm0
-	shufps	xmm2, xmm2, -27         # xmm2 = xmm2[1,1,2,3]
-	movaps	xmm5, xmm0
-	shufps	xmm5, xmm5, -27         # xmm5 = xmm5[1,1,2,3]
-	subss	xmm2, xmm5
-	subss	xmm3, xmm1
-	movss	xmm6, dword ptr [rip + .LCPI81_0]
-	mulss	xmm9, xmm6
-	mulss	xmm2, xmm6
-	mulss	xmm3, xmm6
-	addss	xmm0, xmm9
-	addss	xmm5, xmm2
-	addss	xmm1, xmm3
-	movaps	xmm10, xmmword ptr [rdi]
-	movaps	xmm8, xmmword ptr [rdi + 16]
-	movaps	xmm11, xmmword ptr [rdi + 32]
-	movaps	xmm6, xmm0
-	mulss	xmm6, xmm8
-	movaps	xmm7, xmm8
-	shufps	xmm7, xmm7, -27         # xmm7 = xmm7[1,1,2,3]
-	mulss	xmm7, xmm5
-	addss	xmm7, xmm6
-	movaps	xmm6, xmm8
-	shufpd	xmm6, xmm6, 1           # xmm6 = xmm6[1,0]
-	mulss	xmm6, xmm1
-	addss	xmm6, xmm7
-	shufps	xmm8, xmm8, -25         # xmm8 = xmm8[3,1,2,3]
-	addss	xmm8, xmm6
-	shufps	xmm0, xmm0, -32         # xmm0 = xmm0[0,0,2,3]
-	movaps	xmm6, xmm10
-	unpcklps	xmm6, xmm11     # xmm6 = xmm6[0],xmm11[0],xmm6[1],xmm11[1]
-	mulps	xmm6, xmm0
-	shufps	xmm5, xmm5, -32         # xmm5 = xmm5[0,0,2,3]
-	movaps	xmm0, xmm11
-	shufps	xmm0, xmm10, 17         # xmm0 = xmm0[1,0],xmm10[1,0]
-	shufps	xmm0, xmm10, -30        # xmm0 = xmm0[2,0],xmm10[2,3]
-	mulps	xmm0, xmm5
-	addps	xmm0, xmm6
-	shufps	xmm1, xmm1, -32         # xmm1 = xmm1[0,0,2,3]
-	shufpd	xmm11, xmm11, 1         # xmm11 = xmm11[1,0]
-	shufpd	xmm10, xmm10, 1         # xmm10 = xmm10[1,0]
-	movapd	xmm5, xmm10
-	unpcklps	xmm5, xmm11     # xmm5 = xmm5[0],xmm11[0],xmm5[1],xmm11[1]
-	mulps	xmm5, xmm1
-	addps	xmm5, xmm0
-	shufps	xmm11, xmm10, 17        # xmm11 = xmm11[1,0],xmm10[1,0]
-	shufps	xmm11, xmm10, -30       # xmm11 = xmm11[2,0],xmm10[2,3]
-	addps	xmm11, xmm5
-	movaps	xmm7, xmmword ptr [rsi]
-	movaps	xmm5, xmmword ptr [rsi + 16]
-	movaps	xmm1, xmmword ptr [rsi + 32]
-	movaps	xmm0, xmm9
-	mulss	xmm0, xmm5
-	movaps	xmm6, xmm5
-	shufps	xmm6, xmm6, -27         # xmm6 = xmm6[1,1,2,3]
-	mulss	xmm6, xmm2
-	addss	xmm6, xmm0
-	shufpd	xmm5, xmm5, 1           # xmm5 = xmm5[1,0]
-	mulss	xmm5, xmm3
-	addss	xmm5, xmm6
-	shufps	xmm9, xmm9, -32         # xmm9 = xmm9[0,0,2,3]
-	movaps	xmm0, xmm7
-	unpcklps	xmm0, xmm1      # xmm0 = xmm0[0],xmm1[0],xmm0[1],xmm1[1]
-	mulps	xmm0, xmm9
-	shufps	xmm2, xmm2, -32         # xmm2 = xmm2[0,0,2,3]
-	movaps	xmm6, xmm1
-	shufps	xmm6, xmm7, 17          # xmm6 = xmm6[1,0],xmm7[1,0]
-	shufps	xmm6, xmm7, -30         # xmm6 = xmm6[2,0],xmm7[2,3]
-	mulps	xmm6, xmm2
-	addps	xmm6, xmm0
-	shufps	xmm3, xmm3, -32         # xmm3 = xmm3[0,0,2,3]
-	shufpd	xmm1, xmm1, 1           # xmm1 = xmm1[1,0]
-	shufpd	xmm7, xmm7, 1           # xmm7 = xmm7[1,0]
-	unpcklps	xmm7, xmm1      # xmm7 = xmm7[0],xmm1[0],xmm7[1],xmm1[1]
-	mulps	xmm7, xmm3
-	addps	xmm7, xmm6
-	movaps	xmm10, xmm8
-	subss	xmm10, xmm5
-	movaps	xmm9, xmm11
-	subps	xmm9, xmm7
-	addss	xmm5, xmm8
-	addps	xmm7, xmm11
-	movaps	xmm0, xmm7
-	addss	xmm0, xmm5
-	movaps	xmm8, xmm7
-	subss	xmm8, xmm10
-	movss	xmm12, dword ptr [rip + .LCPI81_1]
-	movaps	xmm2, xmm0
-	andps	xmm2, xmm12
-	movaps	xmm14, xmm8
-	andps	xmm14, xmm12
-	movaps	xmm1, xmm9
-	addss	xmm1, xmm10
-	movaps	xmm11, xmm9
-	subss	xmm11, xmm5
-	movaps	xmm6, xmm1
-	andps	xmm6, xmm12
-	movaps	xmm13, xmm11
-	andps	xmm13, xmm12
-	movaps	xmm3, xmm14
-	mulss	xmm3, xmm4
-	mov	eax, 63
-	ucomiss	xmm2, xmm3
-	jbe	.LBB81_3
-# BB#1:
-	movaps	xmm3, xmm13
-	mulss	xmm3, xmm4
-	ucomiss	xmm6, xmm3
-	jbe	.LBB81_3
-# BB#2:
-	xorps	xmm3, xmm3
-	ucomiss	xmm0, xmm3
-	sbb	eax, eax
-	and	eax, 1
-	lea	ecx, [rax + 4*rax + 53]
-	ucomiss	xmm1, xmm3
-	sbb	eax, eax
-	and	eax, 1
-	lea	eax, [rax + 4*rax + 5]
-	or	eax, ecx
-.LBB81_3:
-	mulss	xmm2, xmm4
-	ucomiss	xmm14, xmm2
-	jbe	.LBB81_6
-# BB#4:
-	mulss	xmm6, xmm4
-	ucomiss	xmm13, xmm6
-	jbe	.LBB81_6
-# BB#5:
-	xorps	xmm0, xmm0
-	ucomiss	xmm8, xmm0
-	setae	cl
-	movzx	ecx, cl
-	lea	ecx, [rcx + 2*rcx + 54]
-	ucomiss	xmm11, xmm0
-	setae	dl
-	movzx	edx, dl
-	lea	edx, [rdx + 2*rdx + 6]
-	or	edx, ecx
-	and	eax, edx
-.LBB81_6:
-	movaps	xmm11, xmm7
-	shufps	xmm11, xmm11, -27       # xmm11 = xmm11[1,1,2,3]
-	movaps	xmm1, xmm5
-	addss	xmm1, xmm11
-	movaps	xmm8, xmm9
-	shufps	xmm8, xmm8, -27         # xmm8 = xmm8[1,1,2,3]
-	subss	xmm5, xmm8
-	movaps	xmm2, xmm1
-	andps	xmm2, xmm12
-	movaps	xmm14, xmm5
-	andps	xmm14, xmm12
-	movaps	xmm0, xmm10
-	addss	xmm0, xmm8
-	subss	xmm10, xmm11
-	movaps	xmm6, xmm0
-	andps	xmm6, xmm12
-	movaps	xmm13, xmm10
-	andps	xmm13, xmm12
-	movaps	xmm3, xmm14
-	mulss	xmm3, xmm4
-	ucomiss	xmm2, xmm3
-	jbe	.LBB81_9
-# BB#7:
-	movaps	xmm3, xmm13
-	mulss	xmm3, xmm4
-	ucomiss	xmm6, xmm3
-	jbe	.LBB81_9
-# BB#8:
-	xorps	xmm3, xmm3
-	ucomiss	xmm1, xmm3
-	mov	ecx, 23
-	mov	edx, 43
-	cmovae	edx, ecx
-	ucomiss	xmm0, xmm3
-	mov	ecx, 20
-	mov	esi, 40
-	cmovae	esi, ecx
-	or	esi, edx
-	and	eax, esi
-.LBB81_9:
-	mulss	xmm2, xmm4
-	ucomiss	xmm14, xmm2
-	jbe	.LBB81_12
-# BB#10:
-	mulss	xmm6, xmm4
-	ucomiss	xmm13, xmm6
-	jbe	.LBB81_12
-# BB#11:
-	xorps	xmm0, xmm0
-	ucomiss	xmm5, xmm0
-	mov	ecx, 39
-	mov	edx, 27
-	cmovae	edx, ecx
-	ucomiss	xmm10, xmm0
-	mov	ecx, 36
-	mov	esi, 24
-	cmovae	esi, ecx
-	or	esi, edx
-	and	eax, esi
-.LBB81_12:
-	movaps	xmm1, xmm7
-	addss	xmm1, xmm11
-	subss	xmm11, xmm9
-	movaps	xmm2, xmm1
-	andps	xmm2, xmm12
-	movaps	xmm3, xmm11
-	andps	xmm3, xmm12
-	addss	xmm9, xmm8
-	subss	xmm8, xmm7
-	movaps	xmm0, xmm9
-	andps	xmm0, xmm12
-	andps	xmm12, xmm8
-	movaps	xmm5, xmm3
-	mulss	xmm5, xmm4
-	ucomiss	xmm2, xmm5
-	jbe	.LBB81_15
-# BB#13:
-	movaps	xmm5, xmm12
-	mulss	xmm5, xmm4
-	ucomiss	xmm0, xmm5
-	jbe	.LBB81_15
-# BB#14:
-	xorps	xmm5, xmm5
-	ucomiss	xmm1, xmm5
-	mov	ecx, 29
-	mov	edx, 46
-	cmovae	edx, ecx
-	ucomiss	xmm9, xmm5
-	mov	ecx, 17
-	mov	esi, 34
-	cmovae	esi, ecx
-	or	esi, edx
-	and	eax, esi
-.LBB81_15:
-	mulss	xmm2, xmm4
-	ucomiss	xmm3, xmm2
-	jbe	.LBB81_18
-# BB#16:
-	mulss	xmm0, xmm4
-	ucomiss	xmm12, xmm0
-	jbe	.LBB81_18
-# BB#17:
-	xorps	xmm0, xmm0
-	ucomiss	xmm11, xmm0
-	mov	ecx, 30
-	mov	edx, 45
-	cmovae	edx, ecx
-	ucomiss	xmm8, xmm0
-	mov	ecx, 18
-	mov	esi, 33
-	cmovae	esi, ecx
-	or	esi, edx
-	and	eax, esi
-.LBB81_18:
-	ret
- */
 static int R_Shadow_CalcBBoxSideMask(
 	const vector3f 					mins,
 	const vector3f 					maxs,
@@ -1859,8 +1613,6 @@ static int R_Shadow_CalcBBoxSideMask(
 {
 	vector3f pmin, pmax;
 	float dp1, dn1, ap1, an1, dp2, dn2, ap2, an2;
-
-	uint32x2 tempmask1, tempmask2, tempmask3;
 
 	{
 		const vector3f radius = (maxs - mins) * .5f;
@@ -1906,7 +1658,9 @@ static int R_Shadow_CalcBBoxSideMask(
 
 				dSigns = vector_cast<vecmask32x4>(d) & signMasks;
 				//initialize a with the absolute value of d
-				vector_cast<vector4ui>(d) & (~signMasks);
+				vector_cast<vector4f>(
+						vector_cast<vector4ui>(d) & (~signMasks)
+				);
 			});
 
 			const vector4f ashuf 	= vector4f(a[1], a[3], a[0], a[2]) * bias;
@@ -1941,9 +1695,9 @@ static int R_Shadow_CalcBBoxSideMask(
 						0b0101
 				};
 				//get low 2 sign bits (dp1 and dp2)
-				const vecmask32x2 signsShift =  (vector_cast<vecmask32x2>(dSigns) >> 31) & 1;
-
-				masker <<= signsShift;
+				masker = vector_cast<vecmask32x2>(
+				masker <<  ((vector_cast<vecmask32x2>(dSigns) >> 31) & 1)
+				);//signsShift;
 
 				const vecmask32x2 booleanAnd =
 				({
@@ -1959,47 +1713,48 @@ static int R_Shadow_CalcBBoxSideMask(
 			 *
 			 * if the condition is true, it will be {0xFFFFFFFF, 0xFFFFFFFF}
 			 */
-			mask &= (0b0110000 | orResult[0] | orResult[1]);
+			mask &= (0b0110000 | ~(cmpResult[0] & cmpResult[1]) | orResult[0] | orResult[1]);
 		}
 
-		if(ap1 > bias*an1 && ap2 > bias*an2)
 		{
+			/*
+			 * cmpResult[2] == an1 > bias*ap1
+			 * cmpResult[3] == an2 > bias*ap2
+			 */
+			int cmpmask = ~(cmpResult[2] & cmpResult[3]);
+
 			int builtmask = 0b0110000; //48
-
-			if(dp1 >= .0f)
-				builtmask |= 0b0101;//5
+			vecmask32x2 basemask =
+			{
+					0b0110, //6
+					0b0110
+			};
+			vecmask32x2 oneSigns =
+			{
+					dSigns[2] >> 31,
+					dSigns[3] >> 31
+			};
+			vecmask32x2 threes =
+			{
+					3,
+					3
+			};
+			vecmask32x2 builtmasks = (threes * oneSigns) + basemask;
+			/*
+			if(!dSigns[2])
+				builtmask |= 0b01001;//9
 			else
-				builtmask |= 0b01010;//10
+				builtmask |= 0b00110;//6
 
-			if(dp2 >= .0f)
-				builtmask |= 0b0101;//5
-			else
-				builtmask |= 0b01010;//10
-
-			mask &= builtmask;
-		}
-
-		/*
-		 * cmpResult[2] == an1 > bias*ap1
-		 * cmpResult[3] == an2 > bias*ap2
-		 */
-		if(an1 > bias*ap1 && an2 > bias*ap2)
-		{
-			int builtmask = 0b0110000; //48
-
-			if(dn1 >= .0f)
+			if(!dSigns[3])
 				builtmask |= 0b01001;//9
 			else
 				builtmask |= 0b0110;//6
+			*/
 
-			if(dn2 >= .0f)
-				builtmask |= 0b01001;//9
-			else
-				builtmask |= 0b0110;//6
-
-			mask &= builtmask;
+			mask &= (0b0110000 | builtmasks[0] | builtmasks[1] | cmpmask);//builtmask;
+			//}
 		}
-
 	}
 	{
 		dp1 = pmax[1] + pmax[2];
@@ -2363,7 +2118,7 @@ void R_Shadow_ShadowMapFromList(int numverts, int numtris, const float *vertex3f
 
 	// compute the offset and size of the separate index lists for each cubemap side
 	outtriangles = 0;
-	for (size_t i = 0; i < 6; i++)
+	for (size32 i = 0; i < 6; i++)
 	{
 		outelement3i[i] = shadowelements + outtriangles * 3;
 		r_shadow_compilingrtlight->static_meshchain_shadow_shadowmap->sideoffsets[i] = outtriangles;
@@ -2372,10 +2127,10 @@ void R_Shadow_ShadowMapFromList(int numverts, int numtris, const float *vertex3f
 	}
 
 	// gather up the (sparse) triangles into separate index lists for each cubemap side
-	for (size_t i = 0; i < numsidetris; i++)
+	for (size32 i = 0; i < numsidetris; i++)
 	{
 		const int *element = elements + sidetris[i] * 3;
-		for (size_t j = 0; j < 6; j++)
+		for (size32 j = 0; j < 6; j++)
 		{
 			if (sides[i] & (1 << j))
 			{
@@ -2875,10 +2630,14 @@ void R_Shadow_RenderMode_Lighting(bool stenciltest, bool transparent, bool shado
 	R_Mesh_ResetTextureState();
 	if (transparent)
 	{
-		r_shadow_lightscissor[0] = r_refdef.view.viewport.x;
-		r_shadow_lightscissor[1] = r_refdef.view.viewport.y;
-		r_shadow_lightscissor[2] = r_refdef.view.viewport.width;
-		r_shadow_lightscissor[3] = r_refdef.view.viewport.height;
+
+		r_shadow_lightscissor =
+		{
+				r_refdef.view.viewport.x,
+				r_refdef.view.viewport.y,
+				r_refdef.view.viewport.width,
+				r_refdef.view.viewport.height
+		};
 	}
 	R_Shadow_RenderMode_Reset();
 	GL_BlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -2897,6 +2656,7 @@ void R_Shadow_RenderMode_Lighting(bool stenciltest, bool transparent, bool shado
 		R_SetStencil(false, 255, GL_KEEP, GL_KEEP, GL_KEEP, GL_ALWAYS, 128, 255);
 }
 
+__align(mSimdAlign)
 static const unsigned short bboxelements[36] =
 {
 	5, 1, 3, 5, 3, 7,
@@ -2907,6 +2667,7 @@ static const unsigned short bboxelements[36] =
 	1, 0, 2, 1, 2, 3,
 };
 
+__align(mSimdAlign)
 static const float bboxpoints[8][3] =
 {
 	{-1,-1,-1},
@@ -3584,6 +3345,7 @@ void R_Shadow_RenderMode_End()
 	r_shadow_rendermode = R_SHADOW_RENDERMODE_NONE;
 }
 
+__align(mSimdAlign)
 int bboxedges[12][2] =
 {
 	// top
@@ -3607,13 +3369,20 @@ bool R_Shadow_ScissorForBBox(const float *mins, const float *maxs)
 {
 	if (!r_shadow_scissor.integer || r_shadow_usingdeferredprepass || r_trippy.integer)
 	{
-		r_shadow_lightscissor[0] = r_refdef.view.viewport.x;
+		/*r_shadow_lightscissor[0] = r_refdef.view.viewport.x;
 		r_shadow_lightscissor[1] = r_refdef.view.viewport.y;
 		r_shadow_lightscissor[2] = r_refdef.view.viewport.width;
-		r_shadow_lightscissor[3] = r_refdef.view.viewport.height;
+		r_shadow_lightscissor[3] = r_refdef.view.viewport.height;*/
+		r_shadow_lightscissor =
+		{
+				r_refdef.view.viewport.x,
+				r_refdef.view.viewport.y,
+				r_refdef.view.viewport.width,
+				r_refdef.view.viewport.height
+		};
 		return false;
 	}
-	if(R_ScissorForBBox(mins, maxs, r_shadow_lightscissor))
+	if(R_ScissorForBBox(mins, maxs, reinterpret_cast<int*>(&r_shadow_lightscissor)))
 		return true; // invisible
 	if(r_shadow_lightscissor[0] != r_refdef.view.viewport.x
 	|| r_shadow_lightscissor[1] != r_refdef.view.viewport.y
@@ -4177,42 +3946,48 @@ void R_RTLight_Compile(rtlight_t *rtlight)
 
 void R_RTLight_Uncompile(rtlight_t *rtlight)
 {
-	if (rtlight->compiled)
-	{
-		if (rtlight->static_meshchain_shadow_zpass)
-			Mod_ShadowMesh_Free(rtlight->static_meshchain_shadow_zpass);
-		rtlight->static_meshchain_shadow_zpass = nullptr;
-		if (rtlight->static_meshchain_shadow_zfail)
-			Mod_ShadowMesh_Free(rtlight->static_meshchain_shadow_zfail);
-		rtlight->static_meshchain_shadow_zfail = nullptr;
-		if (rtlight->static_meshchain_shadow_shadowmap)
-			Mod_ShadowMesh_Free(rtlight->static_meshchain_shadow_shadowmap);
-		rtlight->static_meshchain_shadow_shadowmap = nullptr;
-		// these allocations are grouped
-		if (rtlight->static_surfacelist)
-			Mem_Free(rtlight->static_surfacelist);
-		rtlight->static_numleafs = 0;
-		rtlight->static_numleafpvsbytes = 0;
-		rtlight->static_leaflist = nullptr;
-		rtlight->static_leafpvs = nullptr;
-		rtlight->static_numsurfaces = 0;
-		rtlight->static_surfacelist = nullptr;
-		rtlight->static_numshadowtrispvsbytes = 0;
-		rtlight->static_shadowtrispvs = nullptr;
-		rtlight->static_numlighttrispvsbytes = 0;
-		rtlight->static_lighttrispvs = nullptr;
-		rtlight->compiled = false;
-	}
+	if (!rtlight->compiled)
+		return;
+
+	if (rtlight->static_meshchain_shadow_zpass)
+		Mod_ShadowMesh_Free(rtlight->static_meshchain_shadow_zpass);
+
+	rtlight->static_meshchain_shadow_zpass 		= nullptr;
+
+	if (rtlight->static_meshchain_shadow_zfail)
+		Mod_ShadowMesh_Free(rtlight->static_meshchain_shadow_zfail);
+
+	rtlight->static_meshchain_shadow_zfail 		= nullptr;
+
+	if (rtlight->static_meshchain_shadow_shadowmap)
+		Mod_ShadowMesh_Free(rtlight->static_meshchain_shadow_shadowmap);
+
+	rtlight->static_meshchain_shadow_shadowmap 	= nullptr;
+
+	// these allocations are grouped
+	if (rtlight->static_surfacelist)
+		Mem_Free(rtlight->static_surfacelist);
+
+	rtlight->static_numleafs 				= 0;
+	rtlight->static_numleafpvsbytes 		= 0;
+	rtlight->static_leaflist 				= nullptr;
+	rtlight->static_leafpvs 				= nullptr;
+	rtlight->static_numsurfaces 			= 0;
+	rtlight->static_surfacelist 			= nullptr;
+	rtlight->static_numshadowtrispvsbytes 	= 0;
+	rtlight->static_shadowtrispvs 			= nullptr;
+	rtlight->static_numlighttrispvsbytes 	= 0;
+	rtlight->static_lighttrispvs 			= nullptr;
+	rtlight->compiled 						= false;
+
 }
 
 void R_Shadow_UncompileWorldLights()
 {
-	size_t lightindex;
-	dlight_t *light;
-	size_t range = Mem_ExpandableArray_IndexRange(&r_shadow_worldlightsarray); // checked
-	for (lightindex = 0;lightindex < range;lightindex++)
+	const size32 range = Mem_ExpandableArray_IndexRange(&r_shadow_worldlightsarray); // checked
+	for (size32 lightindex = 0; lightindex < range; lightindex++)
 	{
-		light = (dlight_t *) Mem_ExpandableArray_RecordAtIndex(&r_shadow_worldlightsarray, lightindex);
+		dlight_t *light = (dlight_t *) Mem_ExpandableArray_RecordAtIndex(&r_shadow_worldlightsarray, lightindex);
 		if (!light)
 			continue;
 		R_RTLight_Uncompile(&light->rtlight);
@@ -4716,7 +4491,7 @@ static void R_Shadow_PrepareLight(rtlight_t *rtlight)
 		rtlight->cached_surfacelist = surfacelist;
 	}
 }
-
+#if 0
 static void R_Shadow_DrawLight(rtlight_t *rtlight)
 {
 	int i;
@@ -4952,7 +4727,313 @@ static void R_Shadow_DrawLight(rtlight_t *rtlight)
 			R_Shadow_RenderMode_DrawDeferredLight(false, false);
 	}
 }
+#else
+static void R_Shadow_DrawLight(rtlight_t *rtlight)
+{
+	unsigned char *surfacesides;
 
+	static unsigned char entitysides[MAX_EDICTS];
+	static unsigned char entitysides_noselfshadow[MAX_EDICTS];
+
+	float distance;
+	int lodlinear;
+
+	RenderState* renderState = &r_refdef;
+	// check if we cached this light this frame (meaning it is worth drawing)
+	if (!rtlight->draw)
+		return;
+
+	const size32 numlightentities 					= rtlight->cached_numlightentities;
+	const size32 numlightentities_noselfshadow 		= rtlight->cached_numlightentities_noselfshadow;
+	const size32 numshadowentities 					= rtlight->cached_numshadowentities;
+	const size32 numshadowentities_noselfshadow 	= rtlight->cached_numshadowentities_noselfshadow;
+	const size32 numsurfaces 						= rtlight->cached_numsurfaces;
+	entity_render_t **lightentities 				= rtlight->cached_lightentities;
+	entity_render_t **lightentities_noselfshadow 	= rtlight->cached_lightentities_noselfshadow;
+	entity_render_t **shadowentities 				= rtlight->cached_shadowentities;
+	entity_render_t **shadowentities_noselfshadow 	= rtlight->cached_shadowentities_noselfshadow;
+
+	uint8 *shadowtrispvs 	= rtlight->cached_shadowtrispvs;
+	uint8 *lighttrispvs 	= rtlight->cached_lighttrispvs;
+	int *surfacelist 		= rtlight->cached_surfacelist;
+
+	// set up a scissor rectangle for this light
+	if (R_Shadow_ScissorForBBox(rtlight->cached_cullmins, rtlight->cached_cullmaxs))
+		return;
+
+	// don't let sound skip if going slow
+	if (renderState->scene.extraupdate)
+		S_ExtraUpdate ();
+
+	// make this the active rtlight for rendering purposes
+	R_Shadow_RenderMode_ActiveLight(rtlight);
+
+	if (
+			unlikely(renderState->view.showdebug)
+			&& r_showshadowvolumes.integer
+			&& numsurfaces + numshadowentities + numshadowentities_noselfshadow
+			&& rtlight->shadow
+			&& (rtlight->isstatic ? renderState->scene.rtworldshadows : renderState->scene.rtdlightshadows))
+	{
+		// optionally draw visible shape of the shadow volumes
+		// for performance analysis by level designers
+		R_Shadow_RenderMode_VisibleShadowVolumes();
+
+		if (numsurfaces)
+			R_Shadow_DrawWorldShadow_ShadowVolume(numsurfaces, surfacelist, shadowtrispvs);
+
+		for (size32 i = 0; i < numshadowentities; i++)
+			R_Shadow_DrawEntityShadow(shadowentities[i]);
+
+		for (size32 i = 0; i < numshadowentities_noselfshadow; i++)
+			R_Shadow_DrawEntityShadow(shadowentities_noselfshadow[i]);
+
+		R_Shadow_RenderMode_VisibleLighting(false, false);
+	}
+
+	if (
+	unlikely(renderState->view.showdebug)
+	&& r_showlighting.integer
+	&& numsurfaces + numlightentities + numlightentities_noselfshadow
+	)
+	{
+		// optionally draw the illuminated areas
+		// for performance analysis by level designers
+		R_Shadow_RenderMode_VisibleLighting(false, false);
+		if (numsurfaces)
+			R_Shadow_DrawWorldLight(numsurfaces, surfacelist, lighttrispvs);
+		for (size32 i = 0; i < numlightentities; i++)
+			R_Shadow_DrawEntityLight(lightentities[i]);
+		for (size32 i = 0; i < numlightentities_noselfshadow; i++)
+			R_Shadow_DrawEntityLight(lightentities_noselfshadow[i]);
+	}
+	vector3f nearestpoint;
+	const bool castshadows =
+	numsurfaces + numshadowentities + numshadowentities_noselfshadow > 0
+	&& rtlight->shadow
+	&& (rtlight->isstatic ? renderState->scene.rtworldshadows : renderState->scene.rtdlightshadows);
+	{
+		const vector3f localCullmins 	= rtlight->cullmins;
+		const vector3f localCullmaxs 	= rtlight->cullmaxs;
+		const vector3f viewOrigin 		= renderState->view.origin;
+		nearestpoint[0] = bound(localCullmins[0], viewOrigin[0], localCullmaxs[0]);
+		nearestpoint[1] = bound(localCullmins[1], viewOrigin[1], localCullmaxs[1]);
+		nearestpoint[2] = bound(localCullmins[2], viewOrigin[2], localCullmaxs[2]);
+	}
+	distance = VectorDistance(nearestpoint, renderState->view.origin);
+
+	lodlinear = (rtlight->radius * r_shadow_shadowmapping_precision.value) / math::sqrtf( max( 1.0f, distance / rtlight->radius ));
+	lodlinear = bound(r_shadow_shadowmapping_minsize.integer, lodlinear, r_shadow_shadowmapmaxsize);
+
+	if (castshadows && r_shadow_shadowmode == R_SHADOW_SHADOWMODE_SHADOWMAP2D)
+	{
+		float borderbias;
+		int side;
+		int size;
+		int castermask = 0;
+		int receivermask = 0;
+		matrix4x4_t radiustolight = rtlight->matrix_worldtolight;
+		radiustolight.fabs();
+		r_shadow_shadowmaplod = 0;
+		for (size32 i = 1; i < R_SHADOW_SHADOWMAP_NUMCUBEMAPS; i++)
+			if ((r_shadow_shadowmapmaxsize >> i) > lodlinear)
+				r_shadow_shadowmaplod = i;
+
+		size = bound(r_shadow_shadowmapborder, lodlinear, r_shadow_shadowmapmaxsize);
+
+		borderbias = r_shadow_shadowmapborder / static_cast<float>(size - r_shadow_shadowmapborder);
+
+		surfacesides = nullptr;
+		if (numsurfaces != 0)
+		{
+			if (rtlight->compiled && r_shadow_realtime_world_compile.integer && r_shadow_realtime_world_compileshadow.integer)
+			{
+				castermask = rtlight->static_shadowmap_casters;
+				receivermask = rtlight->static_shadowmap_receivers;
+			}
+			else
+			{
+				surfacesides = r_shadow_buffer_surfacesides;
+				for(size32 i = 0; i < numsurfaces; i++)
+				{
+					msurface_t *surface = renderState->scene.worldmodel->data_surfaces + surfacelist[i];
+					surfacesides[i] = R_Shadow_CalcBBoxSideMask(
+						surface->mins,
+						surface->maxs,
+						&rtlight->matrix_worldtolight,
+						&radiustolight,
+						borderbias
+					);
+					castermask 		|= surfacesides[i];
+					receivermask 	|= surfacesides[i];
+				}
+			}
+		}
+		if (receivermask < 0x3F)
+		{
+			for (size32 i = 0; i < numlightentities; i++)
+			{
+				receivermask |= R_Shadow_CalcEntitySideMask(
+						lightentities[i],
+						&rtlight->matrix_worldtolight,
+						&radiustolight,
+						borderbias
+				);
+			}
+			if (receivermask < 0x3F)
+			{
+				for(size32 i = 0; i < numlightentities_noselfshadow; i++)
+				{
+					receivermask |= R_Shadow_CalcEntitySideMask(
+							lightentities_noselfshadow[i],
+							&rtlight->matrix_worldtolight,
+							&radiustolight,
+							borderbias
+					);
+				}
+			}
+		}
+
+		receivermask &= R_Shadow_CullFrustumSides(
+			rtlight,
+			size,
+			r_shadow_shadowmapborder
+		);
+
+		if (receivermask != 0)
+		{
+			for (size32 i = 0; i < numshadowentities; i++)
+			{
+				castermask |= (entitysides[i] = R_Shadow_CalcEntitySideMask(
+						shadowentities[i],
+						&rtlight->matrix_worldtolight,
+						&radiustolight,
+						borderbias
+				));
+			}
+			for (size32 i = 0; i < numshadowentities_noselfshadow; i++)
+			{
+				castermask |= (entitysides_noselfshadow[i] = R_Shadow_CalcEntitySideMask(
+						shadowentities_noselfshadow[i],
+						&rtlight->matrix_worldtolight,
+						&radiustolight,
+						borderbias
+				));
+			}
+		}
+
+		{
+			int sidemask = 1;
+			// render shadow casters into 6 sided depth texture
+			for (side = 0;side < 6;side++, sidemask <<= 1)
+			{
+				if (!(receivermask & sidemask))
+					continue;
+
+				R_Shadow_RenderMode_ShadowMap(side, receivermask, size);
+				if (! (castermask & sidemask))
+					continue;
+				if (numsurfaces != 0)
+					R_Shadow_DrawWorldShadow_ShadowMap(numsurfaces, surfacelist, shadowtrispvs, surfacesides);
+
+				for (size32 i = 0; i < numshadowentities; i++)
+				{
+					if (entitysides[i] & sidemask)
+						R_Shadow_DrawEntityShadow( shadowentities[i] );
+				}
+
+			}
+		}
+		if (numlightentities_noselfshadow != 0)
+		{
+			// render lighting using the depth texture as shadowmap
+			// draw lighting in the unmasked areas
+			R_Shadow_RenderMode_Lighting(false, false, true);
+			for (size32 i = 0; i < numlightentities_noselfshadow; i++)
+				R_Shadow_DrawEntityLight(lightentities_noselfshadow[i]);
+		}
+
+		// render shadow casters into 6 sided depth texture
+		if (numshadowentities_noselfshadow != 0)
+		{
+			int sidemask = 1;
+			for (side = 0; side < 6; side++, sidemask <<= 1)
+			{
+				if (!((receivermask & castermask) & sidemask))
+					continue;
+
+				R_Shadow_RenderMode_ShadowMap(side, 0, size);
+				for (size32 i = 0; i < numshadowentities_noselfshadow; i++)
+				{
+					if (entitysides_noselfshadow[i] & sidemask)
+						R_Shadow_DrawEntityShadow(shadowentities_noselfshadow[i]);
+				}
+
+			}
+		}
+
+		// render lighting using the depth texture as shadowmap
+		// draw lighting in the unmasked areas
+		R_Shadow_RenderMode_Lighting(false, false, true);
+		// draw lighting in the unmasked areas
+		if (numsurfaces != 0)
+			R_Shadow_DrawWorldLight(numsurfaces, surfacelist, lighttrispvs);
+		for (size32 i = 0; i < numlightentities; i++)
+			R_Shadow_DrawEntityLight(lightentities[i]);
+	}
+	else if (castshadows && vid.stencil)
+	{
+		// draw stencil shadow volumes to mask off pixels that are in shadow
+		// so that they won't receive lighting
+		GL_Scissor(r_shadow_lightscissor[0], r_shadow_lightscissor[1], r_shadow_lightscissor[2], r_shadow_lightscissor[3]);
+		R_Shadow_ClearStencil();
+
+		if (numsurfaces)
+			R_Shadow_DrawWorldShadow_ShadowVolume(numsurfaces, surfacelist, shadowtrispvs);
+		for (size32 i = 0; i < numshadowentities; i++)
+			R_Shadow_DrawEntityShadow(shadowentities[i]);
+
+		// draw lighting in the unmasked areas
+		R_Shadow_RenderMode_Lighting(true, false, false);
+		for (size32 i = 0; i < numlightentities_noselfshadow; i++)
+			R_Shadow_DrawEntityLight(lightentities_noselfshadow[i]);
+
+		for (size32 i = 0; i < numshadowentities_noselfshadow; i++)
+			R_Shadow_DrawEntityShadow(shadowentities_noselfshadow[i]);
+
+		// draw lighting in the unmasked areas
+		R_Shadow_RenderMode_Lighting(true, false, false);
+		if (numsurfaces)
+			R_Shadow_DrawWorldLight(numsurfaces, surfacelist, lighttrispvs);
+		for (size32 i = 0; i < numlightentities; i++)
+			R_Shadow_DrawEntityLight(lightentities[i]);
+	}
+	else
+	{
+		// draw lighting in the unmasked areas
+		R_Shadow_RenderMode_Lighting(false, false, false);
+		if (numsurfaces)
+			R_Shadow_DrawWorldLight(numsurfaces, surfacelist, lighttrispvs);
+
+		for (size32 i = 0; i < numlightentities; i++)
+			R_Shadow_DrawEntityLight(lightentities[i]);
+
+		for (size32 i = 0; i < numlightentities_noselfshadow; i++)
+			R_Shadow_DrawEntityLight(lightentities_noselfshadow[i]);
+	}
+
+	if (r_shadow_usingdeferredprepass)
+	{
+		// when rendering deferred lighting, we simply rasterize the box
+		if (castshadows && r_shadow_shadowmode == R_SHADOW_SHADOWMODE_SHADOWMAP2D)
+			R_Shadow_RenderMode_DrawDeferredLight(false, true);
+		else if (castshadows && vid.stencil)
+			R_Shadow_RenderMode_DrawDeferredLight(true, false);
+		else
+			R_Shadow_RenderMode_DrawDeferredLight(false, false);
+	}
+}
+#endif
 static void R_Shadow_FreeDeferred()
 {
 	R_Mesh_DestroyFramebufferObject(r_shadow_prepassgeometryfbo);
@@ -4994,7 +5075,7 @@ void R_Shadow_DrawPrepass()
 
 	R_Mesh_ResetTextureState();
 	GL_DepthMask(true);
-	GL_ColorMask(1,1,1,1);
+	GL_ColorMask(1, 1, 1, 1);
 	GL_BlendFunc(GL_ONE, GL_ZERO);
 	GL_Color(1.0f, 1.0f, 1.0f, 1.0f);
 	GL_DepthTest(true);
@@ -5219,8 +5300,8 @@ void R_Shadow_DrawLights()
 	}
 	if (r_refdef.scene.rtdlight)
 	{
-		const size_t numLights = r_refdef.scene.numlights;
-		for (size_t lightIndex = 0; lightIndex < numLights; lightIndex++)
+		const size32 numLights = r_refdef.scene.numlights;
+		for (size32 lightIndex = 0; lightIndex < numLights; lightIndex++)
 			R_Shadow_DrawLight(r_refdef.scene.lights[lightIndex]);
 	}
 	R_Shadow_RenderMode_End();
@@ -5307,18 +5388,23 @@ void R_Shadow_PrepareModelShadows()
 	shadowmaxs[1] = shadoworigin[1] + r_shadows_throwdistance.value * fabsf(shadowdir[1]) + radius * (fabsf(shadowforward[1]) + fabsf(shadowright[1]));
 	shadowmaxs[2] = shadoworigin[2] + r_shadows_throwdistance.value * fabsf(shadowdir[2]) + radius * (fabsf(shadowforward[2]) + fabsf(shadowright[2]));
 
-	for (size_t i = 0; i < r_refdef.scene.numentities; i++)
 	{
-		entity_render_t *RESTRICT const ent = r_refdef.scene.entities[i];
-		if (!BoxesOverlap(ent->mins, ent->maxs, shadowmins, shadowmaxs))
-			continue;
-		// cast shadows from anything of the map (submodels are optional)
-		if (ent->model && ent->model->DrawShadowMap != nullptr && (!ent->model->brush.submodel || r_shadows_castfrombmodels.integer) && (ent->flags & RENDER_SHADOW))
+		const size32 numEntities = r_refdef.scene.numentities;
+		entity_render_t** RESTRICT const entities = r_refdef.scene.entities;
+
+		for (size32 i = 0; i < numEntities; i++)
 		{
-			if (r_shadow_nummodelshadows >= MAX_MODELSHADOWS)
-				break;
-			r_shadow_modelshadows[r_shadow_nummodelshadows++] = ent;
-			R_AnimCache_GetEntity(ent, false, false);
+			entity_render_t *RESTRICT const ent = entities[i];
+			if (!BoxesOverlap(ent->mins, ent->maxs, shadowmins, shadowmaxs))
+				continue;
+			// cast shadows from anything of the map (submodels are optional)
+			if (ent->model && ent->model->DrawShadowMap != nullptr && (!ent->model->brush.submodel || r_shadows_castfrombmodels.integer) && (ent->flags & RENDER_SHADOW))
+			{
+				if (r_shadow_nummodelshadows >= MAX_MODELSHADOWS)
+					break;
+				r_shadow_modelshadows[r_shadow_nummodelshadows++] = ent;
+				R_AnimCache_GetEntity(ent, false, false);
+			}
 		}
 	}
 }
@@ -5529,10 +5615,14 @@ void R_DrawModelShadows(int fbo, rtexture_t *depthtexture, rtexture_t *colortext
 
 	R_Shadow_RenderMode_Begin();
 	R_Shadow_RenderMode_ActiveLight(nullptr);
-	r_shadow_lightscissor[0] = r_refdef.view.x;
-	r_shadow_lightscissor[1] = vid.height - r_refdef.view.y - r_refdef.view.height;
-	r_shadow_lightscissor[2] = r_refdef.view.width;
-	r_shadow_lightscissor[3] = r_refdef.view.height;
+
+	r_shadow_lightscissor =
+	{
+			r_refdef.view.x,
+			vid.height - r_refdef.view.y - r_refdef.view.height,
+			r_refdef.view.width,
+			r_refdef.view.height
+	};
 	R_Shadow_RenderMode_StencilShadowVolumes(false);
 
 	// get shadow dir
@@ -5684,6 +5774,7 @@ static void R_BeginCoronaQuery(rtlight_t *rtlight, float scale, bool usequery)
 	rtlight->corona_visibility = bound(0, (zdist - 32) / 32, 1);
 }
 
+__align(mSimdAlign)
 static float spritetexcoord2f[4*2] = {0, 1, 0, 0, 1, 0, 1, 1};
 
 static void R_DrawCorona(rtlight_t *rtlight, float cscale, float scale)

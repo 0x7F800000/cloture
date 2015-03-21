@@ -125,13 +125,82 @@ namespace cloture::util::templates::casts
 		using type = typename RESOLVE<T, generic::isClass<T>()>::type;
 	};
 
-	#define	_vecFromPrecast(type, tocast)	static_cast<type>(tocast)
-
-	template<bool toTypeIsClass, bool fromTypeIsClass>
-	struct vector_cast_picker
+	/*
+	 * requires that T1 and T2 be native types
+	 */
+	template<typename to_, typename from_>
+	struct vectorNativeCaster
 	{
+	private:
 
+		template<typename to, typename from, size_t elementsTo, size_t elementsFrom>
+		struct downCAST
+		{
+			__forceinline __pure
+			static constexpr to doCast(const from From)
+			{
+				return reinterpret_cast<to>(static_cast<from>(From));//__builtin_convertvector(
+					//	static_cast<from>(From),
+					//	to
+					//);
+			};
+		};
+
+		template<typename to, typename from>
+		struct downCAST<to, from, 4, 2>
+		{
+			__forceinline __pure
+			static constexpr to doCast(const from From)
+			{
+				struct TO_
+				{
+					to dummyTo;
+				};
+				struct FROM_
+				{
+					from dummyFrom;
+				};
+				return (to)choose_expr
+				(
+					sizeof(TO_) == sizeof(FROM_),
+					static_cast<from>(From),
+					((to){From[0], From[1], 0, 0})
+				);
+			};
+		};
+
+		template<typename to, typename from>
+		struct downCAST<to, from, 2, 4>
+		{
+			__forceinline __pure
+			static constexpr to doCast(const from From)
+			{
+				struct TO_
+				{
+					to dummyTo;
+				};
+				struct FROM_
+				{
+					from dummyFrom;
+				};
+				return (to)choose_expr
+				(
+					sizeof(TO_) == sizeof(FROM_),
+					static_cast<from>(From),
+					((to){From[0], From[1]})
+				);
+			};
+		};
+	public:
+		using castop = downCAST<
+			to_,
+			from_,
+			sizeof(to_)		/	sizeof( (*static_cast<to_*>(nullptr))[0]),
+			sizeof(from_)	/	sizeof( (*static_cast<to_*>(nullptr))[0])
+		>;
 	};
+
+	template<bool toTypeIsClass, bool fromTypeIsClass> struct vector_cast_picker{};
 	/*
 	 * converting between native vector types - easy
 	 */
@@ -141,7 +210,9 @@ namespace cloture::util::templates::casts
 		template<typename toType, typename FromType>
 		__forceinline __pure static constexpr toType doCast(const FromType from)
 		{
-			return __builtin_convertvector(from, toType);
+			using caster = typename vectorNativeCaster<toType, FromType>::castop;
+			return caster::doCast(from);
+			//__builtin_convertvector(from, toType);
 		}
 	};
 	/*
@@ -154,7 +225,8 @@ namespace cloture::util::templates::casts
 		__forceinline __pure static constexpr toType doCast(const FromType from)
 		{
 			using nativeTo = typename vecResolveNativeType<toType>::type;
-			return toType(__builtin_convertvector(from, nativeTo));
+			using caster = typename vectorNativeCaster<nativeTo, FromType>::castop;
+			return toType(caster::doCast(from));
 		}
 	};
 	/*
@@ -167,10 +239,11 @@ namespace cloture::util::templates::casts
 		__forceinline __pure static constexpr toType doCast(const FromType from)
 		{
 			using nativeFrom = typename vecResolveNativeType<FromType>::type;
-			return __builtin_convertvector(
-				static_cast<nativeFrom>(from),
-				toType
-			);
+			using caster = typename vectorNativeCaster<toType, nativeFrom>::castop;
+			return //__builtin_convertvector(
+				caster::doCast(static_cast<nativeFrom>(from));
+				//toType
+			//);
 		}
 	};
 	/*
@@ -184,49 +257,26 @@ namespace cloture::util::templates::casts
 		{
 			using nativeFrom 	= typename vecResolveNativeType<FromType>::type;
 			using nativeTo 		= typename vecResolveNativeType<toType>::type;
-			return toType(__builtin_convertvector(
-				static_cast<nativeFrom>(from),
-				nativeTo
-			));
+			using caster 		= typename vectorNativeCaster<nativeTo, nativeFrom>::castop;
+			return toType(
+					caster::doCast(static_cast<nativeFrom>(from))
+		//	__builtin_convertvector(
+		//		static_cast<nativeFrom>(from),
+			//	nativeTo
+		//	)
+			);
 		}
 	};
-	/*
-	__enableIf(
-	!math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
-	"Enabled if both types are not aggregate vector types."
-	)*/
+
 	template<typename toType, typename FromType>
 	static constexpr toType vector_cast(const FromType from)
 	{
-	#if 0
-		using nativeFrom 	= typename vecResolveNativeType<FromType>::type;
-		using nativeTo 		= typename vecResolveNativeType<toType>::type;
-		return static_cast<toType>(
-				__builtin_convertvector(_vecFromPrecast(nativeFrom, from.vec), nativeTo)
-		);
-	#else
 		constexpr bool toTypeIsClass	= generic::isClass<toType>();
 		constexpr bool fromTypeIsClass	= generic::isClass<FromType>();
 		using caster = vector_cast_picker<toTypeIsClass, fromTypeIsClass>;
 		return caster::doCast<toType, FromType>(from);
-	#endif
 	}
 
-	#if 0
-		template<typename toType, typename FromType>
-		__enableIf(
-		math::vector::isAggregateVector<FromType> && !math::vector::isAggregateVector<toType>,
-		"Enabled if casting from an aggregate vector to a non-aggregate vector."
-		)
-		static constexpr toType vector_cast(const FromType from)
-		{
-			using nativeFrom 	= typename vecResolveNativeType<FromType>::type;
-			using nativeTo 		= typename vecResolveNativeType<toType>::type;
-			return static_cast<toType>(
-					__builtin_convertvector(_vecFromPrecast(nativeFrom, from.vec), nativeTo)
-			);
-		}
-	#endif
 }
 
 namespace cloture

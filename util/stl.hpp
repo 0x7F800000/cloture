@@ -9,6 +9,11 @@
 	#include "arm_neon.h"
 #endif
 
+#if defined(__i386__) || defined(__x86_64__)
+	#if defined(__SSE4A__)
+		#include <ammintrin.h>
+	#endif
+#endif
 
 __if_not_exists(ptrdiff_t)
 {

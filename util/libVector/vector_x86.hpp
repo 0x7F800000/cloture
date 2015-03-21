@@ -1,10 +1,10 @@
 #pragma once
-
-
 /*
  * this file gets included in vector.hpp within the namespace
  * cloture::util::math::vector if the platform is x86
- */
+*/
+
+
 
 /*
  * vector of 2 32 bit ints
@@ -30,7 +30,8 @@ private:
 		typedef unsigned int type __attribute__((__vector_size__(8)));
 	};
 public:
-	using nativeType = typename getNativeType<T>::type;
+	using nativeType	= typename getNativeType<T>::type;
+	using elementType 	= T;
 	nativeType vec;
 
 	using vecType = vector2i32<T>;
@@ -109,8 +110,29 @@ public:
 	{
 		return vecType(-vec);
 	}
-};
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
+	}
+	__pseudopure mVecInline elementType operator [](const common::size32 index) const
+	{
+		return vec[index];
+	}
 
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
+	}
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
+};
+#if 0
 /*
  * vector of signed ints
  */
@@ -135,6 +157,9 @@ struct vector2ui : public vector2i32<unsigned int>
 		return "vector2ui";
 	}
 };
+#endif
+using vector2si = vector2i32<signed int>;
+using vector2ui = vector2i32<unsigned int>;
 
 using vecmask32x2 = vector2ui;
 
@@ -162,7 +187,8 @@ private:
 		typedef unsigned int type __attribute__((__vector_size__(16)));
 	};
 public:
-	using nativeType = typename getNativeType<T>::type;
+	using nativeType 	=	typename getNativeType<T>::type;
+	using elementType 	=	T;
 	nativeType vec;
 
 	using vecType = vector4i32<T>;
@@ -198,6 +224,12 @@ public:
 	{
 		return vecType(vec + rhs.vec);
 	}
+
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
+
 	mVecPureOp -(const vecType rhs) const
 	{
 		return vecType(vec - rhs.vec);
@@ -245,6 +277,25 @@ public:
 	mVecPureOp -()
 	{
 		return vecType(-vec);
+	}
+
+	__pseudopure mVecInline elementType operator [](const common::size32 index) const
+	{
+		return vec[index];
+	}
+
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
+	}
+
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
 	}
 };
 
@@ -303,7 +354,8 @@ private:
 		typedef unsigned short type __attribute__((__vector_size__(16)));
 	};
 public:
-	using nativeType = typename getNativeType<T>::type;
+	using nativeType	=	typename getNativeType<T>::type;
+	using elementType 	=	T;
 	nativeType vec;
 
 	using vecType = vector8i16<T>;
@@ -313,7 +365,10 @@ public:
 		vec[0] = vec[1] = vec[2] = vec[3] =
 		vec[4] = vec[5] = vec[6] = vec[7] = dupVal;
 	}
-
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
 	mVecCall vector8i16(
 	const T v0,
 	const T v1,
@@ -404,8 +459,25 @@ public:
 	{
 		return vecType(-vec);
 	}
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
+	}
+	__pseudopure mVecInline elementType operator [](const common::size32 index) const
+	{
+		return vec[index];
+	}
 
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
+	}
 };
+#if 0
 /*
  * vector of signed shorts
  */
@@ -430,7 +502,9 @@ struct vector8us : public vector8i16<unsigned short>
 		return "vector8us";
 	}
 };
-
+#endif
+using vector8ss = vector8i16<signed short>;
+using vector8us = vector8i16<unsigned short>;
 /*
  * vector of 16 8 bit ints
  */
@@ -455,7 +529,8 @@ private:
 		typedef unsigned char type __attribute__((__vector_size__(16)));
 	};
 public:
-	using nativeType = typename getNativeType<T>::type;
+	using nativeType	=	typename getNativeType<T>::type;
+	using elementType 	=	T;
 	nativeType vec;
 
 	using vecType = vector8i16<T>;
@@ -467,7 +542,10 @@ public:
 		vec[8] = vec[9] = vec[10] = vec[11] =
 		vec[12] = vec[13] = vec[14] = vec[15] = dupVal;
 	}
-
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
 	mVecCall vector16i8(
 	const T v0,
 	const T v1,
@@ -587,8 +665,25 @@ public:
 	{
 		return vecType(-vec);
 	}
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
+	}
+	__pseudopure mVecInline elementType operator [](const common::size32 index) const
+	{
+		return vec[index];
+	}
 
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
+	}
 };
+#if 0
 /*
  * vector of signed chars
  */
@@ -613,7 +708,10 @@ struct vector16ub : public vector16i8<unsigned char>
 		return "vector16ub";
 	}
 };
+#endif
 
+using vector16sb = vector16i8<signed char>;
+using vector16ub = vector16i8<unsigned char>;
 
 
 #define vec__defnOpIndex()	\
@@ -647,9 +745,9 @@ struct vector2f
 		};
 	#endif
 
-	using nativeType	=	__typeof__(vec);
-	using vecType = vector2f;
-
+	using nativeType	=	real32x4;
+	using vecType 		=	vector2f;
+	using elementType 	=	common::real32;
 	vec__defnOpIndex()
 
 	#if !mNoVectorDefault
@@ -665,7 +763,10 @@ struct vector2f
 	{
 
 	}
-
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
 	mVecCall vector2f(const nativeType other) : vec(other) {}
 
 
@@ -731,12 +832,29 @@ struct vector2f
 		return vecType( vecX() *l, vecY() * l );
 
 	}
+
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
+	}
 	static constexpr auto clotureTypeName()
 	{
 		using namespace cloture::util::ctfe;
 		return "vector2f";
 	}
+
+
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
+	}
 };
+
+static constexpr auto test = real32x4(vector2f(2.0f, 2.0f));
 
 __align(16) struct vector3f
 {
@@ -745,8 +863,9 @@ __align(16) struct vector3f
 		real32x4 vec;
 		vec_t arr[4];
 	};
-	using vecType = vector3f;
-	using nativeType = __typeof(vec);
+	using vecType		=	vector3f;
+	using nativeType	=	real32x4;
+	using elementType 	=	common::real32;
 	vec__defnOpIndex()
 
 	#if !mNoVectorDefault
@@ -761,7 +880,10 @@ __align(16) struct vector3f
 	{
 	}
 
-
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
 	mVecCall vector3f(const real32x4 other) : vec(other) {}
 
 	mVecPureOp * (const vec_t scalar) const
@@ -834,16 +956,23 @@ __align(16) struct vector3f
 		return &arr[0];
 	}
 
-	#if defined(__i386__) || defined(__x86_64__)
-		mVecPure operator real32x4()
-		{
-			return vec;
-		}
-	#endif
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
+	}
 	static constexpr auto clotureTypeName()
 	{
 		using namespace cloture::util::ctfe;
 		return "vector3f";
+	}
+
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
 	}
 };
 
@@ -859,8 +988,9 @@ __align(16) struct vector4f
 		real32x4 vec;
 		vec_t arr[4];
 	};
-	using vecType = vector4f;
-	using nativeType = __typeof(vec);
+	using vecType		=	vector4f;
+	using nativeType	=	real32x4;
+	using elementType 	=	common::real32;
 	vec__defnOpIndex()
 
 	#if !mNoVectorDefault
@@ -965,17 +1095,137 @@ __align(16) struct vector4f
 		return &arr[0];
 	}
 
-	#if defined(__i386__) || defined(__x86_64__)
-		mVecCall operator real32x4()
-		{
-			return vec;
-		}
-	#endif
-
+	mVecCall operator nativeType()
+	{
+		return vec;
+	}
+	mVecCall operator nativeType() const
+	{
+		return vec;
+	}
+	mVecInline vecType operator =(const vecType other)
+	{
+		return vec = other.vec;
+	}
+	mVecInline elementType operator ()(const common::size32 index, const elementType element)
+	{
+		return vec[index] = element;
+	}
 };
 
 #if mNativeVectorSize < 32
 	#include "vec256/vec256_x86_noavx.hpp"
 #else
 	#include "vec256/vec256_x86_avx.hpp"
+#endif
+
+#if defined(__SSE4A__)
+	template<typename T>
+	__pure __forceinline __nodebug
+	static auto extrqi(const T bitfield, const common::int8 bitindex, const common::int8 length)
+	{
+		return __builtin_ia32_extrqi(
+				_Generic(bitfield,
+						int8x16:
+						((__v2di)(__m128i)bitfield),
+						uint8x16:
+						((__v2di)(__m128i)bitfield),
+						int16x8:
+						((__v2di)(__m128i)bitfield),
+						uint16x8:
+						((__v2di)(__m128i)bitfield),
+						int32x4:
+						((__v2di)(__m128i)bitfield),
+						uint32x4:
+						((__v2di)(__m128i)bitfield),
+						real32x4:
+						((__v2di)(__m128i)bitfield),
+						int8x8:
+						((__v2di)(__m128i)bitfield),
+						uint8x8:
+						((__v2di)(__m128i)bitfield),
+						int16x4:
+						((__v2di)(__m128i)bitfield),
+						uint16x4:
+						((__v2di)(__m128i)bitfield),
+						int32x2:
+						((__v2di)(__m128i)bitfield),
+						uint32x2:
+							((__v2di)(__m128i)bitfield),
+						default:
+							((__v2di)(__m128i)bitfield.vec)
+				),
+				length,
+				bitindex
+		);
+	}
+	template<typename T1, typename T2>
+	__pure __forceinline __nodebug
+	static auto insertqi(T1 toInsertInto, const T2 inserted, const common::int8 bitindex, const common::int8 length)
+	{
+		return __builtin_ia32_insertqi(
+				_Generic(toInsertInto,
+						int8x16:
+						((__v2di)(__m128i)toInsertInto),
+						uint8x16:
+						((__v2di)(__m128i)toInsertInto),
+						int16x8:
+						((__v2di)(__m128i)toInsertInto),
+						uint16x8:
+						((__v2di)(__m128i)toInsertInto),
+						int32x4:
+						((__v2di)(__m128i)toInsertInto),
+						uint32x4:
+						((__v2di)(__m128i)toInsertInto),
+						real32x4:
+						((__v2di)(__m128i)toInsertInto),
+						int8x8:
+						((__v2di)(__m128i)toInsertInto),
+						uint8x8:
+						((__v2di)(__m128i)toInsertInto),
+						int16x4:
+						((__v2di)(__m128i)toInsertInto),
+						uint16x4:
+						((__v2di)(__m128i)toInsertInto),
+						int32x2:
+						((__v2di)(__m128i)toInsertInto),
+						uint32x2:
+							((__v2di)(__m128i)toInsertInto),
+						default:
+							((__v2di)(__m128i)toInsertInto.vec)
+				),
+				_Generic(inserted,
+						int8x16:
+						((__v2di)(__m128i)inserted),
+						uint8x16:
+						((__v2di)(__m128i)inserted),
+						int16x8:
+						((__v2di)(__m128i)inserted),
+						uint16x8:
+						((__v2di)(__m128i)inserted),
+						int32x4:
+						((__v2di)(__m128i)inserted),
+						uint32x4:
+						((__v2di)(__m128i)inserted),
+						real32x4:
+						((__v2di)(__m128i)inserted),
+						int8x8:
+						((__v2di)(__m128i)inserted),
+						uint8x8:
+						((__v2di)(__m128i)inserted),
+						int16x4:
+						((__v2di)(__m128i)inserted),
+						uint16x4:
+						((__v2di)(__m128i)inserted),
+						int32x2:
+						((__v2di)(__m128i)inserted),
+						uint32x2:
+							((__v2di)(__m128i)inserted),
+						default:
+							((__v2di)(__m128i)inserted.vec)
+				),
+				length,
+				bitindex
+		);
+	}
 #endif

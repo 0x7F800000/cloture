@@ -16,36 +16,10 @@
 
 #define 	classify_type(object)		__builtin_classify_type(object)
 
-#if 0
-	#define has_nothrow_assign(type)		__has_nothrow_assign(type)
-	#define has_nothrow_copy(type)			__has_nothrow_copy(type)
-	#define has_nothrow_constructor(type)	__has_nothrow_constructor(type)
-	#define	has_trivial_assign(type)		__has_trivial_assign(type)
-	#define has_trivial_copy(type)			__has_trivial_copy(type)
-	#define has_trivial_constructor(type)	__has_trivial_constructor(type)
-	#define has_trivial_destructor(type)	__has_trivial_destructor(type)
-	#define has_virtual_destructor(type)	__has_virtual_destructor(type)
-	#define is_abstract(type)				__is_abstract(type)
-	#define is_base_of(base, derived)		__is_base_of(base, derived)
-	#define is_class(type)					__is_class(type)
-	#define is_empty(type)					__is_empty(type)
-	#define is_enum(type)					__is_enum(type)
-	#define is_literal_type(type)			__is_literal_type(type)
-	#define is_pod(type)					__is_pod(type)
-	#define is_polymorphic(type)			__is_polymorphic(type)
-	#define is_standard_layout(type)		__is_standard_layout(type)
-	#define is_trivial(type)				__is_trivial(type)
-	#define is_union(type)					__is_union(type)
-	#define underlying_type(type)			__underlying_type(type)
-
-	#define	is_trivially_constructible(type, ...)		__is_trivially_constructible(type, ##__VA_ARGS__)
-	#define is_trivially_assignable(totype, fromtype)	__is_trivially_assignable(totype, fromtype)
-
-	/**
-		clang-supported msvc extension
-	*/
-	#define	is_convertible_to(from, to)	__is_convertible_to(from, to)
-#endif
+/*
+* clang supports c11 generic selections in C++ as an extension
+* 0_0
+*/
 
 #define 	macroError(msg)		doPragma( GCC error STRINGIFY(msg) )
 
@@ -391,6 +365,72 @@ static constexpr bool isBaseOf(baseType t1)
 }
 
 template<typename T>
+struct removeConst
+{
+private:
+	template<typename TT>
+	struct nestedChecker
+	{
+		static constexpr auto checkConst(const TT* tt)
+		{
+			return (TT*)nullptr;
+		}
+		static constexpr auto checkConst(TT* tt)
+		{
+			return (TT*)nullptr;
+		}
+	};
+public:
+	using type = __typeof(nestedChecker<T>::checkConst((T*)nullptr));
+};
+
+static_assert(!isTriviallyAssignable<const int*, typename removeConst<const int*>::type >());
+
+
+template<typename T1, typename T2>
+static constexpr bool typesIdentical()
+{
+	constexpr bool sameSize			= sizeof(T1) == sizeof(T2);
+	constexpr bool sameAlignment	= alignof(T1) == alignof(T2);
+
+	constexpr T1* t1ptr = (T1*)nullptr;
+	constexpr T2* t2ptr = (T2*)nullptr;
+
+	struct sT1
+	{
+		__typeof(*t1ptr) T1NoQualifiers;
+	};
+
+	struct sT2
+	{
+		__typeof(*t2ptr) T2NoQualifiers;
+	};
+	using T1Stripped = __typeof(sT1::T1NoQualifiers);
+	using T2Stripped = __typeof(sT2::T2NoQualifiers);
+	constexpr bool genericResultT1 = _Generic(((sT1*)nullptr)->T1NoQualifiers,
+			T2Stripped:
+				true,
+			default:
+				false
+				);
+	constexpr bool genericResultT2 = _Generic(((sT2*)nullptr)->T2NoQualifiers,
+			T1Stripped:
+				true,
+			default:
+				false
+				);
+
+	return
+		sameSize		== true
+	&& 	sameAlignment	== true
+	&&	genericResultT1 == true
+	&&	genericResultT2 == true;
+}
+
+static_assert(typesIdentical<int, int>());
+static_assert(!typesIdentical<int, const int>());
+static_assert(!typesIdentical<int, char>());
+template<typename T>
 class stripPointer
 {
 	static constexpr bool isPointerType = isPointer<T>();
@@ -539,4 +579,6 @@ constexpr int* coerceConstexprTest = __coerce_constexpr((int*)0xFF);
 
 #ifdef __clang__
 	#define __enableIf(condition, msg)	__attribute__((enable_if(condition, msg)))
+
+
 #endif

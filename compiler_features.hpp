@@ -139,6 +139,7 @@
 	#define		returnsTrueIfState(x)	__attribute__((test_typestate(x)))
 
 	#define		__optnone				__attribute__((optnone))
+	#define		__nodebug				__attribute__((__nodebug__))
 #else
 
 #endif
