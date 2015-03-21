@@ -247,34 +247,30 @@
 
 namespace cloture	{
 namespace util		{
-namespace reflect	{
-	//dbgFunctionMacro(__DECLARE_TRAIT_CHECKER_DEFAULT___(hasMempool));
-#if 0
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(hasMempool)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(isStateObject)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(isPlane)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(isVector)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(isMatrix)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(hasColor)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(hasVertex)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(isInternal)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(isFromFS)
-	__DECLARE_TRAIT_CHECKER_DEFAULT___(hasFilename)
 
-	/**
-	 * 	test code
-	*/
-	struct __TEST_REFLECT__
+class Reflect : __markAsCtfe()
+{
+	template<typename T>
+	class isIndexableChecker : __markAsCtfe()
 	{
-		int b, c;
-		__traitIsPlane(true);
+		template<typename T, bool isAClass = false>
+		struct indexerSwitch
+		{
+			//if not a class, then just check whether its a pointer or array
+			static constexpr bool value = generic::isPointer<T>() || generic::isArray<T>();
+		};
+
+		template<typename T>
+		struct indexerSwitch<T, true>
+		{
+			//if it is a class, then we need to check for operator[]
+		};
+
+
 	};
-	static_assert(
-		isPlane<__TEST_REFLECT__>(),
-		"Uh oh, type traits in util/reflect.hpp are broken."
-	);
-#endif
-}//namespace reflect
+public:
+};
+
 }//namespace util
 }//namespace cloture
 

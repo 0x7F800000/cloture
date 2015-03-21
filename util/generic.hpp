@@ -79,480 +79,516 @@ enum
 */
 #define 	argNameLength(arg)				(static_cast<ptrdiff_t>(sizeof(""#arg"") - 1))
 
-namespace cloture
+namespace cloture::util::generic
 {
-namespace util
-{
-namespace generic
-{
-using namespace cloture::util::common;
-template<typename T> struct __make_unsigned__
-{
-	typedef T ___type___;
-};
 
-template<> struct __make_unsigned__<int8>
-{
-	typedef uint8 ___type___;
-};
+	using namespace cloture::util::common;
+	template<typename T> struct __make_unsigned__
+	{
+		typedef T ___type___;
+	};
 
-template<> struct __make_unsigned__<int16>
-{
-	typedef uint16 ___type___;
-};
+	template<> struct __make_unsigned__<int8>
+	{
+		typedef uint8 ___type___;
+	};
 
-template<> struct __make_unsigned__<int32>
-{
-	typedef uint32 ___type___;
-};
+	template<> struct __make_unsigned__<int16>
+	{
+		typedef uint16 ___type___;
+	};
 
-template<> struct __make_unsigned__<int64>
-{
-	typedef uint64 ___type___;
-};
+	template<> struct __make_unsigned__<int32>
+	{
+		typedef uint32 ___type___;
+	};
 
-template<typename T> struct __make_signed__
-{
-	typedef T ___type___;
-};
+	template<> struct __make_unsigned__<int64>
+	{
+		typedef uint64 ___type___;
+	};
 
-template<> struct __make_signed__<uint8>
-{
-	typedef int8 ___type___;
-};
+	template<typename T> struct __make_signed__
+	{
+		typedef T ___type___;
+	};
 
-template<> struct __make_signed__<uint16>
-{
-	typedef int16 ___type___;
-};
+	template<> struct __make_signed__<uint8>
+	{
+		typedef int8 ___type___;
+	};
 
-template<> struct __make_signed__<uint32>
-{
-	typedef int32 ___type___;
-};
+	template<> struct __make_signed__<uint16>
+	{
+		typedef int16 ___type___;
+	};
 
-template<> struct __make_signed__<uint64>
-{
-	typedef int64 ___type___;
-};
+	template<> struct __make_signed__<uint32>
+	{
+		typedef int32 ___type___;
+	};
 
-template<typename T>
-struct typeHolder
-{
-	using type = T;
-	char y;
-	constexpr typeHolder() : y(0) {}
-};
+	template<> struct __make_signed__<uint64>
+	{
+		typedef int64 ___type___;
+	};
+
+	template<typename T>
+	struct typeHolder
+	{
+		using type = T;
+		char y;
+		constexpr typeHolder() : y(0) {}
+	};
 
 
-template<int typeclass_, typename T>
-static constexpr bool isTypeclass()
-{
-	return classify_type(*static_cast<T*>(nullptr)) == typeclass_;
-}
-
-template<int typeclass_, typename T>
-static constexpr bool isTypeclass(T f)
-{
-	return classify_type(f) == typeclass_;
-}
-
-#define		__typeClassChecker(name, typeclass)	\
-template<typename T>							\
-static constexpr bool name ()					\
-{	\
-	return isTypeclass<typeclass, T>();		\
-}	\
-template<typename T>	\
-static constexpr bool name (T f)	\
-{				\
-	return isTypeclass<typeclass>(f);	\
-}
-
-__typeClassChecker(isVoid, void_type_class)
-__typeClassChecker(isInteger, integer_type_class)
-__typeClassChecker(isChar, char_type_class)
-__typeClassChecker(isEnumeral, enumeral_type_class)
-
-__typeClassChecker(isBoolean, boolean_type_class)
-__typeClassChecker(isFunction, function_type_class)
-__typeClassChecker(isMethod, method_type_class)
-__typeClassChecker(isReference, reference_type_class)
-__typeClassChecker(isPointer, pointer_type_class)
-__typeClassChecker(isArray, array_type_class)
-__typeClassChecker(isRealNumber, real_type_class)
-__typeClassChecker(isComplexNumber, complex_type_class)
-
-static_assert(isRealNumber(7.0f) && isRealNumber(7.0) && isRealNumber(7.0L));
-
-static_assert(isComplexNumber((_Complex float) {1.0f, 2.0f} ));
-
-static constexpr int ___GENERIC_TEST___ = 0;
-static_assert(isInteger<int>() && isInteger(___GENERIC_TEST___) && isInteger<long long>() );
-
-
-template<typename T>
-static constexpr bool isIntegral()
-{
-	return isInteger<T>() || isChar<T>() || isEnumeral<T>() || isBoolean<T>();
-}
-
-template<typename T>
-static constexpr bool isIntegral(T f)
-{
-	return isIntegral<T>();
-}
-
-
-template<typename T>
-static constexpr bool isSigned()
-{
-	return static_cast<T>(-1) < static_cast<T>(0);
-}
-
-template<typename T>
-static constexpr bool isSigned(T f)
-{
-	return isSigned<T>();
-}
-
-template<typename T>
-static constexpr bool isUnsigned()
-{
-	return !isSigned<T>();
-}
-
-template<typename T>
-static constexpr bool isUnsigned(T f)
-{
-	return isUnsigned<T>();
-}
-
-
-
-#define		__declParamlessTrait(traitcall, funcname)			\
-	template<typename T> static constexpr bool funcname ()		\
-	{															\
-		return __##traitcall (T);								\
+	template<int typeclass_, typename T>
+	static constexpr bool isTypeclass()
+	{
+		return classify_type(*static_cast<T*>(nullptr)) == typeclass_;
 	}
 
-#define		__declParamTrait(funcname)							\
-	template<typename T> static constexpr bool funcname (T f)	\
-	{															\
-		return funcname<T>();									\
+	template<int typeclass_, typename T>
+	static constexpr bool isTypeclass(T f)
+	{
+		return classify_type(f) == typeclass_;
 	}
 
-#define		__declSingleParamTrait(traitcall, funcname)			\
-		__declParamlessTrait(traitcall, funcname)				\
-		__declParamTrait(funcname)
+	#define		__typeClassChecker(name, typeclass)	\
+	template<typename T>							\
+	static constexpr bool name ()					\
+	{	\
+		return isTypeclass<typeclass, T>();		\
+	}	\
+	template<typename T>	\
+	static constexpr bool name (T f)	\
+	{				\
+		return isTypeclass<typeclass>(f);	\
+	}
 
-template<typename from, typename to>
-static constexpr bool isConvertibleTo()
-{
-	return __is_convertible_to(from, to);
-}
+	__typeClassChecker(isVoid, void_type_class)
+	__typeClassChecker(isInteger, integer_type_class)
+	__typeClassChecker(isChar, char_type_class)
+	__typeClassChecker(isEnumeral, enumeral_type_class)
 
-template<typename from, typename to>
-static constexpr bool isConvertibleTo(from t1, to t2)
-{
-	return __is_convertible_to(from, to);
-}
+	__typeClassChecker(isBoolean, boolean_type_class)
+	__typeClassChecker(isFunction, function_type_class)
+	__typeClassChecker(isMethod, method_type_class)
+	__typeClassChecker(isReference, reference_type_class)
+	__typeClassChecker(isPointer, pointer_type_class)
+	__typeClassChecker(isArray, array_type_class)
+	__typeClassChecker(isRealNumber, real_type_class)
+	__typeClassChecker(isComplexNumber, complex_type_class)
 
-template<typename from, typename to>
-static constexpr bool isConvertibleTo(from t1)
-{
-	return __is_convertible_to(from, to);
-}
+	static_assert(isRealNumber(7.0f) && isRealNumber(7.0) && isRealNumber(7.0L));
 
-template<typename from, typename to>
-static constexpr bool isTriviallyAssignable()
-{
-	return __is_trivially_assignable(from, to);
-}
+	static_assert(isComplexNumber((_Complex float) {1.0f, 2.0f} ));
 
-template<typename from, typename to>
-static constexpr bool isTriviallyAssignable(from t1, to t2)
-{
-	return __is_trivially_assignable(from, to);
-}
-
-template<typename from, typename to>
-static constexpr bool isTriviallyAssignable(from t1)
-{
-	return __is_trivially_assignable(from, to);
-}
+	static constexpr int ___GENERIC_TEST___ = 0;
+	static_assert(isInteger<int>() && isInteger(___GENERIC_TEST___) && isInteger<long long>() );
 
 
-template<typename T, typename... vargs>
-static constexpr bool isTriviallyConstructible()
-{
-	return __is_trivially_constructible(T, vargs...);
-}
-
-template<typename T, typename... vargs>
-static constexpr bool isTriviallyConstructible(vargs... Vargs)
-{
-	return __is_trivially_constructible(T, vargs...);
-}
-
-
-template<typename T, typename... vargs>
-static constexpr bool isConstructible()
-{
-	return __is_constructible(T, vargs...);
-}
-
-template<typename T, typename... vargs>
-static constexpr bool isConstructible(vargs... Vargs)
-{
-	return __is_constructible(T, vargs...);
-}
-
-//get an enum's underlying type
-template<typename T>
-struct underlyingType
-{
-	using type = __underlying_type(T);
-};
-
-__declSingleParamTrait(has_nothrow_assign, hasNoThrowAssign)
-
-__declSingleParamTrait(has_nothrow_copy, hasNoThrowCopy)
-__declSingleParamTrait(has_trivial_assign, hasTrivialAssign)
-
-__declSingleParamTrait(has_trivial_copy, hasTrivialCopy)
-
-
-__declSingleParamTrait(has_trivial_constructor, hasTrivialConstructor)
-__declSingleParamTrait(has_trivial_destructor, hasTrivialDestructor)
-
-__declSingleParamTrait(is_abstract, isAbstract)
-
-__declSingleParamTrait(is_class, isClass)
-__declSingleParamTrait(is_empty, isEmpty)
-
-__declSingleParamTrait(is_enum, isEnum)
-
-__declSingleParamTrait(is_literal_type, isLiteralType)
-__declSingleParamTrait(is_pod, isPod)
-
-__declSingleParamTrait(is_polymorphic, isPolymorphic)
-
-__declSingleParamTrait(is_standard_layout, isStandardLayout)
-__declSingleParamTrait(is_trivial, isTrivial)
-
-__declSingleParamTrait(is_union, isUnion)
-__declSingleParamTrait(is_final, isFinal)
-__declSingleParamTrait(is_interface_class, isInterfaceClass)
-__declSingleParamTrait(is_destructible, isDestructible)
-
-template<typename baseType, typename derivedType>
-static constexpr bool isBaseOf()
-{
-	return __is_base_of(baseType, derivedType);
-}
-
-template<typename baseType, typename derivedType>
-static constexpr bool isBaseOf(baseType t1, derivedType t2)
-{
-	return __is_base_of(baseType, derivedType);
-}
-
-template<typename baseType, typename derivedType>
-static constexpr bool isBaseOf(baseType t1)
-{
-	return __is_base_of(baseType, derivedType);
-}
-
-template<typename T>
-struct removeConst
-{
-private:
-	template<typename TT>
-	struct nestedChecker
+	template<typename T>
+	static constexpr bool isIntegral()
 	{
-		static constexpr auto checkConst(const TT* tt)
-		{
-			return (TT*)nullptr;
+		return isInteger<T>() || isChar<T>() || isEnumeral<T>() || isBoolean<T>();
+	}
+
+	template<typename T>
+	static constexpr bool isIntegral(T f)
+	{
+		return isIntegral<T>();
+	}
+
+
+	template<typename T>
+	static constexpr bool isSigned()
+	{
+		return static_cast<T>(-1) < static_cast<T>(0);
+	}
+
+	template<typename T>
+	static constexpr bool isSigned(T f)
+	{
+		return isSigned<T>();
+	}
+
+	template<typename T>
+	static constexpr bool isUnsigned()
+	{
+		return !isSigned<T>();
+	}
+
+	template<typename T>
+	static constexpr bool isUnsigned(T f)
+	{
+		return isUnsigned<T>();
+	}
+
+
+
+	#define		__declParamlessTrait(traitcall, funcname)			\
+		template<typename T> static constexpr bool funcname ()		\
+		{															\
+			return __##traitcall (T);								\
 		}
-		static constexpr auto checkConst(TT* tt)
-		{
-			return (TT*)nullptr;
+
+	#define		__declParamTrait(funcname)							\
+		template<typename T> static constexpr bool funcname (T f)	\
+		{															\
+			return funcname<T>();									\
 		}
-	};
-public:
-	using type = __typeof(nestedChecker<T>::checkConst((T*)nullptr));
-};
 
-static_assert(!isTriviallyAssignable<const int*, typename removeConst<const int*>::type >());
+	#define		__declSingleParamTrait(traitcall, funcname)			\
+			__declParamlessTrait(traitcall, funcname)				\
+			__declParamTrait(funcname)
 
-
-template<typename T1, typename T2>
-static constexpr bool typesIdentical()
-{
-	constexpr bool sameSize			= sizeof(T1) == sizeof(T2);
-	constexpr bool sameAlignment	= alignof(T1) == alignof(T2);
-
-	constexpr T1* t1ptr = (T1*)nullptr;
-	constexpr T2* t2ptr = (T2*)nullptr;
-
-	struct sT1
+	template<typename from, typename to>
+	static constexpr bool isConvertibleTo()
 	{
-		__typeof(*t1ptr) T1NoQualifiers;
-	};
+		return __is_convertible_to(from, to);
+	}
 
-	struct sT2
+	template<typename from, typename to>
+	static constexpr bool isConvertibleTo(from t1, to t2)
 	{
-		__typeof(*t2ptr) T2NoQualifiers;
-	};
-	using T1Stripped = __typeof(sT1::T1NoQualifiers);
-	using T2Stripped = __typeof(sT2::T2NoQualifiers);
-	constexpr bool genericResultT1 = _Generic(((sT1*)nullptr)->T1NoQualifiers,
-			T2Stripped:
-				true,
-			default:
-				false
-				);
-	constexpr bool genericResultT2 = _Generic(((sT2*)nullptr)->T2NoQualifiers,
-			T1Stripped:
-				true,
-			default:
-				false
-				);
+		return __is_convertible_to(from, to);
+	}
 
-	return
-		sameSize		== true
-	&& 	sameAlignment	== true
-	&&	genericResultT1 == true
-	&&	genericResultT2 == true;
-}
-
-static_assert(typesIdentical<int, int>());
-static_assert(!typesIdentical<int, const int>());
-static_assert(!typesIdentical<int, char>());
-template<typename T>
-class stripPointer
-{
-	static constexpr bool isPointerType = isPointer<T>();
-
-	template<typename TT, bool bb = false>
-	struct helper
+	template<typename from, typename to>
+	static constexpr bool isConvertibleTo(from t1)
 	{
-		using type = TT;
-	};
+		return __is_convertible_to(from, to);
+	}
 
-	template<typename TT>
-	struct helper<TT, true>
+	template<typename from, typename to>
+	static constexpr bool isTriviallyAssignable()
 	{
-		using type = typeof( *static_cast<T>(nullptr));
+		return __is_trivially_assignable(from, to);
+	}
+
+	template<typename from, typename to>
+	static constexpr bool isTriviallyAssignable(from t1, to t2)
+	{
+		return __is_trivially_assignable(from, to);
+	}
+
+	template<typename from, typename to>
+	static constexpr bool isTriviallyAssignable(from t1)
+	{
+		return __is_trivially_assignable(from, to);
+	}
+
+
+	template<typename T, typename... vargs>
+	static constexpr bool isTriviallyConstructible()
+	{
+		return __is_trivially_constructible(T, vargs...);
+	}
+
+	template<typename T, typename... vargs>
+	static constexpr bool isTriviallyConstructible(vargs... Vargs)
+	{
+		return __is_trivially_constructible(T, vargs...);
+	}
+
+
+	template<typename T, typename... vargs>
+	static constexpr bool isConstructible()
+	{
+		return __is_constructible(T, vargs...);
+	}
+
+	template<typename T, typename... vargs>
+	static constexpr bool isConstructible(vargs... Vargs)
+	{
+		return __is_constructible(T, vargs...);
+	}
+
+	//get an enum's underlying type
+	template<typename T>
+	struct underlyingType
+	{
+		using type = __underlying_type(T);
 	};
 
-public:
-	using type = typename helper<T, isPointerType>::type;
-};
+	__declSingleParamTrait(has_nothrow_assign, hasNoThrowAssign)
 
-enum class Signedness
-{
-	Unsigned,
-	Signed
-};
+	__declSingleParamTrait(has_nothrow_copy, hasNoThrowCopy)
+	__declSingleParamTrait(has_trivial_assign, hasTrivialAssign)
 
-enum class NumberType
-{
-	Integral,
-	Real,
-	Imaginary
-};
+	__declSingleParamTrait(has_trivial_copy, hasTrivialCopy)
 
-template<typename T, Signedness signedness>
-struct setSignedness{};
 
-template<typename T>
-struct setSignedness<T, Signedness::Signed>
-{
-	using type = typename __make_signed__<T>::___type___;
-};
+	__declSingleParamTrait(has_trivial_constructor, hasTrivialConstructor)
+	__declSingleParamTrait(has_trivial_destructor, hasTrivialDestructor)
 
-template<typename T>
-struct setSignedness<T, Signedness::Unsigned>
-{
-	using type = typename __make_unsigned__<T>::___type___;
-};
+	__declSingleParamTrait(is_abstract, isAbstract)
 
-template<size_t bytes, NumberType numType = NumberType::Integral, Signedness signedness = Signedness::Signed>
-class basicTypeFromSize
-{
-	template<size_t bytes_>
-	struct sChooser{using type = void;};
+	__declSingleParamTrait(is_class, isClass)
+	__declSingleParamTrait(is_empty, isEmpty)
 
-	template<> struct sChooser<1>
-	{	using type = common::int8;	};
+	__declSingleParamTrait(is_enum, isEnum)
 
-	template<> struct sChooser<2>
-	{	using type = common::int16;	};
+	__declSingleParamTrait(is_literal_type, isLiteralType)
+	__declSingleParamTrait(is_pod, isPod)
 
-	template<> struct sChooser<4>
-	{	using type = common::int32;	};
+	__declSingleParamTrait(is_polymorphic, isPolymorphic)
 
-	template<> struct sChooser<8>
-	{	using type = common::int64;	};
+	__declSingleParamTrait(is_standard_layout, isStandardLayout)
+	__declSingleParamTrait(is_trivial, isTrivial)
 
-	template<size_t bytes_>
-	struct fChooser {using type = void; };
+	__declSingleParamTrait(is_union, isUnion)
+	__declSingleParamTrait(is_final, isFinal)
+	__declSingleParamTrait(is_interface_class, isInterfaceClass)
+	__declSingleParamTrait(is_destructible, isDestructible)
 
-	template<> struct fChooser<32>
-	{using type = common::real32;	};
-	template<> struct fChooser<64>
-	{using type = common::real32;	};
+	template<typename baseType, typename derivedType>
+	static constexpr bool isBaseOf()
+	{
+		return __is_base_of(baseType, derivedType);
+	}
 
-	template<NumberType numType_>
-	struct chooserChooser{};
+	template<typename baseType, typename derivedType>
+	static constexpr bool isBaseOf(baseType t1, derivedType t2)
+	{
+		return __is_base_of(baseType, derivedType);
+	}
 
-	template<>
-	struct chooserChooser<NumberType::Integral>
+	template<typename baseType, typename derivedType>
+	static constexpr bool isBaseOf(baseType t1)
+	{
+		return __is_base_of(baseType, derivedType);
+	}
+
+	template<typename T>
+	struct removeConst
+	{
+	private:
+		template<typename TT>
+		struct nestedChecker
+		{
+			static constexpr auto checkConst(const TT* tt)
+			{
+				return (TT*)nullptr;
+			}
+			static constexpr auto checkConst(TT* tt)
+			{
+				return (TT*)nullptr;
+			}
+		};
+	public:
+		using type = __typeof(nestedChecker<T>::checkConst((T*)nullptr));
+	};
+
+	static_assert(!isTriviallyAssignable<const int*, typename removeConst<const int*>::type >());
+
+
+	template<typename T1, typename T2>
+	static constexpr bool typesIdentical()
+	{
+		constexpr bool sameSize			= sizeof(T1) == sizeof(T2);
+		constexpr bool sameAlignment	= alignof(T1) == alignof(T2);
+
+		constexpr T1* t1ptr = (T1*)nullptr;
+		constexpr T2* t2ptr = (T2*)nullptr;
+
+		struct sT1
+		{
+			__typeof(*t1ptr) T1NoQualifiers;
+		};
+
+		struct sT2
+		{
+			__typeof(*t2ptr) T2NoQualifiers;
+		};
+		using T1Stripped = __typeof(sT1::T1NoQualifiers);
+		using T2Stripped = __typeof(sT2::T2NoQualifiers);
+		constexpr bool genericResultT1 = _Generic(((sT1*)nullptr)->T1NoQualifiers,
+				T2Stripped:
+					true,
+				default:
+					false
+					);
+		constexpr bool genericResultT2 = _Generic(((sT2*)nullptr)->T2NoQualifiers,
+				T1Stripped:
+					true,
+				default:
+					false
+					);
+
+		return
+			sameSize		== true
+		&& 	sameAlignment	== true
+		&&	genericResultT1 == true
+		&&	genericResultT2 == true;
+	}
+
+	static_assert(typesIdentical<int, int>());
+	static_assert(!typesIdentical<int, const int>());
+	static_assert(!typesIdentical<int, char>());
+	template<typename T>
+	class stripPointer
+	{
+		static constexpr bool isPointerType = isPointer<T>();
+
+		template<typename TT, bool bb = false>
+		struct helper
+		{
+			using type = TT;
+		};
+
+		template<typename TT>
+		struct helper<TT, true>
+		{
+			using type = typeof( *static_cast<T>(nullptr));
+		};
+
+	public:
+		using type = typename helper<T, isPointerType>::type;
+	};
+
+	enum class Signedness
+	{
+		Unsigned,
+		Signed
+	};
+
+	enum class NumberType
+	{
+		Integral,
+		Real,
+		Imaginary
+	};
+
+	template<typename T, Signedness signedness>
+	struct setSignedness{};
+
+	template<typename T>
+	struct setSignedness<T, Signedness::Signed>
+	{
+		using type = typename __make_signed__<T>::___type___;
+	};
+
+	template<typename T>
+	struct setSignedness<T, Signedness::Unsigned>
+	{
+		using type = typename __make_unsigned__<T>::___type___;
+	};
+
+	template<size_t bytes, NumberType numType = NumberType::Integral, Signedness signedness = Signedness::Signed>
+	class basicTypeFromSize
 	{
 		template<size_t bytes_>
-		struct choose
-		{
-			using chosen = typename sChooser<bytes_>::type;
-		};
-	};
+		struct sChooser{using type = void;};
 
-	template<>
-	struct chooserChooser<NumberType::Real>
-	{
+		template<> struct sChooser<1>
+		{	using type = common::int8;	};
+
+		template<> struct sChooser<2>
+		{	using type = common::int16;	};
+
+		template<> struct sChooser<4>
+		{	using type = common::int32;	};
+
+		template<> struct sChooser<8>
+		{	using type = common::int64;	};
+
 		template<size_t bytes_>
-		struct choose
+		struct fChooser {using type = void; };
+
+		template<> struct fChooser<32>
+		{using type = common::real32;	};
+		template<> struct fChooser<64>
+		{using type = common::real32;	};
+
+		template<NumberType numType_>
+		struct chooserChooser{};
+
+		template<>
+		struct chooserChooser<NumberType::Integral>
 		{
-			using chosen = typename fChooser<bytes_>::type;
+			template<size_t bytes_>
+			struct choose
+			{
+				using chosen = typename sChooser<bytes_>::type;
+			};
 		};
+
+		template<>
+		struct chooserChooser<NumberType::Real>
+		{
+			template<size_t bytes_>
+			struct choose
+			{
+				using chosen = typename fChooser<bytes_>::type;
+			};
+		};
+
+		template<size_t bytes_,  Signedness signedness_, NumberType numType_>
+		struct CHOOSE
+		{
+
+		};
+		template<size_t bytes_>
+		struct CHOOSE<bytes_,  Signedness::Signed, NumberType::Real>
+		{
+			using type = typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen;
+		};
+
+		template<size_t bytes_, Signedness signedness_>
+		struct CHOOSE<bytes_,  signedness_, NumberType::Integral>
+		{
+			using type = typename setSignedness<
+			typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen,
+			signedness_>::type;
+		};
+	public:
+		using type = typename CHOOSE<bytes, signedness, numType>::type;
 	};
 
-	template<size_t bytes_,  Signedness signedness_, NumberType numType_>
-	struct CHOOSE
+	/*
+	 * these check if a class inherits from any of the structures declared in codecontext.hpp
+	 *
+	 */
+
+	template<typename T>
+	static constexpr bool isRuntime()
 	{
+		return isBaseOf<cloture::runtimeContext, T>();
+	}
 
-	};
-	template<size_t bytes_>
-	struct CHOOSE<bytes_,  Signedness::Signed, NumberType::Real>
+	template<typename T>
+	static constexpr bool isRuntime(T tt)
 	{
-		using type = typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen;
-	};
+		return isBaseOf<cloture::runtimeContext, T>();
+	}
 
-	template<size_t bytes_, Signedness signedness_>
-	struct CHOOSE<bytes_,  signedness_, NumberType::Integral>
+	template<typename T>
+	static constexpr bool isCompileTime()
 	{
-		using type = typename setSignedness<
-		typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen,
-		signedness_>::type;
-	};
-public:
-	using type = typename CHOOSE<bytes, signedness, numType>::type;
-};
+		return isBaseOf<cloture::ctfeContext, T>();
+	}
 
-}//namespace generic
-}//namespace util
-}//namespace cloture
+	template<typename T>
+	static constexpr bool isCompileTime(T tt)
+	{
+		return isBaseOf<cloture::ctfeContext, T>();
+	}
+
+	template<typename T>
+	static constexpr bool isApiObject()
+	{
+		return isBaseOf<cloture::apiObject, T>();
+	}
+
+	template<typename T>
+	static constexpr bool isApiObject(T tt)
+	{
+		return isBaseOf<cloture::apiObject, T>();
+	}
+
+}//namespace cloture::util::generic
 
 #define 	make_unsigned(type)		typename __make_unsigned__<type>::___type___
 #define 	make_signed(type)		typename __make_signed__<type>::___type___

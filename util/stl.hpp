@@ -29,11 +29,8 @@ __if_not_exists(ptrdiff_t)
  	 Cloture STL headers.
 */
 
-#if defined(__clang__)
-	#define	hasExtendedConstexpr 1
-#else
-	#define hasExtendedConstexpr 0
-#endif
+
+#include	"codecontext.hpp"
 
 /*
 	common compiler extensions
@@ -72,6 +69,13 @@ __if_not_exists(ptrdiff_t)
 #include	"common.hpp"
 
 
+/*
+	templates/macros for implementing custom type traits that can be used
+	for basic compile-time reflection.
+	Verry basic reflection.//
+*/
+
+#include	"reflect.hpp"
 /*
 	CTFE stuff for compile-time tricks
 */
@@ -125,13 +129,6 @@ public:
 
 #include	"extended_types.hpp"
 
-/*
-	templates/macros for implementing custom type traits that can be used
-	for basic compile-time reflection.
-	Verry basic reflection.//
-*/
-
-#include	"reflect.hpp"
 
 #include	"typenames.hpp"
 

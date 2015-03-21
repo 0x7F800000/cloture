@@ -6,7 +6,7 @@ namespace cloture::util::ctfe
 		basic pair class
 	*/
 	template<typename t1, typename t2>
-	struct pair
+	struct pair : __markAsCtfe()
 	{
 		t1 first;
 		t2 second;
@@ -17,6 +17,8 @@ namespace cloture::util::ctfe
 		constexpr __pure pair(t1 f, t2 s) : first(f), second(s)
 		{}
 	};
+	using upair = pair<int, unsigned int>;
+	mAssertZeroOffset(upair, first);
 	/**
 		ctfe::Array
 			compile-time array copyable array
