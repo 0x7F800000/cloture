@@ -2,7 +2,6 @@
 
 #define		__QTYPES_INCLUDED	1
 
-[[deprecated]] typedef bool qboolean;
 #ifndef NULL
 	#define NULL nullptr
 #endif

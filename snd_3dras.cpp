@@ -685,7 +685,7 @@ int S_LoadSound(sfx_t *sfx, int complain){
 	}
 	return false;
 }
-sfx_t *S_PrecacheSound (const char *name, qboolean complain, qboolean serversound){
+sfx_t *S_PrecacheSound (const char *name, bool complain, bool serversound){
 	sfx_t *sfx;
 	if(ras_version>0 && ras_dll){
 		#ifdef RAS_PRINT
@@ -725,7 +725,7 @@ void S_ClearUsed (void){
 void S_PurgeUnused(void){
 	Free_Unlocked_Sfx();
 }
-qboolean S_IsSoundPrecached (const sfx_t *sfx){
+bool S_IsSoundPrecached (const sfx_t *sfx){
 	if(ras_version>0 && ras_dll){
 		return !sfx->rasptr;
 	}
@@ -890,7 +890,7 @@ int S_StartSound (int entnum, int entchannel, sfx_t *sfx, vec3_t origin, float f
 	Con_Printf("S_StartSound: engine not stated\n");
 	return -1;
 }
-qboolean S_LocalSound (const char *s){
+bool S_LocalSound (const char *s){
 	sfx_t	*sfx;
 	int		ch_ind;
 	if(ras_version>0 && ras_dll){
@@ -957,7 +957,7 @@ void S_StopAllSounds (void){
 		}
 	}
 }
-void S_PauseGameSounds (qboolean toggle){
+void S_PauseGameSounds (bool toggle){
 	if(ras_version>0 && ras_dll){
 		Con_Printf("Called S_PauseGameSounds %i\n",toggle);
 		//Localsounds should not be pauzed
@@ -977,7 +977,7 @@ void S_StopChannel (unsigned int channel_ind){
 		}
 	}
 }
-qboolean S_SetChannelFlag (unsigned int ch_ind, unsigned int flag, qboolean value){
+bool S_SetChannelFlag (unsigned int ch_ind, unsigned int flag, bool value){
 	if(ras_version>0 && ras_dll){
 		Con_Printf("Called S_SetChannelFlag %u, %u, %i\n",ch_ind, flag, value);
 	}

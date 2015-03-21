@@ -46,7 +46,7 @@ Create "snd_renderbuffer" with the proper sound format if the call is successful
 May return a suggested format if the requested format isn't available
 ====================
 */
-qboolean SndSys_Init (const snd_format_t* requested, snd_format_t* suggested)
+bool SndSys_Init (const snd_format_t* requested, snd_format_t* suggested)
 {
 	unsigned int i;
 	const char *snddev;
@@ -211,7 +211,7 @@ SndSys_LockRenderBuffer
 Get the exclusive lock on "snd_renderbuffer"
 ====================
 */
-qboolean SndSys_LockRenderBuffer (void)
+bool SndSys_LockRenderBuffer (void)
 {
 	// Nothing to do
 	return true;

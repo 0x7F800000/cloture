@@ -327,7 +327,7 @@ Cvar_Set
 extern cvar_t sv_disablenotify;
 static void Cvar_SetQuick_Internal (cvar_t *var, const char *value)
 {
-	qboolean changed;
+	bool changed;
 	size_t valuelen;
 	char vabuf[1024];
 
@@ -635,7 +635,7 @@ Cvar_Command
 Handles variable inspection and changing from the console
 ============
 */
-qboolean	Cvar_Command (void)
+bool	Cvar_Command (void)
 {
 	cvar_t			*v;
 
@@ -842,7 +842,7 @@ void Cvar_List_f (void)
 	const char *partial;
 	size_t len;
 	int count;
-	qboolean ispattern;
+	bool ispattern;
 
 	if (Cmd_Argc() > 1)
 	{
@@ -991,7 +991,7 @@ void Cvar_FillAll_f()
 	char *buf, *p, *q;
 	int n, i;
 	cvar_t *var;
-	qboolean verify;
+	bool verify;
 	if(Cmd_Argc() != 2)
 	{
 		Con_Printf("Usage: %s length to plant rubbish\n", Cmd_Argv(0));

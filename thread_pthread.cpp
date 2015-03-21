@@ -16,7 +16,7 @@ void Thread_Shutdown(void)
 {
 }
 
-qboolean Thread_HasThreads(void)
+bool Thread_HasThreads(void)
 {
 	return true;
 }

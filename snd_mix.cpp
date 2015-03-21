@@ -289,8 +289,8 @@ void S_MixToBuffer(void *stream, unsigned int bufferframes)
 	double posd;
 	double speedd;
 	float maxvol;
-	qboolean looping;
-	qboolean silent;
+	bool looping;
+	bool silent;
 
 	// mix as many times as needed to fill the requested buffer
 	while (bufferframes)

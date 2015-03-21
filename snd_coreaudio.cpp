@@ -34,7 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 static unsigned int submissionChunk = 0;  // in sample frames
 static unsigned int coreaudiotime = 0;  // based on the number of chunks submitted so far
-static qboolean s_isRunning = false;
+static bool s_isRunning = false;
 static pthread_mutex_t coreaudio_mutex;
 static AudioDeviceID outputDeviceID = kAudioDeviceUnknown;
 static short *mixbuffer = NULL;
@@ -142,7 +142,7 @@ Create "snd_renderbuffer" with the proper sound format if the call is successful
 May return a suggested format if the requested format isn't available
 ====================
 */
-qboolean SndSys_Init (const snd_format_t* requested, snd_format_t* suggested)
+bool SndSys_Init (const snd_format_t* requested, snd_format_t* suggested)
 {
 	OSStatus status;
 	UInt32 propertySize, bufferByteCount;
@@ -368,7 +368,7 @@ SndSys_LockRenderBuffer
 Get the exclusive lock on "snd_renderbuffer"
 ====================
 */
-qboolean SndSys_LockRenderBuffer (void)
+bool SndSys_LockRenderBuffer (void)
 {
 	return (pthread_mutex_lock(&coreaudio_mutex) == 0);
 }

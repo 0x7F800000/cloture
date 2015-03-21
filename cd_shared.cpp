@@ -86,9 +86,9 @@ cvar_t music_playlist_sampleposition[MAX_PLAYLISTS] =
 	{0, "music_playlist_sampleposition9", "-1", "resume position for track, -1 restarts every time"},
 };
 
-static qboolean wasPlaying = false;
-static qboolean initialized = false;
-static qboolean enabled = false;
+static bool wasPlaying = false;
+static bool initialized = false;
+static bool enabled = false;
 static float cdvolume;
 typedef char filename_t[MAX_QPATH];
 #ifdef MAXTRACKS
@@ -100,9 +100,9 @@ static int faketrack = -1;
 static float saved_vol = 1.0f;
 
 // exported variables
-qboolean cdValid = false;
-qboolean cdPlaying = false;
-qboolean cdPlayLooping = false;
+bool cdValid = false;
+bool cdPlaying = false;
+bool cdPlayLooping = false;
 unsigned char cdPlayTrack;
 
 cl_cdstate_t cd;
@@ -149,7 +149,7 @@ static int CDAudio_GetAudioDiskInfo (void)
 	return 0;
 }
 
-static qboolean CDAudio_Play_real (int track, qboolean looping, qboolean complain)
+static bool CDAudio_Play_real (int track, bool looping, bool complain)
 {
 	if(track < 1)
 	{
@@ -185,7 +185,7 @@ static qboolean CDAudio_Play_real (int track, qboolean looping, qboolean complai
 	return true;
 }
 
-void CDAudio_Play_byName (const char *trackname, qboolean looping, qboolean tryreal, float startposition)
+void CDAudio_Play_byName (const char *trackname, bool looping, bool tryreal, float startposition)
 {
 	unsigned int track;
 	sfx_t* sfx;
@@ -346,7 +346,7 @@ success:
 		CDAudio_Pause ();
 }
 
-void CDAudio_Play (int track, qboolean looping)
+void CDAudio_Play (int track, bool looping)
 {
 	char buf[20];
 	if (music_playlist_index.integer >= 0)
@@ -604,7 +604,7 @@ static void CDAudio_StopPlaylistTrack(void)
 	music_playlist_playing = 0; // not playing
 }
 
-void CDAudio_StartPlaylist(qboolean resume)
+void CDAudio_StartPlaylist(bool resume)
 {
 	const char *list;
 	const char *t;

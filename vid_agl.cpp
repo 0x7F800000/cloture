@@ -39,7 +39,7 @@
 // Tell startup code that we have a client
 int cl_available = true;
 
-qboolean vid_supportrefreshrate = true;
+bool vid_supportrefreshrate = true;
 
 // AGL prototypes
 AGLPixelFormat (*qaglChoosePixelFormat) (const AGLDevice *gdevs, GLint ndev, const GLint *attribList);
@@ -57,16 +57,16 @@ CGLError (*qCGLEnable) (CGLContextObj ctx, CGLContextEnable pname);
 CGLError (*qCGLDisable) (CGLContextObj ctx, CGLContextEnable pname);
 CGLContextObj (*qCGLGetCurrentContext) (void);
 
-static qboolean multithreadedgl;
-static qboolean mouse_avail = true;
-static qboolean vid_usingmouse = false;
-static qboolean vid_usinghidecursor = false;
-static qboolean vid_usingnoaccel = false;
+static bool multithreadedgl;
+static bool mouse_avail = true;
+static bool vid_usingmouse = false;
+static bool vid_usinghidecursor = false;
+static bool vid_usingnoaccel = false;
 
-static qboolean vid_isfullscreen = false;
-static qboolean vid_usingvsync = false;
+static bool vid_isfullscreen = false;
+static bool vid_usingvsync = false;
 
-static qboolean sound_active = true;
+static bool sound_active = true;
 
 static cvar_t apple_multithreadedgl = {CVAR_SAVE, "apple_multithreadedgl", "1", "makes use of a second thread for the OpenGL driver (if possible) rather than using the engine thread (note: this is done automatically on most other operating systems)"};
 static cvar_t apple_mouse_noaccel = {CVAR_SAVE, "apple_mouse_noaccel", "1", "disables mouse acceleration while DarkPlaces is active"};
@@ -97,7 +97,7 @@ io_connect_t IN_GetIOHandle(void)
 	return iohandle;
 }
 
-void VID_SetMouse(qboolean fullscreengrab, qboolean relative, qboolean hidecursor)
+void VID_SetMouse(bool fullscreengrab, bool relative, bool hidecursor)
 {
 	if (!mouse_avail || !window)
 		relative = hidecursor = false;
@@ -193,7 +193,7 @@ void VID_SetMouse(qboolean fullscreengrab, qboolean relative, qboolean hidecurso
 #define GAMMA_TABLE_SIZE 256
 void VID_Finish (void)
 {
-	qboolean vid_usevsync;
+	bool vid_usevsync;
 
 	// handle changes of the vsync option
 	vid_usevsync = (vid_vsync.integer && !cls.timedemo);
@@ -423,8 +423,8 @@ void VID_Shutdown(void)
 }
 
 // Since the event handler can be called at any time, we store the events for later processing
-static qboolean AsyncEvent_Quitting = false;
-static qboolean AsyncEvent_Collapsed = false;
+static bool AsyncEvent_Quitting = false;
+static bool AsyncEvent_Collapsed = false;
 static OSStatus MainWindowEventHandler (EventHandlerCallRef nextHandler, EventRef event, void *userData)
 {
 	OSStatus err = noErr;
@@ -453,7 +453,7 @@ static OSStatus MainWindowEventHandler (EventHandlerCallRef nextHandler, EventRe
 	return err;
 }
 
-static void VID_AppFocusChanged(qboolean windowIsActive)
+static void VID_AppFocusChanged(bool windowIsActive)
 {
 	if (vid_activewindow != windowIsActive)
 	{
@@ -494,7 +494,7 @@ static void VID_ProcessPendingAsyncEvents (void)
 		Sys_Quit(0);
 }
 
-static void VID_BuildAGLAttrib(GLint *attrib, qboolean stencil, qboolean fullscreen, qboolean stereobuffer, int samples)
+static void VID_BuildAGLAttrib(GLint *attrib, bool stencil, bool fullscreen, bool stereobuffer, int samples)
 {
 	*attrib++ = AGL_RGBA;
 	*attrib++ = AGL_RED_SIZE;*attrib++ = stencil ? 8 : 5;
@@ -528,7 +528,7 @@ static void VID_BuildAGLAttrib(GLint *attrib, qboolean stencil, qboolean fullscr
 	*attrib++ = AGL_NONE;
 }
 
-qboolean VID_InitMode(viddef_mode_t *mode)
+bool VID_InitMode(viddef_mode_t *mode)
 {
 	const EventTypeSpec winEvents[] =
 	{
@@ -744,7 +744,7 @@ static void Handle_KeyMod(UInt32 keymod)
 	prev_keymod = keymod;
 }
 
-static void Handle_Key(unsigned char charcode, UInt32 mackeycode, qboolean keypressed)
+static void Handle_Key(unsigned char charcode, UInt32 mackeycode, bool keypressed)
 {
 	unsigned int keycode = 0;
 	char ascii = '\0';
@@ -1117,10 +1117,10 @@ void VID_BuildJoyState(vid_joystate_t *joystate)
 	VID_Shared_BuildJoyState_Finish(joystate);
 }
 
-void VID_EnableJoystick(qboolean enable)
+void VID_EnableJoystick(bool enable)
 {
 	int index = joy_enable.integer > 0 ? joy_index.integer : -1;
-	qboolean success = false;
+	bool success = false;
 	int sharedcount = 0;
 	sharedcount = VID_Shared_SetJoystick(index);
 	if (index >= 0 && index < sharedcount)

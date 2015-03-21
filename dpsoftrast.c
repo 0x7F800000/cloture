@@ -12,9 +12,6 @@
 #pragma warning(disable : 4324)
 #endif
 
-#ifndef __cplusplus
-typedef qboolean bool;
-#endif
 
 #define ALIGN_SIZE 16
 #define ATOMIC_SIZE 4

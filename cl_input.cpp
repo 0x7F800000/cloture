@@ -307,7 +307,7 @@ void IN_CycleWeapon (void)
 {
 	int i, n;
 	int first = -1;
-	qboolean found = false;
+	bool found = false;
 	const char *t;
 	if (Cmd_Argc() < 2)
 	{
@@ -364,7 +364,7 @@ Returns 0.25 if a key was pressed and released during the frame,
 float CL_KeyState (kbutton_t *key)
 {
 	float		val;
-	qboolean	impulsedown, impulseup, down;
+	bool	impulsedown, impulseup, down;
 
 	impulsedown = (key->state & 2) != 0;
 	impulseup = (key->state & 4) != 0;
@@ -829,7 +829,7 @@ static vec3_t offsets[NUMOFFSETS] =
 	{-0.125,  0.125, -0.125}, { 0.125,  0.125, -0.125},
 };
 
-static qboolean CL_ClientMovement_Unstick(cl_clientmovement_state_t *s)
+static bool CL_ClientMovement_Unstick(cl_clientmovement_state_t *s)
 {
 	int i;
 	vec3_t neworigin;
@@ -1393,7 +1393,7 @@ static void CL_ClientMovement_Physics_Walk(cl_clientmovement_state_t *s)
 		{
 			// apply air speed limit
 			vec_t accel, wishspeed0, wishspeed2, accelqw, strafity;
-			qboolean accelerating;
+			bool accelerating;
 
 			accelqw = cl.movevars_airaccel_qw;
 			wishspeed0 = wishspeed;
@@ -1750,8 +1750,8 @@ void CL_SendMove(void)
 	unsigned char data[1024];
 	double packettime;
 	int msecdelta;
-	qboolean quemove;
-	qboolean important;
+	bool quemove;
+	bool important;
 
 	// if playing a demo, do nothing
 	if (!cls.netcon)

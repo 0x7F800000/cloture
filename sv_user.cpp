@@ -101,7 +101,7 @@ void SV_SetIdealPitch (void)
 static vec3_t wishdir, forward, right, up;
 static float wishspeed;
 
-static qboolean onground;
+static bool onground;
 
 /*
 ==================

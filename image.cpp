@@ -18,7 +18,7 @@ static void Image_CopyAlphaFromBlueBGRA(unsigned char *outpixels, const unsigned
 
 #if 1
 // written by LordHavoc in a readable way, optimized by Vic, further optimized by LordHavoc (the non-special index case), readable version preserved below this
-void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int inputwidth, int inputheight, qboolean inputflipx, qboolean inputflipy, qboolean inputflipdiagonal, int numoutputcomponents, int numinputcomponents, int *outputinputcomponentindices)
+void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int inputwidth, int inputheight, bool inputflipx, bool inputflipy, bool inputflipdiagonal, int numoutputcomponents, int numinputcomponents, int *outputinputcomponentindices)
 {
 	int index, c, x, y;
 	const unsigned char *in, *line;
@@ -67,7 +67,7 @@ void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int 
 }
 #else
 // intentionally readable version
-void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int inputwidth, int inputheight, qboolean inputflipx, qboolean inputflipy, qboolean inputflipdiagonal, int numoutputcomponents, int numinputcomponents, int *outputinputcomponentindices)
+void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int inputwidth, int inputheight, bool inputflipx, bool inputflipy, bool inputflipdiagonal, int numoutputcomponents, int numinputcomponents, int *outputinputcomponentindices)
 {
 	int index, c, x, y;
 	const unsigned char *in, *inrow, *incolumn;
@@ -280,7 +280,7 @@ static unsigned char* LoadPCX_BGRA (const unsigned char *f, int filesize, int *m
 LoadPCX
 ============
 */
-qboolean LoadPCX_QWSkin(const unsigned char *f, int filesize, unsigned char *pixels, int outwidth, int outheight)
+bool LoadPCX_QWSkin(const unsigned char *f, int filesize, unsigned char *pixels, int outwidth, int outheight)
 {
 	pcx_t pcx;
 	unsigned char *a;
@@ -359,7 +359,7 @@ qboolean LoadPCX_QWSkin(const unsigned char *f, int filesize, unsigned char *pix
 LoadPCX
 ============
 */
-qboolean LoadPCX_PaletteOnly(const unsigned char *f, int filesize, unsigned char *palette768b)
+bool LoadPCX_PaletteOnly(const unsigned char *f, int filesize, unsigned char *palette768b)
 {
 	if (filesize < 768)
 		return false;
@@ -792,7 +792,7 @@ static unsigned char *LoadWAL_BGRA (const unsigned char *f, int filesize, int *m
 	return image_buffer;
 }
 
-qboolean LoadWAL_GetMetadata(const unsigned char *f, int filesize, int *retwidth, int *retheight, int *retflags, int *retvalue, int *retcontents, char *retanimname32c)
+bool LoadWAL_GetMetadata(const unsigned char *f, int filesize, int *retwidth, int *retheight, int *retflags, int *retvalue, int *retcontents, char *retanimname32c)
 {
 	const q2wal_t *inwal = (const q2wal_t *)f;
 
@@ -947,7 +947,7 @@ imageformat_t imageformats_other[] =
 };
 
 int fixtransparentpixels(unsigned char *data, int w, int h);
-unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qboolean allowFixtrans, qboolean convertsRGB, int *miplevel)
+unsigned char *loadimagepixelsbgra (const char *filename, bool complain, bool allowFixtrans, bool convertsRGB, int *miplevel)
 {
 	fs_offset_t filesize;
 	imageformat_t *firstformat, *format;
@@ -1067,7 +1067,7 @@ unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qbo
 }
 
 extern cvar_t gl_picmip;
-rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, qboolean complain, int flags, qboolean allowFixtrans, qboolean sRGB)
+rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, bool complain, int flags, bool allowFixtrans, bool sRGB)
 {
 	unsigned char *data;
 	rtexture_t *rt;
@@ -1234,9 +1234,9 @@ void Image_FixTransparentPixels_f(void)
 	FS_FreeSearch(search);
 }
 
-qboolean Image_WriteTGABGR_preflipped (const char *filename, int width, int height, const unsigned char *data)
+bool Image_WriteTGABGR_preflipped (const char *filename, int width, int height, const unsigned char *data)
 {
-	qboolean ret;
+	bool ret;
 	unsigned char buffer[18];
 	const void *buffers[2];
 	fs_offset_t sizes[2];
@@ -1258,12 +1258,12 @@ qboolean Image_WriteTGABGR_preflipped (const char *filename, int width, int heig
 	return ret;
 }
 
-qboolean Image_WriteTGABGRA (const char *filename, int width, int height, const unsigned char *data)
+bool Image_WriteTGABGRA (const char *filename, int width, int height, const unsigned char *data)
 {
 	int y;
 	unsigned char *buffer, *out;
 	const unsigned char *in, *end;
-	qboolean ret;
+	bool ret;
 
 	buffer = (unsigned char *)Mem_Alloc(tempmempool, width*height*4 + 18);
 

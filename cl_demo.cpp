@@ -414,7 +414,7 @@ void CL_PlayDemo_f (void)
 {
 	char	name[MAX_QPATH];
 	int c;
-	qboolean neg = false;
+	bool neg = false;
 	qfile_t *f;
 
 	if (Cmd_Argc() != 2)

@@ -61,7 +61,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 int cl_available = true;
 
 // note: if we used the XRandR extension we could support refresh rates
-qboolean vid_supportrefreshrate = false;
+bool vid_supportrefreshrate = false;
 
 //GLX prototypes
 XVisualInfo *(GLAPIENTRY *qglXChooseVisual)(Display *dpy, int screen, int *attribList);
@@ -77,7 +77,7 @@ void *(GLAPIENTRY *qglXGetProcAddressARB)(const GLubyte *procName);
 static dllfunction_t getprocaddressfuncs[] =
 {
 	{"glXGetProcAddressARB", (void **) &qglXGetProcAddressARB},
-	{NULL, NULL}
+	{nullptr, nullptr}
 };
 
 //GLX_SGI_swap_control
@@ -86,15 +86,15 @@ GLint (GLAPIENTRY *qglXSwapIntervalSGI)(GLint interval);
 static dllfunction_t swapcontrolfuncs[] =
 {
 	{"glXSwapIntervalSGI", (void **) &qglXSwapIntervalSGI},
-	{NULL, NULL}
+	{nullptr, nullptr}
 };
 
-static Display *vidx11_display = NULL;
+static Display *vidx11_display = nullptr;
 static int vidx11_screen;
 static Window win, root;
-static GLXContext ctx = NULL;
-static GC vidx11_gc = NULL;
-static XImage *vidx11_ximage[2] = { NULL, NULL };
+static GLXContext ctx = nullptr;
+static GC vidx11_gc = nullptr;
+static XImage *vidx11_ximage[2] = { nullptr, nullptr };
 static int vidx11_ximage_pos = 0;
 static XShmSegmentInfo vidx11_shminfo[2];
 static int vidx11_shmevent = -1;
@@ -115,32 +115,32 @@ Atom cardinal;
 		LeaveWindowMask)
 
 
-static qboolean mouse_avail = true;
-static qboolean vid_usingmousegrab = false;
-static qboolean vid_usingmouse = false;
-static qboolean vid_usinghidecursor = false;
-static qboolean vid_usingvsync = false;
-static qboolean vid_usevsync = false;
-static qboolean vid_x11_hardwaregammasupported = false;
+static bool mouse_avail = true;
+static bool vid_usingmousegrab = false;
+static bool vid_usingmouse = false;
+static bool vid_usinghidecursor = false;
+static bool vid_usingvsync = false;
+static bool vid_usevsync = false;
+static bool vid_x11_hardwaregammasupported = false;
 #ifdef USEDGA
-static qboolean vid_x11_dgasupported = false;
+static bool vid_x11_dgasupported = false;
 #endif
 static int vid_x11_gammarampsize = 0;
 
 #ifdef USEDGA
 cvar_t vid_dgamouse = {CVAR_SAVE, "vid_dgamouse", "0", "make use of DGA mouse input"};
-static qboolean vid_usingdgamouse = false;
+static bool vid_usingdgamouse = false;
 #endif
 
-qboolean vidmode_ext = false;
+bool vidmode_ext = false;
 
 static int win_x, win_y;
 
 static XF86VidModeModeInfo init_vidmode, game_vidmode;
-static qboolean vid_isfullscreen = false;
-static qboolean vid_isvidmodefullscreen = false;
-static qboolean vid_isdesktopfullscreen = false;
-static qboolean vid_isoverrideredirect = false;
+static bool vid_isfullscreen = false;
+static bool vid_isvidmodefullscreen = false;
+static bool vid_isdesktopfullscreen = false;
+static bool vid_isoverrideredirect = false;
 
 static vid_mode_t desktop_mode;
 static Visual *vidx11_visual;
@@ -161,7 +161,7 @@ static void DP_Xutf8LookupString(XKeyEvent * ev,
 	char buffer[64];
 	int nbytes = sizeof(buffer);
 
-	rc = XLookupString(ev, buffer, nbytes, &keysym, NULL);
+	rc = XLookupString(ev, buffer, nbytes, &keysym, nullptr);
 
 	if (rc > 0) {
 		codepoint = buffer[0] & 0xFF;
@@ -330,15 +330,15 @@ static Cursor CreateNullCursor(Display *display, Window root)
 	return cursor;
 }
 
-void VID_SetMouse(qboolean fullscreengrab, qboolean relative, qboolean hidecursor)
+void VID_SetMouse(bool fullscreengrab, bool relative, bool hidecursor)
 {
 	static int originalmouseparms_num;
 	static int originalmouseparms_denom;
 	static int originalmouseparms_threshold;
-	static qboolean restore_spi;
+	static bool restore_spi;
 
 #ifdef USEDGA
-	qboolean usedgamouse;
+	bool usedgamouse;
 #endif
 
 	if (!vidx11_display || !win)
@@ -466,7 +466,7 @@ static keynum_t buttonremap[18] =
 	K_MOUSE16,
 };
 
-static qboolean BuildXImages(int w, int h)
+static bool BuildXImages(int w, int h)
 {
 	int i;
 	if(DefaultDepth(vidx11_display, vidx11_screen) != 32 && DefaultDepth(vidx11_display, vidx11_screen) != 24)
@@ -499,7 +499,7 @@ static qboolean BuildXImages(int w, int h)
 		for(i = 0; i < 2; ++i)
 		{
 			vidx11_shminfo[i].shmid = -1;
-			vidx11_ximage[i] = XShmCreateImage(vidx11_display, vidx11_visual, DefaultDepth(vidx11_display, vidx11_screen), ZPixmap, NULL, &vidx11_shminfo[i], w, h);
+			vidx11_ximage[i] = XShmCreateImage(vidx11_display, vidx11_visual, DefaultDepth(vidx11_display, vidx11_screen), ZPixmap, nullptr, &vidx11_shminfo[i], w, h);
 			if(!vidx11_ximage[i])
 			{
 				Con_Printf("Failed to get an XImage segment\n");
@@ -519,7 +519,7 @@ static qboolean BuildXImages(int w, int h)
 				VID_Shutdown();
 				return false;
 			}
-			vidx11_shminfo[i].shmaddr = vidx11_ximage[i]->data = reinterpret_cast<char*>(shmat(vidx11_shminfo[i].shmid, NULL, 0));
+			vidx11_shminfo[i].shmaddr = vidx11_ximage[i]->data = reinterpret_cast<char*>(shmat(vidx11_shminfo[i].shmid, nullptr, 0));
 			if(!vidx11_shminfo[i].shmaddr)
 			{
 				Con_Printf("Failed to get a shm segment addresst\n");
@@ -562,7 +562,7 @@ static void DestroyXImages(void)
 		{
 			XShmDetach(vidx11_display, &vidx11_shminfo[i]);
 			XDestroyImage(vidx11_ximage[i]);
-			vidx11_ximage[i] = NULL;
+			vidx11_ximage[i] = nullptr;
 			shmdt(vidx11_shminfo[i].shmaddr);
 			shmctl(vidx11_shminfo[i].shmid, IPC_RMID, 0);
 			vidx11_shminfo[i].shmid = -1;
@@ -579,7 +579,7 @@ static void HandleEvents(void)
 	XEvent event;
 	int key;
 	Uchar unicode;
-	qboolean dowarp = false;
+	bool dowarp = false;
 
 	if (!vidx11_display)
 		return;
@@ -814,15 +814,15 @@ static void HandleEvents(void)
 	}
 }
 
-static void *prjobj = NULL;
+static void *prjobj = nullptr;
 
 static void GL_CloseLibrary(void)
 {
 	if (prjobj)
 		dlclose(prjobj);
-	prjobj = NULL;
+	prjobj = nullptr;
 	gl_driver[0] = 0;
-	qglXGetProcAddressARB = NULL;
+	qglXGetProcAddressARB = nullptr;
 	gl_extensions = "";
 	gl_platform = "";
 	gl_platformextensions = "";
@@ -843,10 +843,10 @@ static int GL_OpenLibrary(const char *name)
 
 void *GL_GetProcAddress(const char *name)
 {
-	void *p = NULL;
-	if (qglXGetProcAddressARB != NULL)
+	void *p = nullptr;
+	if (qglXGetProcAddressARB != nullptr)
 		p = (void *) qglXGetProcAddressARB((GLubyte *)name);
-	if (p == NULL)
+	if (p == nullptr)
 		p = (void *) dlsym(prjobj, name);
 	return p;
 }
@@ -866,15 +866,15 @@ void VID_Shutdown(void)
 
 	if(vidx11_gc)
 		XFreeGC(vidx11_display, vidx11_gc);
-	vidx11_gc = NULL;
+	vidx11_gc = nullptr;
 
 	DestroyXImages();
 	vidx11_shmevent = -1;
-	vid.softpixels = NULL;
+	vid.softpixels = nullptr;
 
 	if (vid.softdepthpixels)
 		free(vid.softdepthpixels);
-	vid.softdepthpixels = NULL;
+	vid.softdepthpixels = nullptr;
 
 	if (win)
 		XDestroyWindow(vidx11_display, win);
@@ -885,9 +885,9 @@ void VID_Shutdown(void)
 	vid_isdesktopfullscreen = false;
 	vid_isvidmodefullscreen = false;
 	vid_isoverrideredirect = false;
-	vidx11_display = NULL;
+	vidx11_display = nullptr;
 	win = 0;
-	ctx = NULL;
+	ctx = nullptr;
 
 	GL_CloseLibrary();
 	Key_ClearStates ();
@@ -924,7 +924,7 @@ void VID_Finish (void)
 			if(vidx11_shmevent >= 0) {
 				vidx11_ximage_pos = !vidx11_ximage_pos;
 				vid.softpixels = (unsigned int *) vidx11_ximage[vidx11_ximage_pos]->data;
-				DPSOFTRAST_SetRenderTargets(vid.width, vid.height, vid.softdepthpixels, vid.softpixels, NULL, NULL, NULL);
+				DPSOFTRAST_SetRenderTargets(vid.width, vid.height, vid.softdepthpixels, vid.softpixels, nullptr, nullptr, nullptr);
 
 				++vidx11_shmwait;
 				XShmPutImage(vidx11_display, win, vidx11_gc, vidx11_ximage[!vidx11_ximage_pos], 0, 0, 0, 0, vid.width, vid.height, True);
@@ -1000,7 +1000,7 @@ void VID_Init(void)
 	vidx11_shminfo[1].shmid = -1;
 }
 
-static void VID_BuildGLXAttrib(int *attrib, qboolean stencil, qboolean stereobuffer, int samples)
+static void VID_BuildGLXAttrib(int *attrib, bool stencil, bool stereobuffer, int samples)
 {
 	*attrib++ = GLX_RGBA;
 	*attrib++ = GLX_RED_SIZE;*attrib++ = stencil ? 8 : 5;
@@ -1026,7 +1026,7 @@ static void VID_BuildGLXAttrib(int *attrib, qboolean stencil, qboolean stereobuf
 	*attrib++ = None;
 }
 
-static qboolean VID_InitModeSoft(viddef_mode_t *mode)
+static bool VID_InitModeSoft(viddef_mode_t *mode)
 {
 	int i, j;
 	XSetWindowAttributes attr;
@@ -1047,12 +1047,12 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 	vid_isvidmodefullscreen = false;
 	vid_isoverrideredirect = false;
 
-	if (!(vidx11_display = XOpenDisplay(NULL)))
+	if (!(vidx11_display = XOpenDisplay(nullptr)))
 	{
 		Con_Print("Couldn't open the X display\n");
 		return false;
 	}
-	dpyname = XDisplayName(NULL);
+	dpyname = XDisplayName(nullptr);
 
 	// LordHavoc: making the close button on a window do the right thing
 	// seems to involve this mess, sigh...
@@ -1064,7 +1064,7 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 	cardinal = XInternAtom(vidx11_display, "CARDINAL", false);
 
 	// make autorepeat send keypress/keypress/.../keyrelease instead of intervening keyrelease
-	XkbSetDetectableAutoRepeat(vidx11_display, true, NULL);
+	XkbSetDetectableAutoRepeat(vidx11_display, true, nullptr);
 
 	vidx11_screen = DefaultScreen(vidx11_display);
 	root = RootWindow(vidx11_display, vidx11_screen);
@@ -1197,7 +1197,7 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 
 	win = XCreateWindow(vidx11_display, root, 0, 0, mode->width, mode->height, 0, CopyFromParent, InputOutput, vidx11_visual, mask, &attr);
 
-	data = loadimagepixelsbgra("darkplaces-icon", false, false, false, NULL);
+	data = loadimagepixelsbgra("darkplaces-icon", false, false, false, nullptr);
 	if(data)
 	{
 		// use _NET_WM_ICON too
@@ -1221,14 +1221,14 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 			}
 			++i;
 			Mem_Free(data);
-			data = loadimagepixelsbgra(va(vabuf, sizeof(vabuf), "darkplaces-icon%d", i), false, false, false, NULL);
+			data = loadimagepixelsbgra(va(vabuf, sizeof(vabuf), "darkplaces-icon%d", i), false, false, false, nullptr);
 		}
 		XChangeProperty(vidx11_display, win, net_wm_icon, cardinal, 32, PropModeReplace, (const unsigned char *) netwm_icon, pos);
 	}
 
 	// fallthrough for old window managers
-	xpm = (char *) FS_LoadFile("darkplaces-icon.xpm", tempmempool, false, NULL);
-	idata = NULL;
+	xpm = (char *) FS_LoadFile("darkplaces-icon.xpm", tempmempool, false, nullptr);
+	idata = nullptr;
 	if(xpm)
 		idata = XPM_DecodeString(xpm);
 	if(!idata)
@@ -1237,7 +1237,7 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 	wmhints = XAllocWMHints();
 	if(XpmCreatePixmapFromData(vidx11_display, win,
 		idata,
-		&wmhints->icon_pixmap, &wmhints->icon_mask, NULL) == XpmSuccess)
+		&wmhints->icon_pixmap, &wmhints->icon_mask, nullptr) == XpmSuccess)
 		wmhints->flags |= IconPixmapHint | IconMaskHint;
 
 	if(xpm)
@@ -1332,7 +1332,7 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 	return true;
 }
 
-static qboolean VID_InitModeGL(viddef_mode_t *mode)
+static bool VID_InitModeGL(viddef_mode_t *mode)
 {
 	int i, j;
 	int attrib[32];
@@ -1371,7 +1371,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 		return false;
 	}
 
-	if (!(vidx11_display = XOpenDisplay(NULL)))
+	if (!(vidx11_display = XOpenDisplay(nullptr)))
 	{
 		Con_Print("Couldn't open the X display\n");
 		return false;
@@ -1387,7 +1387,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 	cardinal = XInternAtom(vidx11_display, "CARDINAL", false);
 
 	// make autorepeat send keypress/keypress/.../keyrelease instead of intervening keyrelease
-	XkbSetDetectableAutoRepeat(vidx11_display, true, NULL);
+	XkbSetDetectableAutoRepeat(vidx11_display, true, nullptr);
 
 	vidx11_screen = DefaultScreen(vidx11_display);
 	root = RootWindow(vidx11_display, vidx11_screen);
@@ -1409,12 +1409,12 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 		vidmode_ext = true;
 	}
 
-	if ((qglXChooseVisual = (XVisualInfo *(GLAPIENTRY *)(Display *dpy, int screen, int *attribList))GL_GetProcAddress("glXChooseVisual")) == NULL
-	 || (qglXCreateContext = (GLXContext (GLAPIENTRY *)(Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct))GL_GetProcAddress("glXCreateContext")) == NULL
-	 || (qglXDestroyContext = (void (GLAPIENTRY *)(Display *dpy, GLXContext ctx))GL_GetProcAddress("glXDestroyContext")) == NULL
-	 || (qglXMakeCurrent = (Bool (GLAPIENTRY *)(Display *dpy, GLXDrawable drawable, GLXContext ctx))GL_GetProcAddress("glXMakeCurrent")) == NULL
-	 || (qglXSwapBuffers = (void (GLAPIENTRY *)(Display *dpy, GLXDrawable drawable))GL_GetProcAddress("glXSwapBuffers")) == NULL
-	 || (qglXQueryExtensionsString = (const char *(GLAPIENTRY *)(Display *dpy, int screen))GL_GetProcAddress("glXQueryExtensionsString")) == NULL)
+	if ((qglXChooseVisual = (XVisualInfo *(GLAPIENTRY *)(Display *dpy, int screen, int *attribList))GL_GetProcAddress("glXChooseVisual")) == nullptr
+	 || (qglXCreateContext = (GLXContext (GLAPIENTRY *)(Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct))GL_GetProcAddress("glXCreateContext")) == nullptr
+	 || (qglXDestroyContext = (void (GLAPIENTRY *)(Display *dpy, GLXContext ctx))GL_GetProcAddress("glXDestroyContext")) == nullptr
+	 || (qglXMakeCurrent = (Bool (GLAPIENTRY *)(Display *dpy, GLXDrawable drawable, GLXContext ctx))GL_GetProcAddress("glXMakeCurrent")) == nullptr
+	 || (qglXSwapBuffers = (void (GLAPIENTRY *)(Display *dpy, GLXDrawable drawable))GL_GetProcAddress("glXSwapBuffers")) == nullptr
+	 || (qglXQueryExtensionsString = (const char *(GLAPIENTRY *)(Display *dpy, int screen))GL_GetProcAddress("glXQueryExtensionsString")) == nullptr)
 	{
 		Con_Printf("glX functions not found in %s\n", gl_driver);
 		return false;
@@ -1539,7 +1539,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 
 	win = XCreateWindow(vidx11_display, root, 0, 0, mode->width, mode->height, 0, visinfo->depth, InputOutput, visinfo->visual, mask, &attr);
 
-	data = loadimagepixelsbgra("darkplaces-icon", false, false, false, NULL);
+	data = loadimagepixelsbgra("darkplaces-icon", false, false, false, nullptr);
 	if(data)
 	{
 		// use _NET_WM_ICON too
@@ -1563,14 +1563,14 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 			}
 			++i;
 			Mem_Free(data);
-			data = loadimagepixelsbgra(va(vabuf, sizeof(vabuf), "darkplaces-icon%d", i), false, false, false, NULL);
+			data = loadimagepixelsbgra(va(vabuf, sizeof(vabuf), "darkplaces-icon%d", i), false, false, false, nullptr);
 		}
 		XChangeProperty(vidx11_display, win, net_wm_icon, cardinal, 32, PropModeReplace, (const unsigned char *) netwm_icon, pos);
 	}
 
 	// fallthrough for old window managers
-	xpm = (char *) FS_LoadFile("darkplaces-icon.xpm", tempmempool, false, NULL);
-	idata = NULL;
+	xpm = (char *) FS_LoadFile("darkplaces-icon.xpm", tempmempool, false, nullptr);
+	idata = nullptr;
 	if(xpm)
 		idata = XPM_DecodeString(xpm);
 	if(!idata)
@@ -1579,7 +1579,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 	wmhints = XAllocWMHints();
 	if(XpmCreatePixmapFromData(vidx11_display, win,
 		idata,
-		&wmhints->icon_pixmap, &wmhints->icon_mask, NULL) == XpmSuccess)
+		&wmhints->icon_pixmap, &wmhints->icon_mask, nullptr) == XpmSuccess)
 		wmhints->flags |= IconPixmapHint | IconMaskHint;
 
 	if(xpm)
@@ -1626,7 +1626,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 
 	//XSync(vidx11_display, False);
 
-	ctx = qglXCreateContext(vidx11_display, visinfo, NULL, True);
+	ctx = qglXCreateContext(vidx11_display, visinfo, nullptr, True);
 	XFree(visinfo); // glXChooseVisual man page says to use XFree to free visinfo
 	if (!ctx)
 	{
@@ -1642,7 +1642,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 
 	XSync(vidx11_display, False);
 
-	if ((qglGetString = (const GLubyte* (GLAPIENTRY *)(GLenum name))GL_GetProcAddress("glGetString")) == NULL)
+	if ((qglGetString = (const GLubyte* (GLAPIENTRY *)(GLenum name))GL_GetProcAddress("glGetString")) == nullptr)
 	{
 		Con_Printf ("glGetString not found in %s\n", gl_driver);
 		return false;
@@ -1678,7 +1678,7 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
 	return true;
 }
 
-qboolean VID_InitMode(viddef_mode_t *mode)
+bool VID_InitMode(viddef_mode_t *mode)
 {
 #ifdef SSE_POSSIBLE
 	if (vid_soft.integer)
@@ -1690,7 +1690,7 @@ qboolean VID_InitMode(viddef_mode_t *mode)
 
 void Sys_SendKeyEvents(void)
 {
-	static qboolean sound_active = true;
+	static bool sound_active = true;
 
 	// enable/disable sound on focus gain/loss
 	if ((!vid_hidden && vid_activewindow) || !snd_mutewhenidle.integer)
@@ -1719,10 +1719,10 @@ void VID_BuildJoyState(vid_joystate_t *joystate)
 	VID_Shared_BuildJoyState_Finish(joystate);
 }
 
-void VID_EnableJoystick(qboolean enable)
+void VID_EnableJoystick(bool enable)
 {
 	int index = joy_enable.integer > 0 ? joy_index.integer : -1;
-	qboolean success = false;
+	bool success = false;
 	int sharedcount = 0;
 	sharedcount = VID_Shared_SetJoystick(index);
 	if (index >= 0 && index < sharedcount)

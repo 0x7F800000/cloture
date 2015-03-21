@@ -50,7 +50,7 @@ Memory is cleared / released when a server or client begins, not when they end.
 // (checked by Host_Error and Host_SaveConfig_f)
 int host_framecount = 0;
 // LordHavoc: set when quit is executed
-qboolean host_shuttingdown = false;
+bool host_shuttingdown = false;
 
 // the accumulated mainloop time since application started (with filtering), without any slowmo or clamping
 double realtime;
@@ -120,7 +120,7 @@ void Host_Error (const char *error, ...)
 {
 	static char hosterrorstring1[MAX_INPUTLINE]; // THREAD UNSAFE
 	static char hosterrorstring2[MAX_INPUTLINE]; // THREAD UNSAFE
-	static qboolean hosterror = false;
+	static bool hosterror = false;
 	va_list argptr;
 
 	// turn off rcon redirect if it was active when the crash occurred
@@ -461,7 +461,7 @@ Called when the player is getting totally kicked off the host
 if (crash = true), don't bother sending signofs
 =====================
 */
-void SV_DropClient(qboolean crash)
+void SV_DropClient(bool crash)
 {
 	prvm_prog_t *prog = SVVM_prog;
 	int i;
@@ -675,7 +675,7 @@ void Host_Main(void)
 	double wait;
 	int pass1, pass2, pass3, i;
 	char vabuf[1024];
-	qboolean playing;
+	bool playing;
 
 	Host_Init();
 
@@ -1075,7 +1075,7 @@ void Host_Main(void)
 
 //============================================================================
 
-qboolean vid_opened = false;
+bool vid_opened = false;
 void Host_StartVideo(void)
 {
 	if (!vid_opened && cls.state != ca_dedicated)
@@ -1092,12 +1092,12 @@ void Host_StartVideo(void)
 
 char engineversion[128];
 
-qboolean sys_nostdout = false;
+bool sys_nostdout = false;
 
-extern qboolean host_stuffcmdsrun;
+extern bool host_stuffcmdsrun;
 
 static qfile_t *locksession_fh = NULL;
-static qboolean locksession_run = false;
+static bool locksession_run = false;
 static void Host_InitSession(void)
 {
 	int i;
@@ -1395,7 +1395,7 @@ to run quit through here before the final handoff to the sys code.
 */
 void Host_Shutdown(void)
 {
-	static qboolean isdown = false;
+	static bool isdown = false;
 
 	if (isdown)
 	{

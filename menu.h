@@ -59,7 +59,7 @@ void M_Update_Return_Reason(const char *s);
 void MR_Init_Commands ();
 void MR_Init ();
 void MR_Restart ();
-extern void (*MR_KeyEvent) (int key, int ascii, qboolean downevent);
+extern void (*MR_KeyEvent) (int key, int ascii, bool downevent);
 extern void (*MR_Draw) ();
 extern void (*MR_ToggleMenu) (int mode);
 extern void (*MR_Shutdown) ();

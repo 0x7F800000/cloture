@@ -67,7 +67,7 @@ xinput_keystroke_t;
 DWORD (WINAPI *qXInputGetState)(DWORD index, xinput_state_t *state);
 DWORD (WINAPI *qXInputGetKeystroke)(DWORD index, DWORD reserved, xinput_keystroke_t *keystroke);
 
-qboolean vid_xinputinitialized = false;
+bool vid_xinputinitialized = false;
 int vid_xinputindex = -1;
 #endif
 
@@ -75,17 +75,17 @@ int vid_xinputindex = -1;
 viddef_t vid;
 
 // AK FIXME -> input_dest
-qboolean in_client_mouse = true;
+bool in_client_mouse = true;
 
 // AK where should it be placed ?
 float in_mouse_x, in_mouse_y;
 float in_windowmouse_x, in_windowmouse_y;
 
 // LordHavoc: if window is hidden, don't update screen
-qboolean vid_hidden = true;
+bool vid_hidden = true;
 // LordHavoc: if window is not the active window, don't hog as much CPU time,
 // let go of the mouse, turn off sound, and restore system gamma ramps...
-qboolean vid_activewindow = true;
+bool vid_activewindow = true;
 
 vid_joystate_t vid_joystate;
 
@@ -152,7 +152,7 @@ cvar_t gl_info_platform = {CVAR_READONLY, "gl_info_platform", "", "indicates GL 
 cvar_t gl_info_driver = {CVAR_READONLY, "gl_info_driver", "", "name of driver library (opengl32.dll, libGL.so.1, or whatever)."};
 
 // whether hardware gamma ramps are currently in effect
-qboolean vid_usinghwgamma = false;
+bool vid_usinghwgamma = false;
 
 int vid_gammarampsize = 0;
 unsigned short *vid_gammaramps = NULL;
@@ -537,7 +537,7 @@ void (GLAPIENTRY *qglBlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GL
 #define sscanf sscanf_s
 #endif
 
-qboolean GL_CheckExtension(const char *minglver_or_ext, const dllfunction_t *funcs, const char *disableparm, int silent)
+bool GL_CheckExtension(const char *minglver_or_ext, const dllfunction_t *funcs, const char *disableparm, int silent)
 {
 	int failed = false;
 	const dllfunction_t *func;
@@ -1237,7 +1237,7 @@ float VID_JoyState_GetAxis(const vid_joystate_t *joystate, int axis, float sensi
 	return value * sensitivity;
 }
 
-qboolean VID_JoyBlockEmulatedKeys(int keycode)
+bool VID_JoyBlockEmulatedKeys(int keycode)
 {
 	int j;
 	vid_joystate_t joystate;
@@ -1319,7 +1319,7 @@ void VID_Shared_BuildJoyState_Finish(vid_joystate_t *joystate)
 	joystate->button[35] = r < 0.0f;
 }
 
-static void VID_KeyEventForButton(qboolean oldbutton, qboolean newbutton, int key, double *timer)
+static void VID_KeyEventForButton(bool oldbutton, bool newbutton, int key, double *timer)
 {
 	if (oldbutton)
 	{
@@ -1474,7 +1474,7 @@ static float cachegamma, cachebrightness, cachecontrast, cacheblack[3], cachegre
 static int cachecolorenable, cachehwgamma;
 
 unsigned int vid_gammatables_serial = 0; // so other subsystems can poll if gamma parameters have changed
-qboolean vid_gammatables_trivial = true;
+bool vid_gammatables_trivial = true;
 void VID_BuildGammaTables(unsigned short *ramps, int rampsize)
 {
 	if (cachecolorenable)
@@ -1537,12 +1537,12 @@ void VID_BuildGammaTables(unsigned short *ramps, int rampsize)
 	}
 }
 
-void VID_UpdateGamma(qboolean force, int rampsize)
+void VID_UpdateGamma(bool force, int rampsize)
 {
 	cvar_t *c;
 	float f;
 	int wantgamma;
-	qboolean gamma_changed = false;
+	bool gamma_changed = false;
 
 	// LordHavoc: don't mess with gamma tables if running dedicated
 	if (cls.state == ca_dedicated)
@@ -1933,8 +1933,8 @@ static void VID_CloseSystems(void)
 	R_Modules_Shutdown();
 }
 
-qboolean vid_commandlinecheck = true;
-extern qboolean vid_opened;
+bool vid_commandlinecheck = true;
+extern bool vid_opened;
 
 void VID_Restart_f(void)
 {
@@ -2066,7 +2066,7 @@ static int VID_SortModes_Compare(const void *a_, const void *b_)
 		return -1;
 	return 0;
 }
-size_t VID_SortModes(vid_mode_t *modes, size_t count, qboolean usebpp, qboolean userefreshrate, qboolean useaspect)
+size_t VID_SortModes(vid_mode_t *modes, size_t count, bool usebpp, bool userefreshrate, bool useaspect)
 {
 	size_t i;
 	if(count == 0)

@@ -120,7 +120,7 @@ extern cvar_t r_fog_clear;
 
 int jpeg_supported = false;
 
-qboolean	scr_initialized;		// ready to draw
+bool	scr_initialized;		// ready to draw
 
 float		scr_con_current;
 int			scr_con_margin_bottom;
@@ -131,7 +131,7 @@ static void SCR_ScreenShot_f (void);
 static void R_Envmap_f (void);
 
 // backend
-void R_ClearScreen(qboolean fogcolor);
+void R_ClearScreen(bool fogcolor);
 
 /*
 ===============================================================================
@@ -753,7 +753,7 @@ SCR_BeginLoadingPlaque
 
 ================
 */
-void SCR_BeginLoadingPlaque (qboolean startup)
+void SCR_BeginLoadingPlaque (bool startup)
 {
 	// save console log up to this point to log_file if it was set by configs
 	Log_Start();
@@ -1436,8 +1436,8 @@ void SCR_ScreenShot_f (void)
 	char filename[MAX_QPATH];
 	unsigned char *buffer1;
 	unsigned char *buffer2;
-	qboolean jpeg = (scr_screenshot_jpeg.integer != 0);
-	qboolean png = (scr_screenshot_png.integer != 0) && !jpeg;
+	bool jpeg = (scr_screenshot_jpeg.integer != 0);
+	bool png = (scr_screenshot_png.integer != 0) && !jpeg;
 	char vabuf[1024];
 
 	if (Cmd_Argc() == 2)
@@ -1836,7 +1836,7 @@ struct envmapinfo_s
 {
 	float angles[3];
 	const char *name;
-	qboolean flipx, flipy, flipdiagonaly;
+	bool flipx, flipy, flipdiagonaly;
 }
 envmapinfo[12] =
 {
@@ -1995,10 +1995,10 @@ void SHOWLMP_drawall(void)
 
 // buffer1: 4*w*h
 // buffer2: 3*w*h (or 4*w*h if screenshotting alpha too)
-qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *buffer2, int x, int y, int width, int height, qboolean flipx, qboolean flipy, qboolean flipdiagonal, qboolean jpeg, qboolean png, qboolean gammacorrect, qboolean keep_alpha)
+bool SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *buffer2, int x, int y, int width, int height, bool flipx, bool flipy, bool flipdiagonal, bool jpeg, bool png, bool gammacorrect, bool keep_alpha)
 {
 	int	indices[4] = {0,1,2,3}; // BGRA
-	qboolean ret;
+	bool ret;
 
 	GL_ReadPixelsBGRA(x, y, width, height, buffer1);
 
@@ -2093,7 +2093,7 @@ static void SCR_DrawTouchscreenOverlay(void)
 	}
 }
 
-void R_ClearScreen(qboolean fogcolor)
+void R_ClearScreen(bool fogcolor)
 {
 	float clearcolor[4];
 	if (scr_screenshot_alpha.integer)
@@ -2295,8 +2295,8 @@ typedef struct loadingscreenstack_s
 }
 loadingscreenstack_t;
 static loadingscreenstack_t *loadingscreenstack = NULL;
-static qboolean loadingscreendone = false;
-static qboolean loadingscreencleared = false;
+static bool loadingscreendone = false;
+static bool loadingscreencleared = false;
 static float loadingscreenheight = 0;
 rtexture_t *loadingscreentexture = NULL;
 static float loadingscreentexture_vertex3f[12];
@@ -2351,7 +2351,7 @@ void SCR_UpdateLoadingScreenIfShown(void)
 		SCR_UpdateLoadingScreen(loadingscreencleared, false);
 }
 
-void SCR_PushLoadingScreen (qboolean redraw, const char *msg, float len_in_parent)
+void SCR_PushLoadingScreen (bool redraw, const char *msg, float len_in_parent)
 {
 	loadingscreenstack_t *s = (loadingscreenstack_t *) Z_Malloc(sizeof(loadingscreenstack_t));
 	s->prev = loadingscreenstack;
@@ -2377,7 +2377,7 @@ void SCR_PushLoadingScreen (qboolean redraw, const char *msg, float len_in_paren
 		SCR_UpdateLoadingScreenIfShown();
 }
 
-void SCR_PopLoadingScreen (qboolean redraw)
+void SCR_PopLoadingScreen (bool redraw)
 {
 	loadingscreenstack_t *s = loadingscreenstack;
 
@@ -2396,7 +2396,7 @@ void SCR_PopLoadingScreen (qboolean redraw)
 		SCR_UpdateLoadingScreenIfShown();
 }
 
-void SCR_ClearLoadingScreen (qboolean redraw)
+void SCR_ClearLoadingScreen (bool redraw)
 {
 	while(loadingscreenstack)
 		SCR_PopLoadingScreen(redraw && !loadingscreenstack->prev);
@@ -2483,7 +2483,7 @@ static cachepic_t *loadingscreenpic;
 static float loadingscreenpic_vertex3f[12];
 static float loadingscreenpic_texcoord2f[8];
 
-static void SCR_DrawLoadingScreen_SharedSetup (qboolean clear)
+static void SCR_DrawLoadingScreen_SharedSetup (bool clear)
 {
 	r_viewport_t viewport;
 	float x, y, w, h, sw, sh, f;
@@ -2558,7 +2558,7 @@ static void SCR_DrawLoadingScreen_SharedSetup (qboolean clear)
 	loadingscreenpic_texcoord2f[6] = 0;loadingscreenpic_texcoord2f[7] = 1;
 }
 
-static void SCR_DrawLoadingScreen (qboolean clear)
+static void SCR_DrawLoadingScreen (bool clear)
 {
 	// we only need to draw the image if it isn't already there
 	GL_BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2579,7 +2579,7 @@ static void SCR_DrawLoadingScreen (qboolean clear)
 	SCR_DrawLoadingStack();
 }
 
-static void SCR_DrawLoadingScreen_SharedFinish (qboolean clear)
+static void SCR_DrawLoadingScreen_SharedFinish (bool clear)
 {
 	R_Mesh_Finish();
 	// refresh
@@ -2588,7 +2588,7 @@ static void SCR_DrawLoadingScreen_SharedFinish (qboolean clear)
 
 static double loadingscreen_lastupdate;
 
-void SCR_UpdateLoadingScreen (qboolean clear, qboolean startup)
+void SCR_UpdateLoadingScreen (bool clear, bool startup)
 {
 	keydest_t	old_key_dest;
 	int			old_key_consoleactive;
@@ -2670,12 +2670,12 @@ void SCR_UpdateLoadingScreen (qboolean clear, qboolean startup)
 	key_consoleactive = old_key_consoleactive;
 }
 
-qboolean R_Stereo_ColorMasking(void)
+bool R_Stereo_ColorMasking(void)
 {
 	return r_stereo_redblue.integer || r_stereo_redgreen.integer || r_stereo_redcyan.integer;
 }
 
-qboolean R_Stereo_Active(void)
+bool R_Stereo_Active(void)
 {
 	return (vid.stereobuffer || r_stereo_sidebyside.integer || r_stereo_horizontal.integer || r_stereo_vertical.integer || R_Stereo_ColorMasking());
 }

@@ -53,7 +53,7 @@ cachepic_t *sb_face_quad;
 cachepic_t *sb_face_invuln;
 cachepic_t *sb_face_invis_invuln;
 
-qboolean sb_showscores;
+bool sb_showscores;
 
 int sb_lines;			// scan lines to draw
 
@@ -1105,7 +1105,7 @@ void Sbar_ShowFPS(void)
 	char blurstring[32];
 	char topspeedstring[48];
 	char texstring[MAX_QPATH];
-	qboolean red = false;
+	bool red = false;
 	soundstring[0] = 0;
 	fpsstring[0] = 0;
 	timedemostring1[0] = 0;
@@ -1168,7 +1168,7 @@ void Sbar_ShowFPS(void)
 		}
 		if (showtopspeed.integer)
 		{
-			qboolean topspeed_latched = false, topspeedxy_latched = false;
+			bool topspeed_latched = false, topspeedxy_latched = false;
 			get_showspeed_unit(showtopspeed.integer, &f, &unit);
 			if (speed >= topspeed || current_time - top_time > 3)
 			{
@@ -1752,7 +1752,7 @@ Sbar_DeathmatchOverlay
 static float Sbar_PrintScoreboardItem(scoreboard_t *s, float x, float y)
 {
 	int minutes;
-	qboolean myself = false;
+	bool myself = false;
 	unsigned char *c;
 	char vabuf[1024];
 	minutes = (int)((cl.intermission ? cl.completed_time - s->qw_entertime : cl.time - s->qw_entertime) / 60.0);

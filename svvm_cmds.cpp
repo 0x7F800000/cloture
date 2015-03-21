@@ -261,7 +261,7 @@ static void VM_SV_setorigin(prvm_prog_t *prog)
 }
 
 // TODO: rotate param isnt used.. could be a bug. please check this and remove it if possible [1/10/2008 Black]
-static void SetMinMaxSize (prvm_prog_t *prog, prvm_edict_t *e, float *min, float *max, qboolean rotate)
+static void SetMinMaxSize (prvm_prog_t *prog, prvm_edict_t *e, float *min, float *max, bool rotate)
 {
 	int		i;
 
@@ -1051,7 +1051,7 @@ static void VM_SV_walkmove(prvm_prog_t *prog)
 	vec3_t	move;
 	mfunction_t	*oldf;
 	int 	oldself;
-	qboolean	settrace;
+	bool	settrace;
 
 	VM_SAFEPARMCOUNTRANGE(2, 3, VM_SV_walkmove);
 
@@ -2396,7 +2396,7 @@ static int SV_GetExtendedTagInfo (prvm_prog_t *prog, prvm_edict_t *e, int tagind
 	return 1;
 }
 
-void SV_GetEntityMatrix (prvm_prog_t *prog, prvm_edict_t *ent, matrix4x4_t *out, qboolean viewmatrix)
+void SV_GetEntityMatrix (prvm_prog_t *prog, prvm_edict_t *ent, matrix4x4_t *out, bool viewmatrix)
 {
 	float scale;
 	float pitchsign = 1;

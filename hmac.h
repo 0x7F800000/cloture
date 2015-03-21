@@ -1,6 +1,6 @@
 #pragma once 
 typedef void (*hashfunc_t) (unsigned char *out, const unsigned char *in, int n);
-qboolean hmac(
+bool hmac(
 	hashfunc_t hfunc, int hlen, int hblock,
 	unsigned char *out,
 	const unsigned char *in, int n,

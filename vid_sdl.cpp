@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <IOKit/hidsystem/IOHIDParameter.h>
 #include <IOKit/hidsystem/event_status_driver.h>
 static cvar_t apple_mouse_noaccel = {CVAR_SAVE, "apple_mouse_noaccel", "1", "disables mouse acceleration while DarkPlaces is active"};
-static qboolean vid_usingnoaccel;
+static bool vid_usingnoaccel;
 static double originalMouseSpeed = -1.0;
 io_connect_t IN_GetIOHandle(void)
 {
@@ -64,15 +64,15 @@ io_connect_t IN_GetIOHandle(void)
 // Tell startup code that we have a client
 int cl_available = true;
 
-qboolean vid_supportrefreshrate = false;
+bool vid_supportrefreshrate = false;
 
-static qboolean vid_usingmouse = false;
-static qboolean vid_usingmouse_relativeworks = false; // SDL2 workaround for unimplemented RelativeMouse mode
-static qboolean vid_usinghidecursor = false;
-static qboolean vid_hasfocus = false;
-static qboolean vid_isfullscreen;
+static bool vid_usingmouse = false;
+static bool vid_usingmouse_relativeworks = false; // SDL2 workaround for unimplemented RelativeMouse mode
+static bool vid_usinghidecursor = false;
+static bool vid_hasfocus = false;
+static bool vid_isfullscreen;
 #if SDL_MAJOR_VERSION != 1
-static qboolean vid_usingvsync = false;
+static bool vid_usingvsync = false;
 #endif
 static SDL_Joystick *vid_sdljoystick = NULL;
 // GAME_STEELSTORM specific
@@ -368,7 +368,7 @@ static int MapKey( unsigned int sdlkey )
 	}
 }
 
-qboolean VID_HasScreenKeyboardSupport(void)
+bool VID_HasScreenKeyboardSupport(void)
 {
 #if SDL_MAJOR_VERSION != 1
 	return SDL_HasScreenKeyboardSupport() != SDL_FALSE;
@@ -377,7 +377,7 @@ qboolean VID_HasScreenKeyboardSupport(void)
 #endif
 }
 
-void VID_ShowKeyboard(qboolean show)
+void VID_ShowKeyboard(bool show)
 {
 #if SDL_MAJOR_VERSION != 1
 	if (!SDL_HasScreenKeyboardSupport())
@@ -396,7 +396,7 @@ void VID_ShowKeyboard(qboolean show)
 #endif
 }
 
-qboolean VID_ShowingKeyboard(void)
+bool VID_ShowingKeyboard(void)
 {
 #if SDL_MAJOR_VERSION != 1
 	return SDL_IsTextInputActive() != 0;
@@ -405,7 +405,7 @@ qboolean VID_ShowingKeyboard(void)
 #endif
 }
 
-void VID_SetMouse(qboolean fullscreengrab, qboolean relative, qboolean hidecursor)
+void VID_SetMouse(bool fullscreengrab, bool relative, bool hidecursor)
 {
 #ifndef DP_MOBILETOUCH
 #ifdef MACOSX
@@ -496,14 +496,14 @@ float multitouch[MAXFINGERS][3];
 int multitouchs[MAXFINGERS];
 
 // modified heavily by ELUAN
-static qboolean VID_TouchscreenArea(int corner, float px, float py, float pwidth, float pheight, const char *icon, float textheight, const char *text, float *resultmove, qboolean *resultbutton, keynum_t key, const char *typedtext, float deadzone, float oversizepixels_x, float oversizepixels_y, qboolean iamexclusive)
+static bool VID_TouchscreenArea(int corner, float px, float py, float pwidth, float pheight, const char *icon, float textheight, const char *text, float *resultmove, bool *resultbutton, keynum_t key, const char *typedtext, float deadzone, float oversizepixels_x, float oversizepixels_y, bool iamexclusive)
 {
 	int finger;
 	float fx, fy, fwidth, fheight;
 	float overfx, overfy, overfwidth, overfheight;
 	float rel[3];
 	float sqsum;
-	qboolean button = false;
+	bool button = false;
 	VectorClear(rel);
 	if (pwidth > 0 && pheight > 0)
 	{
@@ -609,11 +609,11 @@ static qboolean VID_TouchscreenArea(int corner, float px, float py, float pwidth
 
 // ELUAN:
 // not reentrant, but we only need one mouse cursor anyway...
-static void VID_TouchscreenCursor(float px, float py, float pwidth, float pheight, qboolean *resultbutton, keynum_t key)
+static void VID_TouchscreenCursor(float px, float py, float pwidth, float pheight, bool *resultbutton, keynum_t key)
 {
 	int finger;
 	float fx, fy, fwidth, fheight;
-	qboolean button = false;
+	bool button = false;
 	static int cursorfinger = -1;
 	static int cursorfreemovement = false;
 	static int canclick = false;
@@ -785,8 +785,8 @@ static void IN_Move_TouchScreen_SteelStorm(void)
 	int i, numfingers;
 	float xscale, yscale;
 	float move[3], aim[3];
-	static qboolean oldbuttons[128];
-	static qboolean buttons[128];
+	static bool oldbuttons[128];
+	static bool buttons[128];
 	static keydest_t oldkeydest;
 	keydest_t keydest = (key_consoleactive & KEY_CONSOLEACTIVE_USER) ? key_console : key_dest;
 	memcpy(oldbuttons, buttons, sizeof(oldbuttons));
@@ -910,8 +910,8 @@ static void IN_Move_TouchScreen_Quake(void)
 {
 	int x, y;
 	float move[3], aim[3], click[3];
-	static qboolean oldbuttons[128];
-	static qboolean buttons[128];
+	static bool oldbuttons[128];
+	static bool buttons[128];
 	keydest_t keydest = (key_consoleactive & KEY_CONSOLEACTIVE_USER) ? key_console : key_dest;
 	memcpy(oldbuttons, buttons, sizeof(oldbuttons));
 	memset(multitouchs, 0, sizeof(multitouchs));
@@ -1050,7 +1050,7 @@ void IN_Move( void )
 ////
 
 #ifdef SDL_R_RESTART
-static qboolean sdl_needs_restart;
+static bool sdl_needs_restart;
 static void sdl_start(void)
 {
 }
@@ -1095,7 +1095,7 @@ static keynum_t buttonremap[] =
 // SDL
 void Sys_SendKeyEvents( void )
 {
-	static qboolean sound_active = true;
+	static bool sound_active = true;
 	int keycode;
 	SDL_Event event;
 
@@ -1211,7 +1211,7 @@ void Sys_SendKeyEvents( void )
 // SDL2
 void Sys_SendKeyEvents( void )
 {
-	static qboolean sound_active = true;
+	static bool sound_active = true;
 	int keycode;
 	int i;
 	Uchar unicode;
@@ -2037,7 +2037,7 @@ void *GL_GetProcAddress(const char *name)
 	return p;
 }
 
-static qboolean vid_sdl_initjoysticksystem = false;
+static bool vid_sdl_initjoysticksystem = false;
 
 void VID_Init (void)
 {
@@ -2063,11 +2063,11 @@ void VID_Init (void)
 }
 
 static int vid_sdljoystickindex = -1;
-void VID_EnableJoystick(qboolean enable)
+void VID_EnableJoystick(bool enable)
 {
 	int index = joy_enable.integer > 0 ? joy_index.integer : -1;
 	int numsdljoysticks;
-	qboolean success = false;
+	bool success = false;
 	int sharedcount = 0;
 	int sdlindex = -1;
 	sharedcount = VID_Shared_SetJoystick(index);
@@ -2414,7 +2414,7 @@ static void VID_OutputVersion(void)
 					version.major, version.minor, version.patch );
 }
 
-static qboolean VID_InitModeGL(viddef_mode_t *mode)
+static bool VID_InitModeGL(viddef_mode_t *mode)
 {
 #if SDL_MAJOR_VERSION == 1
 	static int notfirstvideomode = false;
@@ -2632,7 +2632,7 @@ extern cvar_t gl_info_version;
 extern cvar_t gl_info_platform;
 extern cvar_t gl_info_driver;
 
-static qboolean VID_InitModeSoft(viddef_mode_t *mode)
+static bool VID_InitModeSoft(viddef_mode_t *mode)
 {
 #if SDL_MAJOR_VERSION == 1
 	int flags = SDL_HWSURFACE;
@@ -2738,7 +2738,7 @@ static qboolean VID_InitModeSoft(viddef_mode_t *mode)
 	return true;
 }
 
-qboolean VID_InitMode(viddef_mode_t *mode)
+bool VID_InitMode(viddef_mode_t *mode)
 {
 	// GAME_STEELSTORM specific
 	steelstorm_showing_map = Cvar_FindVar("steelstorm_showing_map");
@@ -2843,7 +2843,7 @@ void VID_Finish (void)
 
 #if SDL_MAJOR_VERSION != 1
 {
-	qboolean vid_usevsync;
+	bool vid_usevsync;
 	vid_usevsync = (vid_vsync.integer && !cls.timedemo);
 	if (vid_usingvsync != vid_usevsync)
 	{

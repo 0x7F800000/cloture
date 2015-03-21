@@ -64,7 +64,7 @@ extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 
 LPDIRECT3D9 vid_d3d9;
 D3DCAPS9 vid_d3d9caps;
-qboolean vid_d3ddevicelost;
+bool vid_d3ddevicelost;
 #endif
 
 extern HINSTANCE global_hInstance;
@@ -78,7 +78,7 @@ static HINSTANCE gldll;
 // Tell startup code that we have a client
 int cl_available = true;
 
-qboolean vid_supportrefreshrate = true;
+bool vid_supportrefreshrate = true;
 
 static int (WINAPI *qwglChoosePixelFormat)(HDC, CONST PIXELFORMATDESCRIPTOR *);
 static int (WINAPI *qwglDescribePixelFormat)(HDC, int, UINT, LPPIXELFORMATDESCRIPTOR);
@@ -127,12 +127,12 @@ static dllfunction_t wglpixelformatfuncs[] =
 
 static DEVMODE gdevmode, initialdevmode;
 static vid_mode_t desktop_mode;
-static qboolean vid_initialized = false;
-static qboolean vid_wassuspended = false;
-static qboolean vid_usingmouse = false;
-static qboolean vid_usinghidecursor = false;
-static qboolean vid_usingvsync = false;
-static qboolean vid_usevsync = false;
+static bool vid_initialized = false;
+static bool vid_wassuspended = false;
+static bool vid_usingmouse = false;
+static bool vid_usinghidecursor = false;
+static bool vid_usingvsync = false;
+static bool vid_usevsync = false;
 static HICON hIcon;
 
 // used by cd_win.c and snd_win.c
@@ -148,7 +148,7 @@ static HBITMAP vid_softdibhandle;
 
 //HWND WINAPI InitializeWindow (HINSTANCE hInstance, int nCmdShow);
 
-static qboolean vid_isfullscreen;
+static bool vid_isfullscreen;
 
 //void VID_MenuDraw (void);
 //void VID_MenuKey (int key);
@@ -156,17 +156,17 @@ static qboolean vid_isfullscreen;
 LONG WINAPI MainWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void AppActivate(BOOL fActive, BOOL minimize);
 static void ClearAllStates(void);
-qboolean VID_InitModeGL(viddef_mode_t *mode);
-qboolean VID_InitModeSOFT(viddef_mode_t *mode);
+bool VID_InitModeGL(viddef_mode_t *mode);
+bool VID_InitModeSOFT(viddef_mode_t *mode);
 
 //====================================
 
 static int window_x, window_y;
 
-static qboolean mouseinitialized;
+static bool mouseinitialized;
 
 #ifdef SUPPORTDIRECTX
-static qboolean dinput;
+static bool dinput;
 #define DINPUT_BUFFERSIZE           16
 #define iDirectInputCreate(a,b,c,d)	pDirectInputCreate(a,b,c,d)
 
@@ -201,7 +201,7 @@ static int			mouse_oldbuttonstate;
 
 static unsigned int uiWheelMessage;
 #ifdef SUPPORTDIRECTX
-static qboolean	dinput_acquired;
+static bool	dinput_acquired;
 
 static unsigned int		mstate_di;
 #endif
@@ -220,9 +220,9 @@ static void IN_StartupMouse (void);
 
 //====================================
 
-qboolean vid_reallyhidden = true;
+bool vid_reallyhidden = true;
 #ifdef SUPPORTD3D
-qboolean vid_begunscene = false;
+bool vid_begunscene = false;
 #endif
 void VID_Finish (void)
 {
@@ -352,7 +352,7 @@ static int MapKey (int key, int virtualkey)
 {
 	int result;
 	int modified = (key >> 16) & 255;
-	qboolean is_extended = false;
+	bool is_extended = false;
 
 	if (modified < 128 && scantokey[modified])
 		result = scantokey[modified];
@@ -446,7 +446,7 @@ void AppActivate(BOOL fActive, BOOL minimize)
 *
 ****************************************************************************/
 {
-	static qboolean sound_active = false;  // initially blocked by Sys_InitConsole()
+	static bool sound_active = false;  // initially blocked by Sys_InitConsole()
 
 	vid_activewindow = fActive != false;
 	vid_reallyhidden = minimize != false;
@@ -551,7 +551,7 @@ LONG WINAPI MainWndProc (HWND hWnd, UINT uMsg, WPARAM  wParam, LPARAM lParam)
 	WCHAR unicode[UNICODE_BUFFER_LENGTH];
 	int		vkey;
 	int		charlength;
-	qboolean down = false;
+	bool down = false;
 
 	if ( uMsg == uiWheelMessage )
 		uMsg = WM_MOUSEWHEEL;
@@ -882,7 +882,7 @@ void VID_Init(void)
 	IN_Init();
 }
 
-qboolean VID_InitModeGL(viddef_mode_t *mode)
+bool VID_InitModeGL(viddef_mode_t *mode)
 {
 	int i;
 	HDC hdc;
@@ -917,7 +917,7 @@ qboolean VID_InitModeGL(viddef_mode_t *mode)
 	const char *gldrivername;
 	int depth;
 	DEVMODE thismode;
-	qboolean foundmode, foundgoodmode;
+	bool foundmode, foundgoodmode;
 	int *a;
 	float *af;
 	int attribs[128];
@@ -1359,7 +1359,7 @@ extern cvar_t gl_info_renderer;
 extern cvar_t gl_info_version;
 extern cvar_t gl_info_platform;
 extern cvar_t gl_info_driver;
-qboolean VID_InitModeDX(viddef_mode_t *mode, int version)
+bool VID_InitModeDX(viddef_mode_t *mode, int version)
 {
 	int deviceindex;
 	RECT rect;
@@ -1591,7 +1591,7 @@ qboolean VID_InitModeDX(viddef_mode_t *mode, int version)
 }
 #endif
 
-qboolean VID_InitModeSOFT(viddef_mode_t *mode)
+bool VID_InitModeSOFT(viddef_mode_t *mode)
 {
 	int i;
 	HDC hdc;
@@ -1602,7 +1602,7 @@ qboolean VID_InitModeSOFT(viddef_mode_t *mode)
 	int CenterX, CenterY;
 	int depth;
 	DEVMODE thismode;
-	qboolean foundmode, foundgoodmode;
+	bool foundmode, foundgoodmode;
 	int bpp = mode->bitsperpixel;
 	int width = mode->width;
 	int height = mode->height;
@@ -1871,7 +1871,7 @@ qboolean VID_InitModeSOFT(viddef_mode_t *mode)
 	return true;
 }
 
-qboolean VID_InitMode(viddef_mode_t *mode)
+bool VID_InitMode(viddef_mode_t *mode)
 {
 #ifdef SSE_POSSIBLE
 	if (vid_soft.integer)
@@ -1892,7 +1892,7 @@ qboolean VID_InitMode(viddef_mode_t *mode)
 static void IN_Shutdown(void);
 void VID_Shutdown (void)
 {
-	qboolean isgl;
+	bool isgl;
 	if(vid_initialized == false)
 		return;
 
@@ -1956,9 +1956,9 @@ void VID_Shutdown (void)
 	vid_isfullscreen = false;
 }
 
-void VID_SetMouse(qboolean fullscreengrab, qboolean relative, qboolean hidecursor)
+void VID_SetMouse(bool fullscreengrab, bool relative, bool hidecursor)
 {
-	static qboolean restore_spi;
+	static bool restore_spi;
 	static int originalmouseparms[3];
 
 	if (!mouseinitialized)
@@ -2042,10 +2042,10 @@ void VID_BuildJoyState(vid_joystate_t *joystate)
 	VID_Shared_BuildJoyState_Finish(joystate);
 }
 
-void VID_EnableJoystick(qboolean enable)
+void VID_EnableJoystick(bool enable)
 {
 	int index = joy_enable.integer > 0 ? joy_index.integer : -1;
-	qboolean success = false;
+	bool success = false;
 	int sharedcount = 0;
 	sharedcount = VID_Shared_SetJoystick(index);
 	if (index >= 0 && index < sharedcount)
@@ -2065,7 +2065,7 @@ void VID_EnableJoystick(qboolean enable)
 IN_InitDInput
 ===========
 */
-static qboolean IN_InitDInput (void)
+static bool IN_InitDInput (void)
 {
     HRESULT		hr;
 	DIPROPDWORD	dipdw = {

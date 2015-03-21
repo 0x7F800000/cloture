@@ -108,7 +108,7 @@ snd_buffer_t *Snd_CreateSndBuffer (const unsigned char *samples, unsigned int sa
 Snd_AppendToSndBuffer
 ====================
 */
-qboolean Snd_AppendToSndBuffer (snd_buffer_t* sb, const unsigned char *samples, unsigned int sampleframes, const snd_format_t* format)
+bool Snd_AppendToSndBuffer (snd_buffer_t* sb, const unsigned char *samples, unsigned int sampleframes, const snd_format_t* format)
 {
 	size_t srclength, outcount;
 	unsigned char *out_data;
@@ -301,7 +301,7 @@ qboolean Snd_AppendToSndBuffer (snd_buffer_t* sb, const unsigned char *samples, 
 S_LoadSound
 ==============
 */
-qboolean S_LoadSound (sfx_t *sfx, qboolean complain)
+bool S_LoadSound (sfx_t *sfx, bool complain)
 {
 	char namebuffer[MAX_QPATH + 16];
 	size_t len;

@@ -254,7 +254,7 @@ static dllfunction_t d0_blind_id_funcs[] =
 // end of d0_blind_id interface
 
 static dllhandle_t d0_blind_id_dll = NULL;
-static qboolean Crypto_OpenLibrary (void)
+static bool Crypto_OpenLibrary (void)
 {
 	const char* dllnames [] =
 	{
@@ -323,7 +323,7 @@ static dllfunction_t d0_rijndael_funcs[] =
 // end of d0_blind_id interface
 
 static dllhandle_t d0_rijndael_dll = NULL;
-static qboolean Crypto_Rijndael_OpenLibrary (void)
+static bool Crypto_Rijndael_OpenLibrary (void)
 {
 	const char* dllnames [] =
 	{
@@ -359,7 +359,7 @@ void sha256(unsigned char *out, const unsigned char *in, int n)
 	qd0_blind_id_util_sha256((char *) out, (const char *) in, n);
 }
 
-static size_t Crypto_LoadFile(const char *path, char *buf, size_t nmax, qboolean inuserdir)
+static size_t Crypto_LoadFile(const char *path, char *buf, size_t nmax, bool inuserdir)
 {
 	char vabuf[1024];
 	qfile_t *f = NULL;
@@ -377,7 +377,7 @@ static size_t Crypto_LoadFile(const char *path, char *buf, size_t nmax, qboolean
 	return (size_t) n;
 }
 
-static qboolean PutWithNul(char **data, size_t *len, const char *str)
+static bool PutWithNul(char **data, size_t *len, const char *str)
 {
 	// invariant: data points to insertion point
 	size_t l = strlen(str);
@@ -440,7 +440,7 @@ static d0_blind_id_t *Crypto_ReadPublicKey(char *buf, size_t len)
 }
 
 // d0si reading
-static qboolean Crypto_AddPrivateKey(d0_blind_id_t *pk, char *buf, size_t len)
+static bool Crypto_AddPrivateKey(d0_blind_id_t *pk, char *buf, size_t len)
 {
 	const char *p[1];
 	size_t l[1];
@@ -455,8 +455,8 @@ static qboolean Crypto_AddPrivateKey(d0_blind_id_t *pk, char *buf, size_t len)
 #define MAX_PUBKEYS 16
 static d0_blind_id_t *pubkeys[MAX_PUBKEYS];
 static char pubkeys_fp64[MAX_PUBKEYS][FP64_SIZE+1];
-static qboolean pubkeys_havepriv[MAX_PUBKEYS];
-static qboolean pubkeys_havesig[MAX_PUBKEYS];
+static bool pubkeys_havepriv[MAX_PUBKEYS];
+static bool pubkeys_havesig[MAX_PUBKEYS];
 static char pubkeys_priv_fp64[MAX_PUBKEYS][FP64_SIZE+1];
 static char challenge_append[1400];
 static size_t challenge_append_length;
@@ -488,7 +488,7 @@ typedef struct
 	int next_step;
 	char challenge[2048];
 	char wantserver_idfp[FP64_SIZE+1];
-	qboolean wantserver_aes;
+	bool wantserver_aes;
 	int cdata_id;
 }
 crypto_data_t;
@@ -498,7 +498,7 @@ crypto_data_t;
 #define MAKE_CDATA if(!crypto->data) crypto->data = Z_Malloc(sizeof(crypto_data_t))
 #define CLEAR_CDATA if(crypto->data) { if(CDATA->id) qd0_blind_id_free(CDATA->id); Z_Free(crypto->data); } crypto->data = NULL
 
-static crypto_t *Crypto_ServerFindInstance(lhnetaddress_t *peeraddress, qboolean allow_create)
+static crypto_t *Crypto_ServerFindInstance(lhnetaddress_t *peeraddress, bool allow_create)
 {
 	crypto_t *crypto; 
 	int i, best;
@@ -528,7 +528,7 @@ static crypto_t *Crypto_ServerFindInstance(lhnetaddress_t *peeraddress, qboolean
 	return crypto;
 }
 
-qboolean Crypto_FinishInstance(crypto_t *out, crypto_t *crypto)
+bool Crypto_FinishInstance(crypto_t *out, crypto_t *crypto)
 {
 	// no check needed here (returned pointers are only used in prefilled fields)
 	if(!crypto || !crypto->authenticated)
@@ -582,12 +582,12 @@ static void Crypto_ClearHostKeys(void)
 	}
 }
 
-static qboolean Crypto_ClearHostKey(lhnetaddress_t *peeraddress)
+static bool Crypto_ClearHostKey(lhnetaddress_t *peeraddress)
 {
 	char buf[128];
 	int hashindex;
 	crypto_storedhostkey_t **hkp;
-	qboolean found = false;
+	bool found = false;
 
 	LHNETADDRESS_ToString(peeraddress, buf, sizeof(buf), 1);
 	hashindex = CRC_Block((const unsigned char *) buf, strlen(buf)) % CRYPTO_HOSTKEY_HASHSIZE;
@@ -604,7 +604,7 @@ static qboolean Crypto_ClearHostKey(lhnetaddress_t *peeraddress)
 	return found;
 }
 
-static void Crypto_StoreHostKey(lhnetaddress_t *peeraddress, const char *keystring, qboolean complain)
+static void Crypto_StoreHostKey(lhnetaddress_t *peeraddress, const char *keystring, bool complain)
 {
 	char buf[128];
 	int hashindex;
@@ -687,7 +687,7 @@ static void Crypto_StoreHostKey(lhnetaddress_t *peeraddress, const char *keystri
 	crypto_storedhostkey_hashtable[hashindex] = hk;
 }
 
-qboolean Crypto_RetrieveHostKey(lhnetaddress_t *peeraddress, int *keyid, char *keyfp, size_t keyfplen, char *idfp, size_t idfplen, int *aeslevel)
+bool Crypto_RetrieveHostKey(lhnetaddress_t *peeraddress, int *keyid, char *keyfp, size_t keyfplen, char *idfp, size_t idfplen, int *aeslevel)
 {
 	char buf[128];
 	int hashindex;
@@ -714,7 +714,7 @@ qboolean Crypto_RetrieveHostKey(lhnetaddress_t *peeraddress, int *keyid, char *k
 
 	return true;
 }
-int Crypto_RetrieveLocalKey(int keyid, char *keyfp, size_t keyfplen, char *idfp, size_t idfplen, qboolean *issigned) // return value: -1 if more to come, +1 if valid, 0 if end of list
+int Crypto_RetrieveLocalKey(int keyid, char *keyfp, size_t keyfplen, char *idfp, size_t idfplen, bool *issigned) // return value: -1 if more to come, +1 if valid, 0 if end of list
 {
 	if(keyid < 0 || keyid >= MAX_PUBKEYS)
 		return 0;
@@ -765,7 +765,7 @@ static void Crypto_BuildChallengeAppend(void)
 	challenge_append_length = p - challenge_append;
 }
 
-static qboolean Crypto_SavePubKeyTextFile(int i)
+static bool Crypto_SavePubKeyTextFile(int i)
 {
 	qfile_t *f;
 	char vabuf[1024];
@@ -1039,7 +1039,7 @@ void Crypto_Init(void)
 }
 // end
 
-qboolean Crypto_Available(void)
+bool Crypto_Available(void)
 {
 	if(!d0_blind_id_dll)
 		return false;
@@ -1635,7 +1635,7 @@ const char *Crypto_GetInfoResponseDataString(void)
 }
 
 // network protocol
-qboolean Crypto_ServerAppendToChallenge(const char *data_in, size_t len_in, char *data_out, size_t *len_out, size_t maxlen_out)
+bool Crypto_ServerAppendToChallenge(const char *data_in, size_t len_in, char *data_out, size_t *len_out, size_t maxlen_out)
 {
 	// cheap op, all is precomputed
 	if(!d0_blind_id_dll)
@@ -1983,8 +1983,8 @@ int Crypto_ServerParsePacket(const char *data_in, size_t len_in, char *data_out,
 	double t = 0;
 	static double complain_time = 0;
 	const char *cnt;
-	qboolean do_time = false;
-	qboolean do_reject = false;
+	bool do_time = false;
+	bool do_reject = false;
 	char infostringvalue[MAX_INPUTLINE];
 	if(crypto_servercpupercent.value > 0 || crypto_servercpumaxtime.value > 0)
 		if(len_in > 5 && !memcmp(data_in, "d0pk\\", 5))
@@ -2149,7 +2149,7 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
 		const char *p;
 		int i;
 		int clientid = -1, serverid = -1, wantserverid = -1;
-		qboolean server_can_auth = true;
+		bool server_can_auth = true;
 		char wantserver_idfp[FP64_SIZE+1];
 		int wantserver_aeslevel = 0;
 

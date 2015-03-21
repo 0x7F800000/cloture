@@ -189,7 +189,7 @@ void Mod_RenderInit(void)
 void Mod_UnloadModel (dp_model_t *mod)
 {
 	char name[MAX_QPATH];
-	qboolean used;
+	bool used;
 	dp_model_t *parentmodel;
 
 	if (developer_loading.integer)
@@ -228,7 +228,7 @@ static void R_Model_Null_Draw(entity_render_t *ent)
 }
 
 
-typedef void (*mod_framegroupify_parsegroups_t) (unsigned int i, int start, int len, float fps, qboolean loop, const char *name, void *pass);
+typedef void (*mod_framegroupify_parsegroups_t) (unsigned int i, int start, int len, float fps, bool loop, const char *name, void *pass);
 
 static int Mod_FrameGroupify_ParseGroups(const char *buf, mod_framegroupify_parsegroups_t cb, void *pass)
 {
@@ -236,7 +236,7 @@ static int Mod_FrameGroupify_ParseGroups(const char *buf, mod_framegroupify_pars
 	int start, len;
 	float fps;
 	unsigned int i;
-	qboolean loop;
+	bool loop;
 	char name[64];
 
 	bufptr = buf;
@@ -303,7 +303,7 @@ static int Mod_FrameGroupify_ParseGroups(const char *buf, mod_framegroupify_pars
 	return i;
 }
 
-static void Mod_FrameGroupify_ParseGroups_Store (unsigned int i, int start, int len, float fps, qboolean loop, const char *name, void *pass)
+static void Mod_FrameGroupify_ParseGroups_Store (unsigned int i, int start, int len, float fps, bool loop, const char *name, void *pass)
 {
 	dp_model_t *mod = (dp_model_t *) pass;
 	animscene_t *anim = &mod->animscenes[i];
@@ -370,7 +370,7 @@ Mod_LoadModel
 Loads a model
 ==================
 */
-dp_model_t *Mod_LoadModel(dp_model_t *mod, qboolean crash, qboolean checkdisk)
+dp_model_t *Mod_LoadModel(dp_model_t *mod, bool crash, bool checkdisk)
 {
 	int num;
 	unsigned int crc;
@@ -606,7 +606,7 @@ Mod_ForName
 Loads in a model for the given name
 ==================
 */
-dp_model_t *Mod_ForName(const char *name, qboolean crash, qboolean checkdisk, const char *parentname)
+dp_model_t *Mod_ForName(const char *name, bool crash, bool checkdisk, const char *parentname)
 {
 	dp_model_t *model;
 	model = Mod_FindName(name, parentname);
@@ -830,7 +830,7 @@ void Mod_ValidateElements(int *elements, int numtriangles, int firstvertex, int 
 }
 
 // warning: this is an expensive function!
-void Mod_BuildNormals(int firstvertex, int numvertices, int numtriangles, const float *vertex3f, const int *elements, float *normal3f, qboolean areaweighting)
+void Mod_BuildNormals(int firstvertex, int numvertices, int numtriangles, const float *vertex3f, const int *elements, float *normal3f, bool areaweighting)
 {
 	int i, j;
 	const int *element;
@@ -917,7 +917,7 @@ static void Mod_BuildBumpVectors(const float *v0, const float *v1, const float *
 #endif
 
 // warning: this is a very expensive function!
-void Mod_BuildTextureVectorsFromNormals(int firstvertex, int numvertices, int numtriangles, const float *vertex3f, const float *texcoord2f, const float *normal3f, const int *elements, float *svector3f, float *tvector3f, qboolean areaweighting)
+void Mod_BuildTextureVectorsFromNormals(int firstvertex, int numvertices, int numtriangles, const float *vertex3f, const float *texcoord2f, const float *normal3f, const int *elements, float *svector3f, float *tvector3f, bool areaweighting)
 {
 	int i, tnum;
 	float sdir[3], tdir[3], normal[3], *sv, *tv;
@@ -997,7 +997,7 @@ void Mod_BuildTextureVectorsFromNormals(int firstvertex, int numvertices, int nu
 	}
 }
 
-void Mod_AllocSurfMesh(mempool_t *mempool, int numvertices, int numtriangles, qboolean lightmapoffsets, qboolean vertexcolors, qboolean neighbors)
+void Mod_AllocSurfMesh(mempool_t *mempool, int numvertices, int numtriangles, bool lightmapoffsets, bool vertexcolors, bool neighbors)
 {
 	unsigned char *data;
 	data = (unsigned char *)Mem_Alloc(mempool, numvertices * (3 + 3 + 3 + 3 + 2 + 2 + (vertexcolors ? 4 : 0)) * sizeof(float) + numvertices * (lightmapoffsets ? 1 : 0) * sizeof(int) + numtriangles * (3 + (neighbors ? 3 : 0)) * sizeof(int) + (numvertices <= 65536 ? numtriangles * sizeof(unsigned short[3]) : 0));
@@ -1264,7 +1264,7 @@ static void Mod_ShadowMesh_CreateVBOs(shadowmesh_t *mesh, mempool_t *mempool)
 	}
 }
 
-shadowmesh_t *Mod_ShadowMesh_Finish(mempool_t *mempool, shadowmesh_t *firstmesh, qboolean light, qboolean neighbors, qboolean createvbo)
+shadowmesh_t *Mod_ShadowMesh_Finish(mempool_t *mempool, shadowmesh_t *firstmesh, bool light, bool neighbors, bool createvbo)
 {
 	shadowmesh_t *mesh, *newmesh, *nextmesh;
 	// reallocate meshs to conserve space
@@ -1362,7 +1362,7 @@ void Mod_ShadowMesh_Free(shadowmesh_t *mesh)
 void Mod_CreateCollisionMesh(dp_model_t *mod)
 {
 	int k, numcollisionmeshtriangles;
-	qboolean usesinglecollisionmesh = false;
+	bool usesinglecollisionmesh = false;
 	const msurface_t *surface = NULL;
 
 	mempool_t *mempool = mod->mempool;
@@ -1651,7 +1651,7 @@ void Mod_LoadQ3Shaders(void)
 	char *custsurfaceparmnames[256]; // VorteX: q3map2 has 64 but well, someone will need more
 	unsigned long custsurfaceflags[256]; 
 	int numcustsurfaceflags;
-	qboolean dpshaderkill;
+	bool dpshaderkill;
 
 	Mod_FreeQ3Shaders();
 
@@ -2432,11 +2432,11 @@ q3shaderinfo_t *Mod_LookupQ3Shader(const char *name)
 	return NULL;
 }
 
-qboolean Mod_LoadTextureFromQ3Shader(texture_t *texture, const char *name, qboolean warnmissing, qboolean fallback, int defaulttexflags)
+bool Mod_LoadTextureFromQ3Shader(texture_t *texture, const char *name, bool warnmissing, bool fallback, int defaulttexflags)
 {
 	int j;
 	int texflagsmask, texflagsor;
-	qboolean success = true;
+	bool success = true;
 	q3shaderinfo_t *shader;
 	if (!name)
 		name = "";
@@ -3194,7 +3194,7 @@ static void Mod_Decompile_OBJ(dp_model_t *model, const char *filename, const cha
 	Con_Printf("Wrote %s (%i bytes, %i vertices, %i faces, %i surfaces with %i distinct textures)\n", filename, (int)outbufferpos, countvertices, countfaces, countsurfaces, counttextures);
 }
 
-static void Mod_Decompile_SMD(dp_model_t *model, const char *filename, int firstpose, int numposes, qboolean writetriangles)
+static void Mod_Decompile_SMD(dp_model_t *model, const char *filename, int firstpose, int numposes, bool writetriangles)
 {
 	int countnodes = 0, counttriangles = 0, countframes = 0;
 	int surfaceindex;
@@ -3522,7 +3522,7 @@ void Mod_AllocLightmap_Free(mod_alloclightmap_state_t *state)
 	memset(state, 0, sizeof(*state));
 }
 
-qboolean Mod_AllocLightmap_Block(mod_alloclightmap_state_t *state, int blockwidth, int blockheight, int *outx, int *outy)
+bool Mod_AllocLightmap_Block(mod_alloclightmap_state_t *state, int blockwidth, int blockheight, int *outx, int *outy)
 {
 	mod_alloclightmap_row_t *row;
 	int y;
@@ -3808,7 +3808,7 @@ static void Mod_GenerateLightmaps_DestroyLights(dp_model_t *model)
 	mod_generatelightmaps_numlights = 0;
 }
 
-static qboolean Mod_GenerateLightmaps_SamplePoint_SVBSP(const svbsp_t *svbsp, const float *pos)
+static bool Mod_GenerateLightmaps_SamplePoint_SVBSP(const svbsp_t *svbsp, const float *pos)
 {
 	const svbsp_node_t *node;
 	const svbsp_node_t *nodes = svbsp->nodes;

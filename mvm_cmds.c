@@ -597,7 +597,7 @@ refreshserverlist()
 */
 static void VM_M_refreshserverlist(prvm_prog_t *prog)
 {
-	qboolean do_reset = false;
+	bool do_reset = false;
 	VM_SAFEPARMCOUNTRANGE( 0, 1, VM_M_refreshserverlist );
 	if (prog->argc >= 1 && PRVM_G_FLOAT(OFS_PARM0))
 		do_reset = true;
@@ -894,7 +894,7 @@ static void VM_M_crypto_getmyidfp(prvm_prog_t *prog)
 static void VM_M_crypto_getmyidstatus(prvm_prog_t *prog)
 {
 	int i;
-	qboolean issigned;
+	bool issigned;
 
 	VM_SAFEPARMCOUNT(1,VM_M_crypto_getmykey);
 
