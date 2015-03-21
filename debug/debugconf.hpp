@@ -1,7 +1,7 @@
 #pragma once
 
 #define		disableProfiling	1
-#define		mDebugGlobalVM		1
+#define		mDebugGlobalVM		0
 #define		mDebugMemory		0
 
 #define		mCheckPointerNull	1

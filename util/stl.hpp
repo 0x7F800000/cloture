@@ -77,24 +77,14 @@ __if_not_exists(ptrdiff_t)
 */
 #include	"ctfe.hpp"
 
-#if 0
-	#define		funcName()		__builtin_FUNCTION()
-	#define		sourceLine()	__builtin_LINE()
-	#define		sourceFile()	__builtin_FILE()
-#else
-	#define		funcName()		__FUNCTION__
-	#define		sourceLine()	__LINE__
-	#define		sourceFile()	__FILE__
-#endif
 
 template<int line, const char* filename, const char* functionName>
-struct __sourcePositionStringBuilder
+class __sourcePositionStringBuilder
 {
 	static constexpr size_t filenameLength 	= cloture::util::ctfe::cstrlen(filename);
 	static constexpr size_t functionLength 	= cloture::util::ctfe::cstrlen(functionName);
 	static constexpr auto lineText 			= cloture::util::ctfe::parser::toString<line>;
 	static constexpr size_t lineInfoLength	= lineText.size();
-
 
 	static constexpr auto build()
 	{
@@ -129,10 +119,10 @@ struct __sourcePositionStringBuilder
 		return temp;
 	}
 
+public:
 	static constexpr auto sourceInfo = build();
 };
 
-#include 	"ctfe_math.hpp"
 #include	"extended_types.hpp"
 
 /*
