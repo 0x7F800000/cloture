@@ -677,7 +677,7 @@ static void HandleEvents(void)
 					Con_Printf("NetWM fullscreen: actually using resolution %dx%d\n", vid.width, vid.height);
 				else
 					Con_DPrintf("Updating to ConfigureNotify resolution %dx%d\n", vid.width, vid.height);
-
+			#if mSoftwareRenderer
 				if(vid.renderpath == RENDERPATH_SOFT)
 				{
 					DPSOFTRAST_Flush();
@@ -691,6 +691,7 @@ static void HandleEvents(void)
 					vid.softpixels = (unsigned int *) vidx11_ximage[vidx11_ximage_pos]->data;
 					vid.softdepthpixels = (unsigned int *)calloc(4, vid.width * vid.height);
 				}
+			#endif
 			}
 			break;
 		case DestroyNotify:
@@ -918,6 +919,7 @@ void VID_Finish (void)
 	vid_usevsync = vid_vsync.integer && !cls.timedemo && qglXSwapIntervalSGI;
 	switch(vid.renderpath)
 	{
+	#if mSoftwareRenderer
 		case RENDERPATH_SOFT:
 			if(vidx11_shmevent >= 0) {
 				vidx11_ximage_pos = !vidx11_ximage_pos;
@@ -942,7 +944,7 @@ void VID_Finish (void)
 				XPutImage(vidx11_display, win, vidx11_gc, vidx11_ximage[vidx11_ximage_pos], 0, 0, 0, 0, vid.width, vid.height);
 			}
 			break;
-
+	#endif
 		case RENDERPATH_GL11:
 		case RENDERPATH_GL13:
 		case RENDERPATH_GL20:

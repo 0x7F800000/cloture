@@ -409,7 +409,7 @@ endif
 ifndef CLOTURE_OPT
 	CLOTURE_OPT=-02
 endif
-CFLAGS_MAKEDEP?=-x c++ -ggdb -msse3 -msse4a -m3dnow $(CLOTURE_OPT) -DCONFIG_MENU -DCONFIG_CD $(EXTRA_DEFINES) $(EXTRA_INCLUDES) -MMD -fno-rtti -fomit-frame-pointer -fms-extensions $(CXXSTANDARD) -Wfatal-errors -w -fpermissive
+CFLAGS_MAKEDEP?=-x c++ -ggdb -mmmx -msse3 -msse4a -m3dnow $(CLOTURE_OPT) -DCONFIG_MENU -DCONFIG_CD $(EXTRA_DEFINES) $(EXTRA_INCLUDES) -MMD -fno-rtti -fomit-frame-pointer -fms-extensions $(CXXSTANDARD) -Wfatal-errors -w -fpermissive
 CFLAGS_NOSYSHEADERS=
 ifeq ($(CXX), icc)
 	CFLAGS_NOSYSHEADERS+=-fms-dialect=10 -use-msasm

@@ -2183,7 +2183,7 @@ void VM_strdecolorize(prvm_prog_t *prog)
 	// Prepare Strings
 	VM_SAFEPARMCOUNT(1,VM_strdecolorize);
 	szString = PRVM_G_STRING(OFS_PARM0);
-	COM_StringDecolorize(szString, 0, szNewString, sizeof(szNewString), TRUE);
+	COM_StringDecolorize(szString, 0, szNewString, sizeof(szNewString), true);
 	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, szNewString);
 }
 
@@ -5631,7 +5631,7 @@ void VM_uncolorstring (prvm_prog_t *prog)
 	// Prepare Strings
 	VM_SAFEPARMCOUNT(1, VM_uncolorstring);
 	szString = PRVM_G_STRING(OFS_PARM0);
-	COM_StringDecolorize(szString, 0, szNewString, sizeof(szNewString), TRUE);
+	COM_StringDecolorize(szString, 0, szNewString, sizeof(szNewString), true);
 	PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, szNewString);
 	
 }

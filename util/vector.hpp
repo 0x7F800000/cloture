@@ -333,3 +333,14 @@ namespace vector
 		__import_vector2f();				\
 		__import_vector3f();				\
 		__import_vector4f()
+#if 0
+void bored()
+{
+	__asm
+	{
+		extrq xmm0, 16, 32
+		movdq2q mm0, xmm0
+		pfmax mm0, mm1
+	}
+}
+#endif

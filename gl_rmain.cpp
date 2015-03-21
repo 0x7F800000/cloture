@@ -121,6 +121,8 @@ static int r_qwskincache_size;
 /// vertex coordinates for a quad that covers the screen exactly
 extern const float r_screenvertex3f[12];
 extern const float r_d3dscreenvertex3f[12];
+
+__align(mSimdAlign)
 const float r_screenvertex3f[12] =
 {
 	0, 0, 0,
@@ -128,6 +130,7 @@ const float r_screenvertex3f[12] =
 	1, 1, 0,
 	0, 1, 0
 };
+__align(mSimdAlign)
 const float r_d3dscreenvertex3f[12] =
 {
 	0, 1, 0,
@@ -5406,16 +5409,18 @@ void R_SetupView(bool allowwaterclippingplane, int fbo, rtexture_t *depthtexture
 		R_Viewport_InitPerspective(&r_refdef.view.viewport, &r_refdef.view.matrix, r_refdef.view.x, rtheight - scaledheight - r_refdef.view.y, scaledwidth, scaledheight, r_refdef.view.frustum_x, r_refdef.view.frustum_y, r_refdef.nearclip, r_refdef.farclip, customclipplane);
 	R_Mesh_SetRenderTargets(fbo, depthtexture, colortexture, nullptr, nullptr, nullptr);
 	R_SetViewport(&r_refdef.view.viewport);
-	if (r_refdef.view.useclipplane && allowwaterclippingplane && vid.renderpath == RENDERPATH_SOFT)
-	{
-		matrix4x4_t mvpmatrix, invmvpmatrix, invtransmvpmatrix;
-		float screenplane[4];
-		Matrix4x4_Concat(&mvpmatrix, &r_refdef.view.viewport.projectmatrix, &r_refdef.view.viewport.viewmatrix);
-		Matrix4x4_Invert_Full(&invmvpmatrix, &mvpmatrix);
-		Matrix4x4_Transpose(&invtransmvpmatrix, &invmvpmatrix);
-		Matrix4x4_Transform4(&invtransmvpmatrix, plane, screenplane);
-		DPSOFTRAST_ClipPlane(screenplane[0], screenplane[1], screenplane[2], screenplane[3]);
-	}
+	#if mSoftwareRenderer
+		if (r_refdef.view.useclipplane && allowwaterclippingplane && vid.renderpath == RENDERPATH_SOFT)
+		{
+			matrix4x4_t mvpmatrix, invmvpmatrix, invtransmvpmatrix;
+			float screenplane[4];
+			Matrix4x4_Concat(&mvpmatrix, &r_refdef.view.viewport.projectmatrix, &r_refdef.view.viewport.viewmatrix);
+			Matrix4x4_Invert_Full(&invmvpmatrix, &mvpmatrix);
+			Matrix4x4_Transpose(&invtransmvpmatrix, &invmvpmatrix);
+			Matrix4x4_Transform4(&invtransmvpmatrix, plane, screenplane);
+			DPSOFTRAST_ClipPlane(screenplane[0], screenplane[1], screenplane[2], screenplane[3]);
+		}
+	#endif
 }
 
 void R_EntityMatrix(const matrix4x4_t *matrix)
@@ -6039,7 +6044,10 @@ static void R_Water_ProcessPlanes(int fbo, rtexture_t *depthtexture, rtexture_t 
 		}
 
 	}
-	if(vid.renderpath==RENDERPATH_SOFT) DPSOFTRAST_ClipPlane(0, 0, 0, 1);
+	#if mSoftwareRenderer
+		if(vid.renderpath==RENDERPATH_SOFT)
+			DPSOFTRAST_ClipPlane(0, 0, 0, 1);
+	#endif
 	r_fb.water.renderingscene = false;
 	r_refdef.view = originalview;
 	R_ResetViewRendering3D(fbo, depthtexture, colortexture);

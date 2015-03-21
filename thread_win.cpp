@@ -25,7 +25,7 @@ qboolean Thread_HasThreads(void)
 
 void *_Thread_CreateMutex(const char *filename, int fileline)
 {
-	void *mutex = (void *)CreateMutex(NULL, FALSE, NULL);
+	void *mutex = (void *)CreateMutex(NULL, false, NULL);
 #ifdef THREADDEBUG
 	Sys_PrintfToTerminal("%p mutex create %s:%i\n" , mutex, filename, fileline);
 #endif
@@ -53,7 +53,7 @@ int _Thread_UnlockMutex(void *mutex, const char *filename, int fileline)
 #ifdef THREADDEBUG
 	Sys_PrintfToTerminal("%p mutex unlock %s:%i\n" , mutex, filename, fileline);
 #endif
-	return (ReleaseMutex(mutex) == FALSE) ? -1 : 0;
+	return (ReleaseMutex(mutex) == false) ? -1 : 0;
 }
 
 typedef struct thread_semaphore_s
@@ -112,7 +112,7 @@ thread_cond_t;
 void *_Thread_CreateCond(const char *filename, int fileline)
 {
 	thread_cond_t *c = (thread_cond_t *)calloc(sizeof(*c), 1);
-	c->mutex = CreateMutex(NULL, FALSE, NULL);
+	c->mutex = CreateMutex(NULL, false, NULL);
 	c->sem = Thread_CreateSemaphore(0);
 	c->done = Thread_CreateSemaphore(0);
 	c->waiting = 0;

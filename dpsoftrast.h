@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 
+#define		mSoftwareRenderer	0
+
 #define DPSOFTRAST_MAXMIPMAPS 16
 #define DPSOFTRAST_TEXTURE_MAXSIZE (1<<(DPSOFTRAST_MAXMIPMAPS - 1))
 #define DPSOFTRAST_MAXTEXTUREUNITS 16

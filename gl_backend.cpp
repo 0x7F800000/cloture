@@ -2743,7 +2743,7 @@ void GL_ReadPixelsBGRA(int x, int y, int width, int height, unsigned char *outpi
 			// surface of the same dimensions (but without multisample) to resolve the
 			// multisample buffer to a normal image, and then lock that...
 			IDirect3DSurface9 *stretchsurface = nullptr;
-			if (!FAILED(IDirect3DDevice9_CreateRenderTarget(vid_d3d9dev, vid.width, vid.height, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, TRUE, &stretchsurface, nullptr)))
+			if (!FAILED(IDirect3DDevice9_CreateRenderTarget(vid_d3d9dev, vid.width, vid.height, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, true, &stretchsurface, nullptr)))
 			{
 				D3DLOCKED_RECT lockedrect;
 				if (!FAILED(IDirect3DDevice9_StretchRect(vid_d3d9dev, gl_state.d3drt_backbuffercolorsurface, nullptr, stretchsurface, nullptr, D3DTEXF_POINT)))

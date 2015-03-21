@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 #if defined(__i386__)
 	#include <immintrin.h>
 
@@ -43,7 +45,7 @@ __if_not_exists(ptrdiff_t)
 	basic types	(uint8, int8, int32, int64, real32, real64, etc)
 */
 #include	"basic_types.hpp"
-
+#include "../qtypes.h"
 /*
 	wrappers for compiler type-checking extensions
 	provides macros for type checking. minimal use of templates.
@@ -155,10 +157,6 @@ struct __sourcePositionStringBuilder
 
 /*	miscellaneous floating point tricks	*/
 #include	"fpOps.hpp"
-
-#ifndef __QTYPES_INCLUDED
-using vec_t = float;
-#endif
 
 /*	cmath replacement. mostly inline wrappers around __builtin versions	*/
 #include	"math.hpp"

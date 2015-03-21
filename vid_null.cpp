@@ -61,12 +61,12 @@ void VID_Finish (void)
 
 int VID_SetGamma(unsigned short *ramps, int rampsize)
 {
-	return FALSE;
+	return false;
 }
 
 int VID_GetGamma(unsigned short *ramps, int rampsize)
 {
-	return FALSE;
+	return false;
 }
 
 void VID_Init(void)

@@ -448,8 +448,8 @@ void AppActivate(BOOL fActive, BOOL minimize)
 {
 	static qboolean sound_active = false;  // initially blocked by Sys_InitConsole()
 
-	vid_activewindow = fActive != FALSE;
-	vid_reallyhidden = minimize != FALSE;
+	vid_activewindow = fActive != false;
+	vid_reallyhidden = minimize != false;
 
 	// enable/disable sound on focus gain/loss
 	if ((!vid_reallyhidden && vid_activewindow) || !snd_mutewhenidle.integer)
@@ -1993,7 +1993,7 @@ void VID_SetMouse(qboolean fullscreengrab, qboolean relative, qboolean hidecurso
 					newmouseparms[0] = 0; // threshold to double movement (only if accel level is >= 1)
 					newmouseparms[1] = 0; // threshold to quadruple movement (only if accel level is >= 2)
 					newmouseparms[2] = 0; // maximum level of acceleration (0 = off)
-					restore_spi = SystemParametersInfo (SPI_SETMOUSE, 0, newmouseparms, 0) != FALSE;
+					restore_spi = SystemParametersInfo (SPI_SETMOUSE, 0, newmouseparms, 0) != false;
 				}
 				else
 					restore_spi = false;

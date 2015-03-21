@@ -1,3 +1,5 @@
+#if 0
+
 #include <stdio.h>
 #include <string.h>
 #define _USE_MATH_DEFINES
@@ -5688,3 +5690,4 @@ void DPSOFTRAST_Shutdown(void)
 	memset(&dpsoftrast, 0, sizeof(dpsoftrast));
 }
 
+#endif //#if 0
