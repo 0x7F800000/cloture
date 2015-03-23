@@ -102,6 +102,47 @@ namespace cloture::util
 			using type = metaTrue;
 		}__unused;
 
+		template<typename funcType>
+		struct metaFunctionBuilder
+		{
+			template<funcType func>
+			struct metaFunction
+			{
+				static constexpr funcType f = func;
+				metaFunction() {}
+			};
+
+			template<funcType f>
+			static constexpr auto buildFunction()
+			{
+				return metaFunction<f>();
+			}
+		};
+
+		template<typename T1, typename T2>
+		struct metaDuo
+		{
+			using first 	= T1;
+			using second 	= T2;
+		};
+
+		template<typename T1, typename T2, typename T3>
+		struct metaTrio : public metaDuo<T1, T2>
+		{
+			//using first		= T1;
+			//using second	= T2;
+			using third		= T3;
+		};
+
+		template<typename T1, typename T2, typename T3, typename T4>
+		struct metaQuartet : public metaTrio<T1, T2, T3>
+		{
+			using fourth = T4;
+		};
+
+		template<typename T>
+		static constexpr auto getMetaFunction = T::f;
+
 		template<typename T>
 		static constexpr bool isMetaNull = false;
 
@@ -144,3 +185,4 @@ namespace cloture::util
 #define		mIfMetaTrue(condition)		__if_exists(cloture::util::meta::makeMetabool<condition>::type::isTrue)
 #define		mIfMetaFalse(condition)		__if_not_exists(cloture::util::meta::makeMetabool<condition>::type::isTrue)
 
+#define		mMakeMetaFunc(f)			typeof(cloture::util::meta::metaFunctionBuilder<typeof(f)>::buildFunction<f>())

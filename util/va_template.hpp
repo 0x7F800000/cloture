@@ -165,17 +165,28 @@ struct paramPack<void>
 }__unused;
 
 template<typename... list>
-struct TypeList
+struct MetaList
 {
 	template<size_t listLength, typename... list_>
 	struct ListBuilder
 	{
-		template<typename previousNode, typename T, typename NextType = meta::metaNull, typename... nextOnes>
+		template<typename T> struct defaultTemplate
+		{
+			using data = T;
+		};
+		template<
+		size_t index,
+		typename previousNode,
+		template<typename... UU> class dataHolder = defaultTemplate,
+		typename T = void,
+		typename NextType = meta::metaNull,
+		typename... nextOnes
+		>
 		struct Node
 		{
-			using NodeType	= Node<previousNode, T, NextType, nextOnes...>;
+			using NodeType	= Node<index, previousNode, dataHolder, T, NextType, nextOnes...>;
 			using previous	= previousNode;
-			using next		= Node<NodeType, NextType, nextOnes...>;
+			using next		= Node<index + 1, NodeType, dataHolder, NextType, nextOnes...>;
 			using data		= T;
 
 			static constexpr bool hasPrevious()
@@ -187,8 +198,28 @@ struct TypeList
 				return true;
 			}
 
+			static constexpr size_t getIndex()
+			{
+				return index;
+			}
+
+			template<size_t n> struct getAtIndex
+			{
+				template<bool isMe = n == getIndex(), bool hasNext_ = hasNext()>
+				struct helper
+				{
+					using Result = typename next::getAtIndex<n>::helper::Result;
+				};
+
+				template<bool hasNext_>
+				struct helper<true, hasNext_>
+				{
+					using Result = NodeType;
+				};
+			};
+
 			template< template<typename... arg> class instantiateFor, typename... userData>
-			void instantiateForeach(userData... Args)
+			static constexpr void instantiateForeach(userData... Args)
 			{
 				//instantiateFor<>(Args...);
 				using instantiation = instantiateFor<userData...>;
@@ -202,10 +233,14 @@ struct TypeList
 		/*
 		 * last Node
 		 */
-		template<typename previousNode, typename T>
-		struct Node<previousNode, T, meta::metaNull>
+		template<
+		size_t index,
+		typename previousNode,
+		template<typename... UU> class dataHolder,
+		typename T>
+		struct Node<index, previousNode, dataHolder, T, meta::metaNull>
 		{
-			using NodeType = Node<previousNode, T, meta::metaNull>;
+			using NodeType = Node<index, previousNode, dataHolder, T, meta::metaNull>;
 			using previous = previousNode;
 			using next = meta::metaNull;
 			using data = T;
@@ -214,10 +249,13 @@ struct TypeList
 			{
 				return !meta::isMetaNull<previous>;
 			}
-
+			static constexpr size_t getIndex()
+			{
+				return index;
+			}
 			//last node, done iterating
 			template< template<typename... arg> class instantiateFor, typename... userData>
-			void instantiateForeach(userData... Args)
+			static constexpr void instantiateForeach(userData... Args)
 			{
 				//instantiateFor<>(Args...);
 				using instantiation = instantiateFor<userData...>;
@@ -233,7 +271,7 @@ struct TypeList
 
 		}__unused;
 
-		using built = Node< meta::metaNull, list_... >;
+		using built = Node< 0, meta::metaNull, defaultTemplate, list_... >;
 	}__unused;
 
 	template<>
@@ -241,8 +279,8 @@ struct TypeList
 	{
 		using built = meta::metaNull;
 	}__unused;
-
-	using List = typename ListBuilder<sizeof...(list), list...>::built;
+	using Builder = ListBuilder<sizeof...(list), list...>;
+	using List = typename Builder::built;
 
 
 	static constexpr size_t getLength()
@@ -268,7 +306,35 @@ struct TypeList
 		List::instantiateForeach<Iterator>(userDat...);
 	}
 
+	template< template< typename... args > class Iterator>
+	struct synthesizeList
+	{
+		using Result = typename Builder::Node< 0, meta::metaNull, Iterator, list...>;
+	};
+
+	template<size_t index>
+	struct getNth
+	{
+		static_assert(!meta::isMetaNull<List>);
+
+	};
+
 }__unused;
+
+
+using mListTest = MetaList<int, const int*, char>;
+
+template<typename... Ts>
+struct iteratorTest
+{
+	template<typename T, typename... Tothers>
+	struct getOne
+	{
+		using type = T;
+	};
+	using type = typename getOne<Ts...>::type;
+};
+using synthesized = typename mListTest::synthesizeList<iteratorTest>::Result;
 
 static constexpr paramPack<size_t, 1, 2, 3, 4, 5> ___PARAM_PACK_TEST___;
 
