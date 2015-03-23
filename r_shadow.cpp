@@ -164,8 +164,6 @@ using templates::casts::vector_cast;
 #endif
 
 
-static void R_Shadow_EditLights_Init();
-
 typedef enum r_shadow_rendermode_e
 {
 	R_SHADOW_RENDERMODE_NONE,
@@ -232,7 +230,7 @@ struct r_shadow_bouncegrid_settings_t
 #include "renderer/shadows/R_Shadow_GlobalVars.hpp"
 
 #include "renderer/shadows/Shadows_Cvars.hpp"
-
+#include "renderer/shadows/R_Shadow_StaticProtos.hpp"
 
 static void R_Shadow_SetShadowMode()
 {
@@ -336,415 +334,30 @@ static void R_Shadow_FreeShadowMaps()
 
 	r_shadow_fbo2d = 0;
 
-	if (r_shadow_shadowmap2ddepthtexture)
+	if ( r_shadow_shadowmap2ddepthtexture != nullptr )
 		R_FreeTexture(r_shadow_shadowmap2ddepthtexture);
 	r_shadow_shadowmap2ddepthtexture = nullptr;
 
-	if (r_shadow_shadowmap2ddepthbuffer)
+	if ( r_shadow_shadowmap2ddepthbuffer != nullptr )
 		R_FreeTexture(r_shadow_shadowmap2ddepthbuffer);
 	r_shadow_shadowmap2ddepthbuffer = nullptr;
 
-	if (r_shadow_shadowmapvsdcttexture)
+	if ( r_shadow_shadowmapvsdcttexture != nullptr )
 		R_FreeTexture(r_shadow_shadowmapvsdcttexture);
 	r_shadow_shadowmapvsdcttexture = nullptr;
 }
 
-static void r_shadow_start()
-{
-	// allocate vertex processing arrays
-	r_shadow_bouncegridpixels = nullptr;
-	r_shadow_bouncegridhighpixels = nullptr;
-	r_shadow_bouncegridnumpixels = 0;
-	r_shadow_bouncegridtexture = nullptr;
-	r_shadow_bouncegriddirectional = false;
-	r_shadow_attenuationgradienttexture = nullptr;
-	r_shadow_attenuation2dtexture = nullptr;
-	r_shadow_attenuation3dtexture = nullptr;
-	r_shadow_shadowmode = R_SHADOW_SHADOWMODE_STENCIL;
-	r_shadow_shadowmap2ddepthtexture = nullptr;
-	r_shadow_shadowmap2ddepthbuffer = nullptr;
-	r_shadow_shadowmapvsdcttexture = nullptr;
-	r_shadow_shadowmapmaxsize = 0;
-	r_shadow_shadowmapsize = 0;
-	r_shadow_shadowmaplod = 0;
-	r_shadow_shadowmapfilterquality = -1;
-	r_shadow_shadowmapdepthbits = 0;
-	r_shadow_shadowmapvsdct = false;
-	r_shadow_shadowmapsampler = false;
-	r_shadow_shadowmappcf = 0;
-	r_shadow_fbo2d = 0;
+#include "renderer/shadows/R_Shadow_Start.hpp"
 
-	R_Shadow_FreeShadowMaps();
 
-	r_shadow_texturepool = nullptr;
-	r_shadow_filters_texturepool = nullptr;
-	R_Shadow_ValidateCvars();
-	R_Shadow_MakeTextures();
-	maxshadowtriangles = 0;
-	shadowelements = nullptr;
-	maxshadowvertices = 0;
-	shadowvertex3f = nullptr;
-	maxvertexupdate = 0;
-	vertexupdate = nullptr;
-	vertexremap = nullptr;
-	vertexupdatenum = 0;
-	maxshadowmark = 0;
-	numshadowmark = 0;
-	shadowmark = nullptr;
-	shadowmarklist = nullptr;
-	shadowmarkcount = 0;
-	maxshadowsides = 0;
-	numshadowsides = 0;
-	shadowsides = nullptr;
-	shadowsideslist = nullptr;
-	r_shadow_buffer_numleafpvsbytes = 0;
-	r_shadow_buffer_visitingleafpvs = nullptr;
-	r_shadow_buffer_leafpvs = nullptr;
-	r_shadow_buffer_leaflist = nullptr;
-	r_shadow_buffer_numsurfacepvsbytes = 0;
-	r_shadow_buffer_surfacepvs = nullptr;
-	r_shadow_buffer_surfacelist = nullptr;
-	r_shadow_buffer_surfacesides = nullptr;
-	r_shadow_buffer_numshadowtrispvsbytes = 0;
-	r_shadow_buffer_shadowtrispvs = nullptr;
-	r_shadow_buffer_numlighttrispvsbytes = 0;
-	r_shadow_buffer_lighttrispvs = nullptr;
 
-	r_shadow_usingdeferredprepass = false;
-	r_shadow_prepass_width = r_shadow_prepass_height = 0;
-}
+#include "renderer/shadows/R_Shadow_Shutdown.hpp"
+#include "renderer/shadows/R_Shadow_Newmap.hpp"
+#include "renderer/shadows/R_Shadow_Init.hpp"
 
-static void R_Shadow_FreeDeferred();
-static void r_shadow_shutdown()
-{
-	CHECKGLERROR
-	R_Shadow_UncompileWorldLights();
+#include "renderer/shadows/R_Shadow_ResizeShadowArrays.hpp"
 
-	R_Shadow_FreeShadowMaps();
-
-	r_shadow_usingdeferredprepass = false;
-	if (r_shadow_prepass_width)
-		R_Shadow_FreeDeferred();
-	r_shadow_prepass_width = r_shadow_prepass_height = 0;
-
-	CHECKGLERROR
-	r_shadow_bouncegridtexture = nullptr;
-	r_shadow_bouncegridpixels = nullptr;
-	r_shadow_bouncegridhighpixels = nullptr;
-	r_shadow_bouncegridnumpixels = 0;
-	r_shadow_bouncegriddirectional = false;
-	r_shadow_attenuationgradienttexture = nullptr;
-	r_shadow_attenuation2dtexture = nullptr;
-	r_shadow_attenuation3dtexture = nullptr;
-	R_FreeTexturePool(&r_shadow_texturepool);
-	R_FreeTexturePool(&r_shadow_filters_texturepool);
-	maxshadowtriangles = 0;
-	if (shadowelements)
-		Mem_Free(shadowelements);
-	shadowelements = nullptr;
-	if (shadowvertex3f)
-		Mem_Free(shadowvertex3f);
-	shadowvertex3f = nullptr;
-	maxvertexupdate = 0;
-	if (vertexupdate)
-		Mem_Free(vertexupdate);
-	vertexupdate = nullptr;
-	if (vertexremap)
-		Mem_Free(vertexremap);
-	vertexremap = nullptr;
-	vertexupdatenum = 0;
-	maxshadowmark = 0;
-	numshadowmark = 0;
-	if (shadowmark)
-		Mem_Free(shadowmark);
-	shadowmark = nullptr;
-	if (shadowmarklist)
-		Mem_Free(shadowmarklist);
-	shadowmarklist = nullptr;
-	shadowmarkcount = 0;
-	maxshadowsides = 0;
-	numshadowsides = 0;
-	if (shadowsides)
-		Mem_Free(shadowsides);
-	shadowsides = nullptr;
-	if (shadowsideslist)
-		Mem_Free(shadowsideslist);
-	shadowsideslist = nullptr;
-	r_shadow_buffer_numleafpvsbytes = 0;
-	if (r_shadow_buffer_visitingleafpvs)
-		Mem_Free(r_shadow_buffer_visitingleafpvs);
-	r_shadow_buffer_visitingleafpvs = nullptr;
-	if (r_shadow_buffer_leafpvs)
-		Mem_Free(r_shadow_buffer_leafpvs);
-	r_shadow_buffer_leafpvs = nullptr;
-	if (r_shadow_buffer_leaflist)
-		Mem_Free(r_shadow_buffer_leaflist);
-	r_shadow_buffer_leaflist = nullptr;
-	r_shadow_buffer_numsurfacepvsbytes = 0;
-	if (r_shadow_buffer_surfacepvs)
-		Mem_Free(r_shadow_buffer_surfacepvs);
-	r_shadow_buffer_surfacepvs = nullptr;
-	if (r_shadow_buffer_surfacelist)
-		Mem_Free(r_shadow_buffer_surfacelist);
-	r_shadow_buffer_surfacelist = nullptr;
-	if (r_shadow_buffer_surfacesides)
-		Mem_Free(r_shadow_buffer_surfacesides);
-	r_shadow_buffer_surfacesides = nullptr;
-	r_shadow_buffer_numshadowtrispvsbytes = 0;
-	if (r_shadow_buffer_shadowtrispvs)
-		Mem_Free(r_shadow_buffer_shadowtrispvs);
-	r_shadow_buffer_numlighttrispvsbytes = 0;
-	if (r_shadow_buffer_lighttrispvs)
-		Mem_Free(r_shadow_buffer_lighttrispvs);
-}
-
-static void r_shadow_newmap()
-{
-	if (r_shadow_bouncegridtexture) 
-		R_FreeTexture(r_shadow_bouncegridtexture);
-		
-	r_shadow_bouncegridtexture = nullptr;
-	
-	if (r_shadow_lightcorona)                 
-		R_SkinFrame_MarkUsed(r_shadow_lightcorona);
-	if (r_editlights_sprcursor)               
-		R_SkinFrame_MarkUsed(r_editlights_sprcursor);
-	if (r_editlights_sprlight)                
-		R_SkinFrame_MarkUsed(r_editlights_sprlight);
-	if (r_editlights_sprnoshadowlight)        
-		R_SkinFrame_MarkUsed(r_editlights_sprnoshadowlight);
-	if (r_editlights_sprcubemaplight)         
-		R_SkinFrame_MarkUsed(r_editlights_sprcubemaplight);
-	if (r_editlights_sprcubemapnoshadowlight) 
-		R_SkinFrame_MarkUsed(r_editlights_sprcubemapnoshadowlight);
-	if (r_editlights_sprselection)            
-		R_SkinFrame_MarkUsed(r_editlights_sprselection);
-		
-	if ( strncmp(cl.worldname, r_shadow_mapname, sizeof(r_shadow_mapname)) )
-		R_Shadow_EditLights_Reload_f();
-}
-
-void R_Shadow_Init()
-{
-	Cvar_RegisterVariable(&r_shadow_bumpscale_basetexture);
-	Cvar_RegisterVariable(&r_shadow_bumpscale_bumpmap);
-	Cvar_RegisterVariable(&r_shadow_usebihculling);
-	Cvar_RegisterVariable(&r_shadow_usenormalmap);
-	Cvar_RegisterVariable(&r_shadow_debuglight);
-	Cvar_RegisterVariable(&r_shadow_deferred);
-	Cvar_RegisterVariable(&r_shadow_gloss);
-	Cvar_RegisterVariable(&r_shadow_gloss2intensity);
-	Cvar_RegisterVariable(&r_shadow_glossintensity);
-	Cvar_RegisterVariable(&r_shadow_glossexponent);
-	Cvar_RegisterVariable(&r_shadow_gloss2exponent);
-	Cvar_RegisterVariable(&r_shadow_glossexact);
-	Cvar_RegisterVariable(&r_shadow_lightattenuationdividebias);
-	Cvar_RegisterVariable(&r_shadow_lightattenuationlinearscale);
-	Cvar_RegisterVariable(&r_shadow_lightintensityscale);
-	Cvar_RegisterVariable(&r_shadow_lightradiusscale);
-	Cvar_RegisterVariable(&r_shadow_projectdistance);
-	Cvar_RegisterVariable(&r_shadow_frontsidecasting);
-	Cvar_RegisterVariable(&r_shadow_realtime_dlight);
-	Cvar_RegisterVariable(&r_shadow_realtime_dlight_shadows);
-	Cvar_RegisterVariable(&r_shadow_realtime_dlight_svbspculling);
-	Cvar_RegisterVariable(&r_shadow_realtime_dlight_portalculling);
-	Cvar_RegisterVariable(&r_shadow_realtime_world);
-	Cvar_RegisterVariable(&r_shadow_realtime_world_lightmaps);
-	Cvar_RegisterVariable(&r_shadow_realtime_world_shadows);
-	Cvar_RegisterVariable(&r_shadow_realtime_world_compile);
-	Cvar_RegisterVariable(&r_shadow_realtime_world_compileshadow);
-	Cvar_RegisterVariable(&r_shadow_realtime_world_compilesvbsp);
-	Cvar_RegisterVariable(&r_shadow_realtime_world_compileportalculling);
-	Cvar_RegisterVariable(&r_shadow_scissor);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_vsdct);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_filterquality);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_useshadowsampler);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_depthbits);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_precision);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_maxsize);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_minsize);
-
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_bordersize);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_nearclip);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_bias);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_polygonfactor);
-	Cvar_RegisterVariable(&r_shadow_shadowmapping_polygonoffset);
-	Cvar_RegisterVariable(&r_shadow_sortsurfaces);
-	Cvar_RegisterVariable(&r_shadow_polygonfactor);
-	Cvar_RegisterVariable(&r_shadow_polygonoffset);
-	Cvar_RegisterVariable(&r_shadow_texture3d);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_bounceanglediffuse);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_directionalshading);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_dlightparticlemultiplier);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_hitmodels);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_includedirectlighting);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_intensity);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_lightradiusscale);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_maxbounce);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_particlebounceintensity);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_particleintensity);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_photons);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_spacing);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_stablerandom);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_static);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_static_directionalshading);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_static_lightradiusscale);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_static_maxbounce);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_static_photons);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_updateinterval);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_x);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_y);
-	Cvar_RegisterVariable(&r_shadow_bouncegrid_z);
-	Cvar_RegisterVariable(&r_coronas);
-	Cvar_RegisterVariable(&r_coronas_occlusionsizescale);
-	Cvar_RegisterVariable(&r_coronas_occlusionquery);
-	Cvar_RegisterVariable(&gl_flashblend);
-	Cvar_RegisterVariable(&gl_ext_separatestencil);
-	Cvar_RegisterVariable(&gl_ext_stenciltwoside);
-	R_Shadow_EditLights_Init();
-	Mem_ExpandableArray_NewArray(&r_shadow_worldlightsarray, r_main_mempool, sizeof(dlight_t), 128);
-	maxshadowtriangles = 0;
-	shadowelements = nullptr;
-	maxshadowvertices = 0;
-	shadowvertex3f = nullptr;
-	maxvertexupdate = 0;
-	vertexupdate = nullptr;
-	vertexremap = nullptr;
-	vertexupdatenum = 0;
-	maxshadowmark = 0;
-	numshadowmark = 0;
-	shadowmark = nullptr;
-	shadowmarklist = nullptr;
-	shadowmarkcount = 0;
-	maxshadowsides = 0;
-	numshadowsides = 0;
-	shadowsides = nullptr;
-	shadowsideslist = nullptr;
-	r_shadow_buffer_numleafpvsbytes = 0;
-	r_shadow_buffer_visitingleafpvs = nullptr;
-	r_shadow_buffer_leafpvs = nullptr;
-	r_shadow_buffer_leaflist = nullptr;
-	r_shadow_buffer_numsurfacepvsbytes = 0;
-	r_shadow_buffer_surfacepvs = nullptr;
-	r_shadow_buffer_surfacelist = nullptr;
-	r_shadow_buffer_surfacesides = nullptr;
-	r_shadow_buffer_shadowtrispvs = nullptr;
-	r_shadow_buffer_lighttrispvs = nullptr;
-	R_RegisterModule("R_Shadow", r_shadow_start, r_shadow_shutdown, r_shadow_newmap, nullptr, nullptr);
-}
-
-float atten1[] = {0.5f, 0.0f, 0.0f, 0.5f};
-float atten2[] = {0.0f, 0.5f, 0.0f, 0.5f};
-float atten3[] = {0.0f, 0.0f, 0.5f, 0.5f};
-float atten4[] = {0.0f, 0.0f, 0.0f, 1.0f};
-
-matrix4x4_t matrix_attenuationxyz =
-{
-		atten1, atten2, atten3, atten4
-};
-
-float atten5[] = {0.0f, 0.0f, 0.5f, 0.5f};
-float atten6[] = {0.0f, 0.0f, 0.0f, 0.5f};
-float atten7[] = {0.0f, 0.0f, 0.0f, 0.5f};
-float atten8[] = {0.0f, 0.0f, 0.0f, 1.0f};
-
-matrix4x4_t matrix_attenuationz = /*cloture::util::math::matrix::matrix4D(
-		((float[4]){0.0f, 0.0f, 0.5f, 0.5f}),
-		((float[4]){0.0f, 0.0f, 0.0f, 0.5f}),
-		((float[4]){0.0f, 0.0f, 0.0f, 0.5f}),
-		((float[4]){0.0f, 0.0f, 0.0f, 1.0f}));
-*/
-{
-		atten5, atten6, atten7, atten8
-};
-static void R_Shadow_ResizeShadowArrays(int numvertices, int numtriangles, int vertscale, int triscale)
-{
-	numvertices = ((numvertices + 255) & ~255) * vertscale;
-	numtriangles = ((numtriangles + 255) & ~255) * triscale;
-	// make sure shadowelements is big enough for this volume
-	if (maxshadowtriangles < numtriangles)
-	{
-		maxshadowtriangles = numtriangles;
-		if (shadowelements)
-			Mem_Free(shadowelements);
-		shadowelements = (int *)Mem_Alloc(r_main_mempool, maxshadowtriangles * sizeof(int[3]));
-	}
-	// make sure shadowvertex3f is big enough for this volume
-	if (maxshadowvertices < numvertices)
-	{
-		maxshadowvertices = numvertices;
-		if (shadowvertex3f)
-			Mem_Free(shadowvertex3f);
-		shadowvertex3f = (float *)Mem_Alloc(r_main_mempool, maxshadowvertices * sizeof(float[3]));
-	}
-}
-
-static void R_Shadow_EnlargeLeafSurfaceTrisBuffer(int numleafs, int numsurfaces, int numshadowtriangles, int numlighttriangles)
-{
-	int numleafpvsbytes = (((numleafs + 7) >> 3) + 255) & ~255;
-	int numsurfacepvsbytes = (((numsurfaces + 7) >> 3) + 255) & ~255;
-	int numshadowtrispvsbytes = (((numshadowtriangles + 7) >> 3) + 255) & ~255;
-	int numlighttrispvsbytes = (((numlighttriangles + 7) >> 3) + 255) & ~255;
-	
-	if (r_shadow_buffer_numleafpvsbytes < numleafpvsbytes)
-	{
-		if (r_shadow_buffer_visitingleafpvs != nullptr)
-			r_main_mempool->dealloc(r_shadow_buffer_visitingleafpvs);
-			
-		//Mem_Free(r_shadow_buffer_visitingleafpvs);
-			
-		if (r_shadow_buffer_leafpvs != nullptr)
-			r_main_mempool->dealloc(r_shadow_buffer_leafpvs);
-		
-		//Mem_Free(r_shadow_buffer_leafpvs);
-			
-		if (r_shadow_buffer_leaflist != nullptr)
-			r_main_mempool->dealloc(r_shadow_buffer_leaflist);
-			
-		//Mem_Free(r_shadow_buffer_leaflist);
-			
-		r_shadow_buffer_numleafpvsbytes = numleafpvsbytes;
-		
-		r_shadow_buffer_visitingleafpvs = r_main_mempool->alloc<uint8>(r_shadow_buffer_numleafpvsbytes);
-		
-		//(unsigned char *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numleafpvsbytes);
-		
-		r_shadow_buffer_leafpvs = r_main_mempool->alloc<uint8>(r_shadow_buffer_numleafpvsbytes);
-		//(unsigned char *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numleafpvsbytes);
-		
-		r_shadow_buffer_leaflist = r_main_mempool->alloc<typeof(*r_shadow_buffer_leaflist)>(r_shadow_buffer_numleafpvsbytes * 8);
-		//(int *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numleafpvsbytes * 8 * sizeof(*r_shadow_buffer_leaflist));
-	}
-	if (r_shadow_buffer_numsurfacepvsbytes < numsurfacepvsbytes)
-	{
-		if (r_shadow_buffer_surfacepvs)
-			Mem_Free(r_shadow_buffer_surfacepvs);
-		if (r_shadow_buffer_surfacelist)
-			Mem_Free(r_shadow_buffer_surfacelist);
-		if (r_shadow_buffer_surfacesides)
-			Mem_Free(r_shadow_buffer_surfacesides);
-		r_shadow_buffer_numsurfacepvsbytes = numsurfacepvsbytes;
-		r_shadow_buffer_surfacepvs = (unsigned char *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numsurfacepvsbytes);
-		r_shadow_buffer_surfacelist = (int *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numsurfacepvsbytes * 8 * sizeof(*r_shadow_buffer_surfacelist));
-		r_shadow_buffer_surfacesides = (unsigned char *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numsurfacepvsbytes * 8 * sizeof(*r_shadow_buffer_surfacelist));
-	}
-	if (r_shadow_buffer_numshadowtrispvsbytes < numshadowtrispvsbytes)
-	{
-		if (r_shadow_buffer_shadowtrispvs)
-			Mem_Free(r_shadow_buffer_shadowtrispvs);
-		r_shadow_buffer_numshadowtrispvsbytes = numshadowtrispvsbytes;
-		r_shadow_buffer_shadowtrispvs = (unsigned char *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numshadowtrispvsbytes);
-	}
-	if (r_shadow_buffer_numlighttrispvsbytes < numlighttrispvsbytes)
-	{
-		if (r_shadow_buffer_lighttrispvs)
-			Mem_Free(r_shadow_buffer_lighttrispvs);
-		r_shadow_buffer_numlighttrispvsbytes = numlighttrispvsbytes;
-		r_shadow_buffer_lighttrispvs = (unsigned char *)Mem_Alloc(r_main_mempool, r_shadow_buffer_numlighttrispvsbytes);
-	}
-}
+#include "renderer/shadows/R_Shadow_EnlargeLeafSurfaceTrisBuffer.hpp"
 
 void R_Shadow_PrepareShadowMark(int numtris)
 {
@@ -1729,30 +1342,6 @@ void R_Shadow_RenderMode_Lighting(bool stenciltest, bool transparent, bool shado
 		R_SetStencil(false, 255, GL_KEEP, GL_KEEP, GL_KEEP, GL_ALWAYS, 128, 255);
 }
 
-__align(mSimdAlign)
-static const unsigned short bboxelements[36] =
-{
-	5, 1, 3, 5, 3, 7,
-	6, 2, 0, 6, 0, 4,
-	7, 3, 2, 7, 2, 6,
-	4, 0, 1, 4, 1, 5,
-	4, 5, 7, 4, 7, 6,
-	1, 0, 2, 1, 2, 3,
-};
-
-__align(mSimdAlign)
-static const float bboxpoints[8][3] =
-{
-	{-1,-1,-1},
-	{ 1,-1,-1},
-	{-1, 1,-1},
-	{ 1, 1,-1},
-	{-1,-1, 1},
-	{ 1,-1, 1},
-	{-1, 1, 1},
-	{ 1, 1, 1},
-};
-
 void R_Shadow_RenderMode_DrawDeferredLight(bool stenciltest, bool shadowmapping)
 {
 	float vertex3f[8*3];
@@ -2418,25 +2007,6 @@ void R_Shadow_RenderMode_End()
 	r_shadow_rendermode = R_SHADOW_RENDERMODE_NONE;
 }
 
-__align(mSimdAlign)
-int bboxedges[12][2] =
-{
-	// top
-	{0, 1}, // +X
-	{0, 2}, // +Y
-	{1, 3}, // Y, +X
-	{2, 3}, // X, +Y
-	// bottom
-	{4, 5}, // +X
-	{4, 6}, // +Y
-	{5, 7}, // Y, +X
-	{6, 7}, // X, +Y
-	// verticals
-	{0, 4}, // +Z
-	{1, 5}, // X, +Z
-	{2, 6}, // Y, +Z
-	{3, 7}, // XY, +Z
-};
 
 bool R_Shadow_ScissorForBBox(const float *mins, const float *maxs)
 {
@@ -2563,29 +2133,71 @@ static void R_Shadow_ComputeShadowCasterCullingPlanes(rtlight_t *rtlight)
 
 #include "renderer/shadows/R_Shadow_DrawWorldShadow.hpp"
 
-static void R_Shadow_DrawEntityShadow(entity_render_t *ent)
+static void R_Shadow_DrawEntityShadow(
+	entity_render_t *		ent
+)
 {
-	vec3_t relativeshadoworigin, relativeshadowmins, relativeshadowmaxs;
-	vec_t relativeshadowradius;
+	//vector3f relativeshadoworigin;
+	/*
+	vector3f relativeshadowmins;
+	vector3f relativeshadowmaxs;
+	*/
+	
+	vector3f relativeShadowOrigin;
+	
 	RSurf_ActiveModelEntity(ent, false, false, false);
-	Matrix4x4_Transform(&ent->inversematrix, rsurface.rtlight->shadoworigin, relativeshadoworigin);
+	
+	Matrix4x4_Transform(
+		&ent->inversematrix, 
+		rsurface.rtlight->shadoworigin, 
+		relativeShadowOrigin
+	);
+	
 	// we need to re-init the shader for each entity because the matrix changed
-	relativeshadowradius = rsurface.rtlight->radius / ent->scale;
-	relativeshadowmins[0] = relativeshadoworigin[0] - relativeshadowradius;
-	relativeshadowmins[1] = relativeshadoworigin[1] - relativeshadowradius;
-	relativeshadowmins[2] = relativeshadoworigin[2] - relativeshadowradius;
-	relativeshadowmaxs[0] = relativeshadoworigin[0] + relativeshadowradius;
-	relativeshadowmaxs[1] = relativeshadoworigin[1] + relativeshadowradius;
-	relativeshadowmaxs[2] = relativeshadoworigin[2] + relativeshadowradius;
-	switch (r_shadow_rendermode)
+	const float relativeShadowRadius 	= rsurface.rtlight->radius / ent->scale;
+	
+	vector3f relativeShadowMins = relativeShadowOrigin - relativeShadowRadius;
+	/*
+	relativeshadowmins[0] 	= relativeShadowOrigin[0] - relativeShadowRadius;
+	relativeshadowmins[1] 	= relativeShadowOrigin[1] - relativeShadowRadius;
+	relativeshadowmins[2] 	= relativeShadowOrigin[2] - relativeShadowRadius;
+	*/
+	
+	vector3f relativeShadowMaxs = relativeShadowOrigin + relativeShadowRadius;
+	/*
+	relativeshadowmaxs[0] 	= relativeShadowOrigin[0] + relativeShadowRadius;
+	relativeshadowmaxs[1] 	= relativeShadowOrigin[1] + relativeShadowRadius;
+	relativeshadowmaxs[2] 	= relativeShadowOrigin[2] + relativeShadowRadius;*/
+	
+	if( r_shadow_rendermode == R_SHADOW_RENDERMODE_SHADOWMAP2D )
 	{
-	case R_SHADOW_RENDERMODE_SHADOWMAP2D:
-		ent->model->DrawShadowMap(r_shadow_shadowmapside, ent, relativeshadoworigin, nullptr, relativeshadowradius, ent->model->nummodelsurfaces, ent->model->sortedmodelsurfaces, nullptr, relativeshadowmins, relativeshadowmaxs);
-		break;
-	default:
-		ent->model->DrawShadowVolume(ent, relativeshadoworigin, nullptr, relativeshadowradius, ent->model->nummodelsurfaces, ent->model->sortedmodelsurfaces, relativeshadowmins, relativeshadowmaxs);
-		break;
+		ent->model->DrawShadowMap(
+			r_shadow_shadowmapside, 
+			ent, 
+			relativeShadowOrigin, 
+			nullptr, 
+			relativeShadowRadius, 
+			ent->model->nummodelsurfaces, 
+			ent->model->sortedmodelsurfaces, 
+			nullptr, 
+			relativeShadowMins, 
+			relativeShadowMaxs
+		);
 	}
+	else
+	{
+		ent->model->DrawShadowVolume(
+			ent, 
+			relativeShadowOrigin, 
+			nullptr, 
+			relativeShadowRadius, 
+			ent->model->nummodelsurfaces, 
+			ent->model->sortedmodelsurfaces, 
+			relativeShadowMins, 
+			relativeShadowMaxs
+		);
+	}
+	
 	rsurface.entity = nullptr; // used only by R_GetCurrentTexture and RSurf_ActiveWorldEntity/RSurf_ActiveModelEntity
 }
 
@@ -2601,7 +2213,7 @@ void R_Shadow_SetupEntityLight(const entity_render_t *ent)
 
 static void R_Shadow_DrawWorldLight(int numsurfaces, int *surfacelist, const unsigned char *lighttrispvs)
 {
-	if (!r_refdef.scene.worldmodel->DrawLight)
+	if ( r_refdef.scene.worldmodel->DrawLight == nullptr )
 		return;
 
 	// set up properties for rendering light onto this entity
@@ -2619,7 +2231,7 @@ static void R_Shadow_DrawWorldLight(int numsurfaces, int *surfacelist, const uns
 static void R_Shadow_DrawEntityLight(entity_render_t *ent)
 {
 	dp_model_t *model = ent->model;
-	if (!model->DrawLight)
+	if ( model->DrawLight == nullptr )
 		return;
 
 	R_Shadow_SetupEntityLight(ent);
@@ -2635,29 +2247,33 @@ static void R_Shadow_DrawEntityLight(entity_render_t *ent)
 
 static void R_Shadow_FreeDeferred()
 {
-	R_Mesh_DestroyFramebufferObject(r_shadow_prepassgeometryfbo);
-	r_shadow_prepassgeometryfbo = 0;
+	R_Mesh_DestroyFramebufferObject(	r_shadow_prepassgeometryfbo	);
+	r_shadow_prepassgeometryfbo 				= 0;
 
-	R_Mesh_DestroyFramebufferObject(r_shadow_prepasslightingdiffusespecularfbo);
-	r_shadow_prepasslightingdiffusespecularfbo = 0;
+	R_Mesh_DestroyFramebufferObject(	r_shadow_prepasslightingdiffusespecularfbo	);
+	r_shadow_prepasslightingdiffusespecularfbo 	= 0;
 
-	R_Mesh_DestroyFramebufferObject(r_shadow_prepasslightingdiffusefbo);
-	r_shadow_prepasslightingdiffusefbo = 0;
+	R_Mesh_DestroyFramebufferObject(	r_shadow_prepasslightingdiffusefbo			);
+	r_shadow_prepasslightingdiffusefbo 			= 0;
 
-	if (r_shadow_prepassgeometrydepthbuffer)
-		R_FreeTexture(r_shadow_prepassgeometrydepthbuffer);
+	if( r_shadow_prepassgeometrydepthbuffer != nullptr )
+		R_FreeTexture(	r_shadow_prepassgeometrydepthbuffer			);
+		
 	r_shadow_prepassgeometrydepthbuffer = nullptr;
 
-	if (r_shadow_prepassgeometrynormalmaptexture)
-		R_FreeTexture(r_shadow_prepassgeometrynormalmaptexture);
+	if( r_shadow_prepassgeometrynormalmaptexture != nullptr )
+		R_FreeTexture(	r_shadow_prepassgeometrynormalmaptexture	);
+		
 	r_shadow_prepassgeometrynormalmaptexture = nullptr;
 
-	if (r_shadow_prepasslightingdiffusetexture)
-		R_FreeTexture(r_shadow_prepasslightingdiffusetexture);
+	if( r_shadow_prepasslightingdiffusetexture != nullptr )
+		R_FreeTexture(	r_shadow_prepasslightingdiffusetexture		);
+	
 	r_shadow_prepasslightingdiffusetexture = nullptr;
 
-	if (r_shadow_prepasslightingspeculartexture)
-		R_FreeTexture(r_shadow_prepasslightingspeculartexture);
+	if( r_shadow_prepasslightingspeculartexture != nullptr )
+		R_FreeTexture(	r_shadow_prepasslightingspeculartexture		);
+		
 	r_shadow_prepasslightingspeculartexture = nullptr;
 }
 
@@ -2746,7 +2362,6 @@ void R_Shadow_DrawPrepass()
 #endif
 }
 
-void R_Shadow_DrawLightSprites();
 void R_Shadow_PrepareLights(int fbo, rtexture_t *depthtexture, rtexture_t *colortexture)
 {
 	int flag;
@@ -2906,9 +2521,6 @@ void R_Shadow_DrawLights()
 	R_Shadow_RenderMode_End();
 }
 
-#define MAX_MODELSHADOWS 1024
-static int r_shadow_nummodelshadows;
-static entity_render_t *r_shadow_modelshadows[MAX_MODELSHADOWS];
 
 void R_Shadow_PrepareModelShadows()
 {
@@ -3073,9 +2685,6 @@ static void R_BeginCoronaQuery(rtlight_t *rtlight, float scale, bool usequery)
 	}
 	rtlight->corona_visibility = bound(0, (zdist - 32) / 32, 1);
 }
-
-__align(mSimdAlign)
-static float spritetexcoord2f[4*2] = {0, 1, 0, 0, 1, 0, 1, 1};
 
 static void R_DrawCorona(rtlight_t *rtlight, float cscale, float scale)
 {
