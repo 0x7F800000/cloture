@@ -364,28 +364,6 @@ namespace cloture::util::ctfe
 		//finalType();
 	};
 
-	template< typename packedType,
-	//const char* s,
-	typename returnType, typename... ArgTypes>
-	static constexpr auto buildFunctionDescriptor(returnType (*f)(ArgTypes...))
-	{
-		struct FDescriptor
-		{
-			__typeof(packedType::str) s;
-			returnType returnTypeThing;
-			__typeof(f) fptr;
-
-			constexpr FDescriptor(__typeof(f) fptr_) :
-			fptr(fptr_),
-			returnTypeThing(0),
-			s()
-			{}
-
-		};
-		return FDescriptor(f);
-	}
-
-
 	#define mStrIndexScale		sizeof(unsigned __int128)
 
 	#if 0
@@ -430,6 +408,22 @@ namespace cloture::util::ctfe
 		mConstString1024(str, i+64), 	\
 		mConstString1024(str, i+128), 	\
 		mConstString1024(str, i+192)
+
+	#define mConstString16384(str, i) 	\
+		mConstString4096(str, i), 		\
+		mConstString4096(str, i+256), 	\
+		mConstString4096(str, i+512), 	\
+		mConstString4096(str, i+768)
+
+	/*
+	 * this is terrifying
+	 * i'm tempted to test this one
+	 */
+	#define mConstString65536(str, i) 	\
+		mConstString4096(str, i), 		\
+		mConstString4096(str, i+1024), 	\
+		mConstString4096(str, i+2048), 	\
+		mConstString4096(str, i+3072)
 
 	#define	mIndirectConstString(prefix, sz, str)	\
 		prefix##sz(str, 0)

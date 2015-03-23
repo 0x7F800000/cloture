@@ -44,6 +44,10 @@ namespace common  {
 	template<> static constexpr real64 	minValue<real64> 	= 2.22507e-308;
 	template<> static constexpr real32 	minValue<real32> 	= 1.17549e-38f;
 
+	template<> static constexpr uint8 maxValue = 0xFF;
+	template<> static constexpr uint16 maxValue = 0xFFFF;
+
+
 #if defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)
 	#define	mCompilerSupportsInt128	1
 #else

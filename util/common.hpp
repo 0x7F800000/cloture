@@ -1,10 +1,6 @@
 #pragma once
 
-namespace cloture//::util::common
-{
-namespace util
-{
-namespace common
+namespace cloture::util::common
 {
 	/**
 	 * like sizeof, but for bits instead of bytes
@@ -86,6 +82,6 @@ namespace common
 	findBitSet(1) == 0
 	);
 	static_assert(!powerOfTwo(0));
+
+
 }
-}
-};
