@@ -91,7 +91,7 @@ namespace memory
 		char name[POOLNAMESIZE];
 		// should always be MEMPOOL_SENTINEL
 		unsigned int sentinel2;
-		template<typename T> inline T* alloc(const allocsize_t n);
+		template<typename T, bool stripArrayBounds_ = false> inline auto alloc(const allocsize_t n);
 		template<typename T> inline T* realloc(T* data, const allocsize_t n);
 		template<typename T> inline void dealloc(T* data);
 	};
@@ -250,11 +250,28 @@ namespace memory
 		Mem_Free(reinterpret_cast<void*>(mem));
 	}
 
-	template<typename T>
+	template<typename T, bool stripArrayBounds_>
 	__returns_aligned(poolAllocAlign) __returns_nonull __returns_unaliased
-	inline T* Pool::alloc(const allocsize_t n)
+	inline auto Pool::alloc(const allocsize_t n)
 	{
-		return reinterpret_cast<T*>(Mem_Alloc(this, n * sizeof(T)));
+		T* result = reinterpret_cast<T*>(Mem_Alloc(this, n * sizeof(T)));
+
+		mIfMetaTrue(stripArrayBounds_)
+		{
+			return
+			reinterpret_cast<typename util::generic::stripArrayBounds<T>::type>(result);
+		}
+		mIfMetaFalse(stripArrayBounds_)
+		{
+			return result;
+		}
+		/*
+		return choose_expr
+		(
+			stripArrayBounds_,
+			reinterpret_cast<typename util::generic::stripArrayBounds<T>::type>(result),
+			result
+		);*/
 	}
 
 	template<typename T>

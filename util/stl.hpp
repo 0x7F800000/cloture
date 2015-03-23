@@ -29,15 +29,16 @@ __if_not_exists(ptrdiff_t)
  	 Cloture STL headers.
 */
 
-
-#include	"codecontext.hpp"
-#include	"libMeta/metaApi.hpp"
-
 /*
 	common compiler extensions
 	mostly wraps compiler attributes like __declspec and __attribute__
 */
 #include	"../compiler_features.hpp"
+
+#include	"codecontext.hpp"
+#include	"libMeta/metaApi.hpp"
+
+
 
 /*
 	basic types	(uint8, int8, int32, int64, real32, real64, etc)

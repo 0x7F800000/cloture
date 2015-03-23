@@ -1,23 +1,30 @@
 #pragma once
 
+template<typename T, size32 elementCount>
+static inline void resizeShadowArrayElements(
+	const int numElements,
+	const int elementScale,
+	int& maxElements,
+	T*& elements
+)
+{
+	const int scaledElements = ((numElements + 255) & ~255) * elementScale;
+
+	if(maxElements >= scaledElements)
+		return;
+
+	maxElements = scaledElements;
+
+	if( !isNull(elements) )
+		r_main_mempool->dealloc(elements);
+
+	elements = r_main_mempool->alloc<T[elementCount], true>(scaledElements);
+
+
+}
+
 static void R_Shadow_ResizeShadowArrays(int numvertices, int numtriangles, int vertscale, int triscale)
 {
-	numvertices = ((numvertices + 255) & ~255) * vertscale;
-	numtriangles = ((numtriangles + 255) & ~255) * triscale;
-	// make sure shadowelements is big enough for this volume
-	if (maxshadowtriangles < numtriangles)
-	{
-		maxshadowtriangles = numtriangles;
-		if (shadowelements)
-			Mem_Free(shadowelements);
-		shadowelements = (int *)Mem_Alloc(r_main_mempool, maxshadowtriangles * sizeof(int[3]));
-	}
-	// make sure shadowvertex3f is big enough for this volume
-	if (maxshadowvertices < numvertices)
-	{
-		maxshadowvertices = numvertices;
-		if (shadowvertex3f)
-			Mem_Free(shadowvertex3f);
-		shadowvertex3f = (float *)Mem_Alloc(r_main_mempool, maxshadowvertices * sizeof(float[3]));
-	}
+	resizeShadowArrayElements<int, 3>(		numtriangles, 	triscale, 	maxshadowtriangles, 	shadowelements);
+	resizeShadowArrayElements<float, 3>(	numvertices, 	vertscale, 	maxshadowvertices, 		shadowvertex3f);
 }

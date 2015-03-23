@@ -16,6 +16,22 @@ class wrapped_ptr
 {
 	T* ptr;
 public:
+	using wrapperType = wrapped_ptr<T, onError>;
+
+	/*
+	 * called by isNull
+	 */
+	__pure __forceinline
+	static constexpr bool clotureIsNull(const wrapperType wrap)
+	{
+		return wrap.ptr == nullptr;
+	}
+
+	__forceinline
+	static constexpr bool clotureMakeNull(wrapperType& wrap)
+	{
+		return wrap.ptr = nullptr;
+	}
 
 	template<__printf_type(1) __noreturn void (*onError_)(const char*, ...) = nullptr>
 	__noinline __cold
@@ -78,6 +94,78 @@ public:
 	}
 
 };//class wrapped_ptr
+
+template<typename T>
+__pure __forceinline static bool isNull(T toCheck)
+{
+	constexpr bool typeIsPointer = generic::isPointer<T>();
+	mIfMetaTrue(typeIsPointer)
+	{
+		return toCheck == nullptr;
+	}
+	mIfMetaFalse(typeIsPointer)
+	{
+		constexpr bool typeIsClass = generic::isClass<T>();
+
+		mIfMetaTrue(typeIsClass)
+		{
+			__if_exists(T::clotureIsNull)
+			{
+				return T::clotureIsNull(toCheck);
+			}
+			__if_not_exists(T::clotureIsNull)
+			{
+				static_assert(
+				!typeIsClass,
+				"Class passed to isNull does not provide the static method clotureIsNull."
+				);
+				return false;
+			}
+		}
+		mIfMetaFalse(typeIsClass)
+		{
+			static_assert(typeIsClass, "Unwrapped primitive class passed to isNull!");
+			return true;
+		}
+	}
+}
+
+template<typename T>
+__forceinline static void setNull(T& toNull)
+{
+	constexpr bool typeIsPointer = generic::isPointer<T>();
+	mIfMetaTrue(typeIsPointer)
+	{
+		toNull = nullptr;
+		return;
+	}
+	mIfMetaFalse(typeIsPointer)
+	{
+		constexpr bool typeIsClass = generic::isClass<T>();
+
+		mIfMetaTrue(typeIsClass)
+		{
+			__if_exists(T::clotureMakeNull)
+			{
+				T::clotureMakeNull(toNull);
+				return;
+			}
+			__if_not_exists(T::clotureMakeNull)
+			{
+				static_assert(
+				!typeIsClass,
+				"Class passed to setNull does not provide the static method clotureMakeNull."
+				);
+				return;
+			}
+		}
+		mIfMetaFalse(typeIsClass)
+		{
+			static_assert(typeIsClass, "Unwrapped primitive class passed to setNull!");
+			return;
+		}
+	}
+}
 
 } //namespace pointers
 } //namespace util

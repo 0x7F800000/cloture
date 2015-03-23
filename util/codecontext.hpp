@@ -20,12 +20,21 @@ namespace cloture
 	 * and type declarations inherit from apiObject
 	 */
 	struct apiObject{};
+
+	template<typename T>
+	struct markImplicitlyConvertible
+	{
+		using implicitConversion = T;
+	};
+
 }
 
 #define		mAssertZeroOffset(classname, membername)	\
 			static_assert(__offsetof(classname, membername) == 0)
 
-#define		__markAsCtfe()		public cloture::ctfeContext
-#define		__markAsRuntime()	public cloture::runtimeContext
+#define		__markAsCtfe()					public cloture::ctfeContext
+#define		__markAsRuntime()				public cloture::runtimeContext
 
-#define		__markApiObject()	public cloture::apiObject
+#define		__markApiObject()				public cloture::apiObject
+
+#define		__allowConversionTo(Typename)	public cloture::markImplicitlyConvertible<Typename>

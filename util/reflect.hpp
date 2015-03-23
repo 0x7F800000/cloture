@@ -245,10 +245,7 @@
 
 
 
-namespace cloture	{
-namespace util		{
-
-class Reflect : __markAsCtfe()
+namespace cloture::util::reflect
 {
 	template<typename T>
 	class isIndexableChecker : __markAsCtfe()
@@ -270,9 +267,57 @@ class Reflect : __markAsCtfe()
 
 
 	};
-public:
-};
 
-}//namespace util
-}//namespace cloture
+	enum class AccessLevel : common::int8
+	{
+		Public,
+		Private,
+		Protected
+	};
 
+	template<
+	AccessLevel accessLevel,
+	typename 	fieldType,
+	typename 	fieldNameAsMetaString,
+	typename 	ownerClass,
+	typename 	previousField = void>
+	struct Field
+	{
+	private:
+		template<typename T = void>
+		struct offsetCalculator
+		{
+			static constexpr size_t tryAndCalculate()
+			{
+				constexpr size_t lastOffset 	= T::offset;
+				constexpr size_t lastMemberSize = sizeof(T::type);
+				constexpr size_t currAlign		= alignof(T);
+				return lastOffset + lastMemberSize; //incomplete
+			}
+		}__unused;
+
+		//first member in the class
+		template<>
+		struct offsetCalculator<void>
+		{
+			/*
+			 * if the class is polymorphic, then the virtual function table is the first member
+			 * of the class. if isPolymorphic returns true, the size will be the size of the
+			 * vtbl pointer. otherwise it's zero
+			 */
+			static constexpr size_t vtblAdjust =
+			(static_cast<size_t>(generic::isPolymorphic<ownerClass>()) & 1)
+			* sizeof(void*);
+
+			static constexpr size_t offset = 0 + vtblAdjust;
+
+		}__unused;
+	public:
+		static constexpr auto name 				= fieldNameAsMetaString::str;
+		static constexpr AccessLevel access 	= accessLevel;
+		using type 	= fieldType;
+		using owner = ownerClass;
+
+	};
+
+}//namespace cloture::util::reflect

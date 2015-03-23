@@ -6,7 +6,7 @@ namespace cloture::util
 	{
 	private:
 		struct metaBool	: __markAsCtfe()
-		{};
+		{} __unused;
 
 		template<typename T>
 		static constexpr bool internalMetaBoolValue()
@@ -46,7 +46,7 @@ namespace cloture::util
 		}
 
 		struct _metaInt : __markAsCtfe()
-		{};
+		{} __unused;
 
 	public:
 		template<int metaval>
@@ -54,25 +54,27 @@ namespace cloture::util
 		{
 			struct _internal_value_
 			{
-				bool value[metaval];
-			};
-		};
+				__unused bool value[metaval];
+			}__unused;
+		}__unused;
 
 		struct metaTrue : public metaBool, __markAsCtfe()
 		{
+			using isTrue = void;
 			static constexpr auto clotureTypeName()
 			{
-				return "metaBool<value = True";
+				return "metaBool<value = True>";
 			}
-		};
+		}__unused;
 
 		struct metaFalse : public metaBool, __markAsCtfe()
 		{
+			using isFalse = void;
 			static constexpr auto clotureTypeName()
 			{
-				return "metaBool<value = False";
+				return "metaBool<value = False>";
 			}
-		};
+		}__unused;
 
 		struct metaNull : __markAsCtfe()
 		{
@@ -80,7 +82,25 @@ namespace cloture::util
 			{
 				return "(NULL type)";
 			}
-		};
+		}__unused;
+
+		template<bool value>
+		struct makeMetabool
+		{
+
+		}__unused;
+
+		template<>
+		struct makeMetabool<false>
+		{
+			using type = metaFalse;
+		}__unused;
+
+		template<>
+		struct makeMetabool<true>
+		{
+			using type = metaTrue;
+		}__unused;
 
 		template<typename T>
 		static constexpr bool isMetaNull = false;
@@ -120,3 +140,7 @@ namespace cloture::util
 
 	};
 }
+
+#define		mIfMetaTrue(condition)		__if_exists(cloture::util::meta::makeMetabool<condition>::type::isTrue)
+#define		mIfMetaFalse(condition)		__if_not_exists(cloture::util::meta::makeMetabool<condition>::type::isTrue)
+

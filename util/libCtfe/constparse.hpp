@@ -243,7 +243,7 @@ namespace cloture::util::ctfe::parser
 		}
 
 		explicit constexpr operator decltype(b) () const	{	return b;	}
-	};
+	}__unused;
 	static_assert(calcRepresentationLen<20>() == 2, "woops");
 
 	template<common::int32 value> static constexpr

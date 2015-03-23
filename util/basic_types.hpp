@@ -15,16 +15,13 @@ namespace common  {
 	using uint64	= unsigned __int64;//unsigned long long;
 	using int64		= __int64;//signed long long;
 
+	using size16	= uint16;
 	using size32	= uint32;
+	using size64	= uint64;
+
 	using ptrdiff32 = int32;
 
-	/*
-	sanity checks
-	*/
-	static_assert( sizeof(uint8) == 1	&& sizeof(int8) == 1, "sizeof int8/uint8 ought to be one byte...");
-	static_assert( sizeof(uint16) == 2	&& sizeof(int16) == 2, "sizeof int16/uint16 should be two bytes...");
-	static_assert( sizeof(uint32) == 4	&& sizeof(int32) == 4, "sizeof int32/uint32 should be four bytes...");
-	static_assert( sizeof(uint64) == 8	&& sizeof(int64) == 8, "sizeof int64/uint64 should be eight bytes...");
+
 	/*
 	real number types
 	*/
@@ -35,17 +32,6 @@ namespace common  {
 
 	static constexpr ptrdiff_t 	none	=  -1;
 	static constexpr size_t 	unone	= (none);
-
-	template<typename T> static constexpr T maxValue 		= 0;
-	template<> static constexpr real64 	maxValue<real64> 	= 1.79769e+308;
-	template<> static constexpr real32 	maxValue<real32> 	= 3.40282e+38f;
-
-	template<typename T> static constexpr T minValue 		= 0;
-	template<> static constexpr real64 	minValue<real64> 	= 2.22507e-308;
-	template<> static constexpr real32 	minValue<real32> 	= 1.17549e-38f;
-
-	template<> static constexpr uint8 maxValue = 0xFF;
-	template<> static constexpr uint16 maxValue = 0xFFFF;
 
 
 #if defined(__clang__) || defined(__GNUC__) || defined(__INTEL_COMPILER)
@@ -63,7 +49,14 @@ namespace common  {
 	 */
 	 #include "int128.hpp"
 #endif
-
+	/*
+	sanity checks
+	*/
+	static_assert( sizeof(uint8) == 1	&& sizeof(int8) == 1, "sizeof int8/uint8 ought to be one byte...");
+	static_assert( sizeof(uint16) == 2	&& sizeof(int16) == 2, "sizeof int16/uint16 should be two bytes...");
+	static_assert( sizeof(uint32) == 4	&& sizeof(int32) == 4, "sizeof int32/uint32 should be four bytes...");
+	static_assert( sizeof(uint64) == 8	&& sizeof(int64) == 8, "sizeof int64/uint64 should be eight bytes...");
+	static_assert( sizeof(uint128) == 16 && sizeof(int128) == 16, "sizeof int128/uint128 should be sixteen bytes...");
 /*
  * todo: use some ctfe:: functions in here to clean this up
  * maybe make this ctfe::parser::parse<uint128>
@@ -154,6 +147,28 @@ constexpr int128 operator"" _i128(const char *str)
 {
 	return static_cast<int128>(toU128(str));
 }
+
+
+template<typename T> static constexpr T maxValue 		= 0;
+template<> static constexpr real64 	maxValue<real64> 	= 1.79769e+308;
+template<> static constexpr real32 	maxValue<real32> 	= 3.40282e+38f;
+
+template<typename T> static constexpr T minValue 		= 0;
+template<> static constexpr real64 	minValue<real64> 	= 2.22507e-308;
+template<> static constexpr real32 	minValue<real32> 	= 1.17549e-38f;
+
+template<> static constexpr uint8 maxValue<uint8> 		= 0xFFu;
+template<> static constexpr uint16 maxValue<uint16> 	= 0xFFFFu;
+template<> static constexpr uint32 maxValue<uint32> 	= 0xFFFFFFFFu;
+template<> static constexpr uint64 maxValue<uint64> 	= 0xFFFFFFFFFFFFFFFFULL;
+template<> static constexpr uint128 maxValue<uint128> 	= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF_u128;
+
+template<> static constexpr uint8 minValue<uint8> 		= 0u;
+template<> static constexpr uint16 minValue<uint16> 	= 0u;
+template<> static constexpr uint32 minValue<uint32> 	= 0u;
+template<> static constexpr uint64 minValue<uint64> 	= 0ULL;
+template<> static constexpr uint128 minValue<uint128> 	= 0_u128;
+
 }//namespace common
 }//namespace util
 }//namespace cloture

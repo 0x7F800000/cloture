@@ -357,11 +357,9 @@ namespace cloture::util::ctfe
 				return result;
 			}
 
-		};
+		}__unused;
 		constexpr packedString() {}
-		//using finalType = PACKED<T_, packedVals_...>;
 		static constexpr const auto str = PACKED<T_, packedVals_...>::generateCString();
-		//finalType();
 	};
 
 	#define mStrIndexScale		sizeof(unsigned __int128)

@@ -90,52 +90,52 @@ namespace cloture::util::generic
 	template<typename T> struct __make_unsigned__
 	{
 		typedef T ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_unsigned__<int8>
 	{
 		typedef uint8 ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_unsigned__<int16>
 	{
 		typedef uint16 ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_unsigned__<int32>
 	{
 		typedef uint32 ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_unsigned__<int64>
 	{
 		typedef uint64 ___type___;
-	};
+	}__unused;
 
 	template<typename T> struct __make_signed__
 	{
 		typedef T ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_signed__<uint8>
 	{
 		typedef int8 ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_signed__<uint16>
 	{
 		typedef int16 ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_signed__<uint32>
 	{
 		typedef int32 ___type___;
-	};
+	}__unused;
 
 	template<> struct __make_signed__<uint64>
 	{
 		typedef int64 ___type___;
-	};
+	}__unused;
 
 	template<typename T>
 	struct typeHolder
@@ -143,7 +143,7 @@ namespace cloture::util::generic
 		using type = T;
 		char y;
 		constexpr typeHolder() : y(0) {}
-	};
+	}__unused;
 
 
 	template<int typeclass_, typename T>
@@ -382,11 +382,11 @@ namespace cloture::util::generic
 				return (TT*)nullptr;
 			}
 
-		};
+		}__unused;
 
 	public:
 		using type = __typeof(*nestedChecker<T>::checkConst((T*)nullptr));
-	};
+	}__unused;
 
 	static_assert(!isTriviallyAssignable<const int*, typename removeConst<const int*>::type >());
 
@@ -434,26 +434,7 @@ namespace cloture::util::generic
 	static_assert(typesIdentical<int, int>());
 	static_assert(!typesIdentical<int, const int>());
 	static_assert(!typesIdentical<int, char>());
-	template<typename T>
-	class stripPointer
-	{
-		static constexpr bool isPointerType = isPointer<T>();
 
-		template<typename TT, bool bb = false>
-		struct helper
-		{
-			using type = TT;
-		};
-
-		template<typename TT>
-		struct helper<TT, true>
-		{
-			using type = typeof( *static_cast<T>(nullptr));
-		};
-
-	public:
-		using type = typename helper<T, isPointerType>::type;
-	};
 
 	enum class Signedness
 	{
@@ -469,48 +450,48 @@ namespace cloture::util::generic
 	};
 
 	template<typename T, Signedness signedness>
-	struct setSignedness{};
+	struct setSignedness{}__unused;
 
 	template<typename T>
 	struct setSignedness<T, Signedness::Signed>
 	{
 		using type = typename __make_signed__<T>::___type___;
-	};
+	}__unused;
 
 	template<typename T>
 	struct setSignedness<T, Signedness::Unsigned>
 	{
 		using type = typename __make_unsigned__<T>::___type___;
-	};
+	}__unused;
 
 	template<size_t bytes, NumberType numType = NumberType::Integral, Signedness signedness = Signedness::Signed>
 	class basicTypeFromSize
 	{
 		template<size_t bytes_>
-		struct sChooser{using type = void;};
+		struct sChooser{using type = void;}__unused;
 
 		template<> struct sChooser<1>
-		{	using type = common::int8;	};
+		{	using type = common::int8;	}__unused;
 
 		template<> struct sChooser<2>
-		{	using type = common::int16;	};
+		{	using type = common::int16;	}__unused;
 
 		template<> struct sChooser<4>
-		{	using type = common::int32;	};
+		{	using type = common::int32;	}__unused;
 
 		template<> struct sChooser<8>
-		{	using type = common::int64;	};
+		{	using type = common::int64;	}__unused;
 
 		template<size_t bytes_>
-		struct fChooser {using type = void; };
+		struct fChooser {using type = void; }__unused;
 
 		template<> struct fChooser<32>
-		{using type = common::real32;	};
+		{using type = common::real32;	}__unused;
 		template<> struct fChooser<64>
-		{using type = common::real32;	};
+		{using type = common::real32;	}__unused;
 
 		template<NumberType numType_>
-		struct chooserChooser{};
+		struct chooserChooser{}__unused;
 
 		template<>
 		struct chooserChooser<NumberType::Integral>
@@ -519,8 +500,8 @@ namespace cloture::util::generic
 			struct choose
 			{
 				using chosen = typename sChooser<bytes_>::type;
-			};
-		};
+			}__unused;
+		}__unused;
 
 		template<>
 		struct chooserChooser<NumberType::Real>
@@ -529,19 +510,19 @@ namespace cloture::util::generic
 			struct choose
 			{
 				using chosen = typename fChooser<bytes_>::type;
-			};
-		};
+			}__unused;
+		}__unused;
 
 		template<size_t bytes_,  Signedness signedness_, NumberType numType_>
 		struct CHOOSE
 		{
 
-		};
+		}__unused;
 		template<size_t bytes_>
 		struct CHOOSE<bytes_,  Signedness::Signed, NumberType::Real>
 		{
 			using type = typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen;
-		};
+		}__unused;
 
 		template<size_t bytes_, Signedness signedness_>
 		struct CHOOSE<bytes_,  signedness_, NumberType::Integral>
@@ -549,10 +530,10 @@ namespace cloture::util::generic
 			using type = typename setSignedness<
 			typename chooserChooser<NumberType::Real>::choose<bytes_>::chosen,
 			signedness_>::type;
-		};
+		}__unused;
 	public:
 		using type = typename CHOOSE<bytes, signedness, numType>::type;
-	};
+	}__unused;
 
 	/*
 	 * these check if a class inherits from any of the structures declared in codecontext.hpp
@@ -595,6 +576,59 @@ namespace cloture::util::generic
 		return isBaseOf<cloture::apiObject, T>();
 	}
 
+	template<typename T>
+	struct stripArrayBounds
+	{
+	private:
+		template<typename T_, bool isAArray = false>
+		struct helper
+		{
+			using type = T_;
+		}__unused;
+
+		template<typename T_>
+		struct helper<T_, true>
+		{
+			using elementType = __typeof( (*static_cast<T*>(nullptr))[0]);
+			using type = elementType*;
+		}__unused;
+
+	public:
+		using type = typename helper<T, isArray<T>()>::type;
+	}__unused;
+
+	template<typename T>
+	struct stripPointer
+	{
+	private:
+		template<typename T_, bool isPointer_ = false>
+		struct __helper
+		{
+			using type = T_;
+		} __unused;
+
+		template<typename T_>
+		struct __helper<T_, true>
+		{
+			using type = typeof(*static_cast<T>(nullptr));
+		} __unused;
+
+	public:
+		using type = typename __helper<T, isPointer<T>() >::type;
+
+	}__unused;
+
+
+	template<typename T>
+	static constexpr bool hasImplicitConversion()
+	{
+		return isBaseOf<cloture::markImplicitlyConvertible, T>();
+	}
+	template<typename T>
+	static constexpr bool hasImplicitConversion(T tv)
+	{
+		return isBaseOf<cloture::markImplicitlyConvertible, T>();
+	}
 	//};//class generic
 }//namespace cloture::util::generic
 
