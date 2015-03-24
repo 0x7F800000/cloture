@@ -82,3 +82,5 @@ cloture::util::ctfe::CString<cloture::util::ctfe::cstrlen(s)>::CString<cloture::
 #include 	"libCtfe/constparse.hpp"
 #include 	"libCtfe/constmath.hpp"
 #include 	"libCtfe/constcrc.hpp"
+
+#include	"libCtfe/constmemory.hpp"

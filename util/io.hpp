@@ -57,7 +57,7 @@ public:
 		rad = radix;
 		return *this;
 	}
-	ostream& operator <<(common::uint8 b)
+	ostream& operator <<(const common::uint8 b)
 	{
 		switch(rad)
 		{
@@ -70,7 +70,7 @@ public:
 		};
 		return *this;
 	}
-	ostream& operator <<(common::uint16 b)
+	ostream& operator <<(const common::uint16 b)
 	{
 		switch(rad)
 		{
@@ -83,7 +83,7 @@ public:
 		};
 		return *this;
 	}
-	ostream& operator <<(common::uint32 b)
+	ostream& operator <<(const common::uint32 b)
 	{
 		switch(rad)
 		{
@@ -96,7 +96,7 @@ public:
 		};
 		return *this;
 	}
-	ostream& operator <<(common::uint64 b)
+	ostream& operator <<(const common::uint64 b)
 	{
 		switch(rad)
 		{
@@ -112,7 +112,7 @@ public:
 	/**
 	 * signed int types
 	 */
-	ostream& operator <<(common::int8 b)
+	ostream& operator <<(const common::int8 b)
 	{
 		switch(rad)
 		{
@@ -125,7 +125,7 @@ public:
 		};
 		return *this;
 	}
-	ostream& operator <<(common::int16 b)
+	ostream& operator <<(const common::int16 b)
 	{
 		switch(rad)
 		{
@@ -138,7 +138,7 @@ public:
 		};
 		return *this;
 	}
-	ostream& operator <<(common::int32 b)
+	ostream& operator <<(const common::int32 b)
 	{
 		switch(rad)
 		{
@@ -151,7 +151,7 @@ public:
 		};
 		return *this;
 	}
-	ostream& operator <<(common::int64 b)
+	ostream& operator <<(const common::int64 b)
 	{
 		switch(rad)
 		{
@@ -169,6 +169,20 @@ public:
 		output_func("%s", b);
 		return *this;
 	}
+	ostream& operator <<(void* b)
+	{
+		constexpr char* fmt = 
+		choose_expr
+		(
+			sizeof(void*) == 8,
+			"0x%llX",
+			"0x%iX"
+		);
+		
+		output_func(fmt, b);
+		return *this;
+	}
+	
 };//class ostream
 
 __if_exists(sprintf)
