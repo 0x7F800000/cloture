@@ -35,6 +35,7 @@
 	#endif
 
 	#define 	__assume_aligned(ptr,alignment)			__builtin_assume_aligned(ptr, alignment)
+	#define		__object_size(obj, type)				__builtin_object_size(obj, type)
 	#define		prefetch(addr, ...)						__builtin_prefetch(addr, ##__VA_ARGS__)
 	#define 	clear_cache(begin, end)					__builtin___clear_cache(begin, end)
 
@@ -111,7 +112,8 @@
 	#define		__addressof(x)			__builtin_addressof(x)
 
 	#define		__shuffleVector(...)	__builtin_shufflevector(__VA_ARGS__)
-	#define		__unroll				_Pragma("clang loop unroll(full)")
+	#define		__unrollFull()			_Pragma("unroll")
+	#define		__unroll(x)				_Pragma("unroll("#x")")
 	#define		__pointerAlignment(x)	__attribute__((align_value(x)))
 
 	/*
