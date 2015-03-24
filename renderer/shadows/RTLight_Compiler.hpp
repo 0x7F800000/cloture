@@ -81,23 +81,23 @@ void R_RTLight_Compile(rtlight_t *rtlight)
 
 
 	shadowzpasstris = 0;
-	if (rtlight->static_meshchain_shadow_zpass)
+	if (rtlight->static_meshchain_shadow_zpass != nullptr)
 		for (mesh = rtlight->static_meshchain_shadow_zpass;mesh;mesh = mesh->next)
 			shadowzpasstris += mesh->numtriangles;
 
 	shadowzfailtris = 0;
-	if (rtlight->static_meshchain_shadow_zfail)
+	if (rtlight->static_meshchain_shadow_zfail != nullptr)
 		for (mesh = rtlight->static_meshchain_shadow_zfail;mesh;mesh = mesh->next)
 			shadowzfailtris += mesh->numtriangles;
 
 	lighttris = 0;
-	if (rtlight->static_numlighttrispvsbytes)
+	if (rtlight->static_numlighttrispvsbytes != 0)
 		for (i = 0;i < rtlight->static_numlighttrispvsbytes*8;i++)
 			if (CHECKPVSBIT(rtlight->static_lighttrispvs, i))
 				lighttris++;
 
 	shadowtris = 0;
-	if (rtlight->static_numshadowtrispvsbytes)
+	if (rtlight->static_numshadowtrispvsbytes != 0)
 		for (i = 0;i < rtlight->static_numshadowtrispvsbytes*8;i++)
 			if (CHECKPVSBIT(rtlight->static_shadowtrispvs, i))
 				shadowtris++;

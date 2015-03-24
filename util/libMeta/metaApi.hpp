@@ -141,6 +141,16 @@ namespace cloture::util
 		};
 
 		template<typename T>
+		struct makeMetaVal
+		{
+			template<T val>
+			struct metaValue
+			{
+				static constexpr T value = val;
+			};
+		}__unused;
+
+		template<typename T>
 		static constexpr auto getMetaFunction = T::f;
 
 		template<typename T>
@@ -186,3 +196,5 @@ namespace cloture::util
 #define		mIfMetaFalse(condition)		__if_not_exists(cloture::util::meta::makeMetabool<condition>::type::isTrue)
 
 #define		mMakeMetaFunc(f)			typeof(cloture::util::meta::metaFunctionBuilder<typeof(f)>::buildFunction<f>())
+
+#define		mMakeMetaValue(value)		cloture::util::meta::makeMetaVal<typeof(value)>::metaValue<value>

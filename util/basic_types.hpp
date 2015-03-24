@@ -169,6 +169,28 @@ template<> static constexpr uint32 minValue<uint32> 	= 0u;
 template<> static constexpr uint64 minValue<uint64> 	= 0ULL;
 template<> static constexpr uint128 minValue<uint128> 	= 0_u128;
 
+
+template<typename T, typename metaInit>
+struct Primitive
+{
+	T value;
+	static constexpr T defaultValue = metaInit::value;
+
+	__forceinline
+	constexpr T operator =(T other)
+	{
+		return value = other;
+	}
+
+	__forceinline
+	constexpr operator T()
+	{
+		return value;
+	}
+};
+
+
+
 }//namespace common
 }//namespace util
 }//namespace cloture
