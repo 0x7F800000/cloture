@@ -95,19 +95,61 @@ typedef enum textype_e
 }
 textype_t;
 
-
-// contents of this structure are mostly private to gl_textures.c
-typedef struct rtexture_s
+// contents of this structure are private to gl_textures.c
+typedef struct rtexturepool_s
 {
-	// this is exposed (rather than private) for speed reasons only
+	int useless;
+}
+rtexturepool_t;
+
+typedef void (*updatecallback_t)(struct rtexture_t *rt, void *data);
+
+
+struct textypeinfo_t
+{
+	const char *name;
+	textype_t textype;
+	int inputbytesperpixel;
+	int internalbytesperpixel;
+	float glinternalbytesperpixel;
+	int glinternalformat;
+	int glformat;
+	int gltype;
+};
+
+#define mRTextureNonOpaque	1
+
+struct rtexture_proto
+{
+		// d3d stuff the backend needs
+	void 					*d3dtexture;
+	void 					*d3dsurface;
+	
+	// dynamic texture stuff [11/22/2007 Black]
+	updatecallback_t 		updatecallback;
+	void 					*updatacallback_data;
+	// --- [11/22/2007 Black]
+
+	// stores backup copy of texture for deferred texture updates (gl_nopartialtextureupdates cvar)
+	unsigned char 			*bufferpixels;
+	// pointer to texturepool (check this to see if the texture is allocated)
+	struct gltexturepool_t 	*pool;
+	// pointer to next texture in texturepool chain
+	struct gltexture_t 		*chain;
+	// copy of the original texture(s) supplied to the upload function, for
+	// delayed uploads (non-precached)
+	unsigned char 			*inputtexels;
+	// pointer to one of the textype_ structs
+	textypeinfo_t 			*textype;
+	// palette if the texture is TEXTYPE_PALETTE
+	const unsigned int 		*palette;
+	/*
+		end of pointer fields
+	*/
+	int gltexturetypeenum; // used by R_Mesh_TexBind
 	int texnum; // GL texture slot number
 	int renderbuffernum; // GL renderbuffer slot number
-	bool dirty; // indicates that R_RealGetTexture should be called
-	bool glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
-	int gltexturetypeenum; // used by R_Mesh_TexBind
-	// d3d stuff the backend needs
-	void *d3dtexture;
-	void *d3dsurface;
+
 #ifdef SUPPORTD3D
 	bool d3disrendertargetsurface;
 	bool d3disdepthstencilsurface;
@@ -124,17 +166,56 @@ typedef struct rtexture_s
 	int d3dmipmaplodbias;
 	int d3dmaxmiplevel;
 #endif
-}
-rtexture_t;
+	// original data size in *inputtexels
+	int inputwidth;
+	int inputheight;
+	int inputdepth;
 
-// contents of this structure are private to gl_textures.c
-typedef struct rtexturepool_s
+	// original data size in *inputtexels
+	int inputdatasize;
+	// flags supplied to the LoadTexture function
+	// (might be altered to remove TEXF_ALPHA), and GLTEXF_ private flags
+	int flags;
+	// picmip level
+	int miplevel;
+
+	// one of the GLTEXTURETYPE_ values
+	int texturetype;
+
+	// actual stored texture size after gl_picmip and gl_max_size are applied
+	// (power of 2 if vid.support.arb_texture_non_power_of_two is not supported)
+	int tilewidth;
+	int tileheight;
+	int tiledepth;
+	// 1 or 6 depending on texturetype
+	int sides;
+	// how many mipmap levels in this texture
+	int miplevels;
+	// bytes per pixel
+	int bytesperpixel;
+	// GL_RGB or GL_RGBA or GL_DEPTH_COMPONENT
+	int glformat;
+	// 3 or 4
+	int glinternalformat;
+	// GL_UNSIGNED_BYTE or GL_UNSIGNED_INT or GL_UNSIGNED_SHORT or GL_FLOAT
+	int gltype;
+	bool dirty; // indicates that R_RealGetTexture should be called
+	bool glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
+	bool buffermodified;
+	char pad0;
+};
+
+struct rtexture_t : public rtexture_proto
 {
-	int useless;
-}
-rtexturepool_t;
+	static constexpr size_t identifierLength = MAX_QPATH + 32;
+	// name of the texture (this might be removed someday), no duplicates
+	char identifier[identifierLength];
+	
+	char padding[padSizeSimd(sizeof(rtexture_proto) + identifierLength)];
+};
 
-typedef void (*updatecallback_t)(rtexture_t *rt, void *data);
+static_assert(sizeof(rtexture_t) % mSimdAlign == 0);
+
 
 // allocate a texture pool, to be used with R_LoadTexture
 rtexturepool_t *R_AllocTexturePool();

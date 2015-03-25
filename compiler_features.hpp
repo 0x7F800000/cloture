@@ -39,6 +39,7 @@
 	#define		prefetch(addr, ...)						__builtin_prefetch(addr, ##__VA_ARGS__)
 	#define 	clear_cache(begin, end)					__builtin___clear_cache(begin, end)
 
+	#define		__allocSize(...)						__attribute__((alloc_size(__VA_ARGS__)))
 
 	#define 	__offsetof(type, member)				__builtin_offsetof (type, member)
 	#define 	likely(x)								__builtin_expect(!!(x), true)

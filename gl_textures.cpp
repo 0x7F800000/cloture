@@ -90,17 +90,7 @@ static memexpandablearray_t texturearray;
 #define GLTEXF_DYNAMIC		0x00080000
 
 
-struct textypeinfo_t
-{
-	const char *name;
-	textype_t textype;
-	int inputbytesperpixel;
-	int internalbytesperpixel;
-	float glinternalbytesperpixel;
-	int glinternalformat;
-	int glformat;
-	int gltype;
-};
+
 
 #ifdef USE_GLES2
 	// we use these internally even if we never deliver such data to the driver
@@ -199,94 +189,99 @@ static int cubemapside[6] =
 	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
 };
 
-struct gltexture_t
+struct gltexture_t : public rtexture_t
 {
-	// this portion of the struct is exposed to the R_GetTexture macro for
-	// speed reasons, must be identical in rtexture_t!
-	int texnum; // GL texture slot number
-	int renderbuffernum; // GL renderbuffer slot number
-	bool dirty; // indicates that R_RealGetTexture should be called
-	bool glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
-	/*
-	struct
-	{
-		unsigned char
-			dirty 				: 1,
-			glisdepthstencil 	: 1,
-			buffermodified 		: 1;
-	};*/
+	#if 0
+		// this portion of the struct is exposed to the R_GetTexture macro for
+		// speed reasons, must be identical in rtexture_t!
+		int texnum; // GL texture slot number
+		int renderbuffernum; // GL renderbuffer slot number
+		bool dirty; // indicates that R_RealGetTexture should be called
+		bool glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
+		/*
+		struct
+		{
+			unsigned char
+				dirty 				: 1,
+				glisdepthstencil 	: 1,
+				buffermodified 		: 1;
+		};*/
 
 
-	int gltexturetypeenum; // used by R_Mesh_TexBind
-	// d3d stuff the backend needs
-	void *d3dtexture;
-	void *d3dsurface;
+		int gltexturetypeenum; // used by R_Mesh_TexBind
+		// d3d stuff the backend needs
+		void *d3dtexture;
+		void *d3dsurface;
 
-	#ifdef SUPPORTD3D
-		bool d3disrendertargetsurface;
-		bool d3disdepthstencilsurface;
-		int d3dformat;
-		int d3dusage;
-		int d3dpool;
-		int d3daddressu;
-		int d3daddressv;
-		int d3daddressw;
-		int d3dmagfilter;
-		int d3dminfilter;
-		int d3dmipfilter;
-		int d3dmaxmiplevelfilter;
-		int d3dmipmaplodbias;
-		int d3dmaxmiplevel;
-	#endif //#ifdef SUPPORTD3D
+		#ifdef SUPPORTD3D
+			bool d3disrendertargetsurface;
+			bool d3disdepthstencilsurface;
+			int d3dformat;
+			int d3dusage;
+			int d3dpool;
+			int d3daddressu;
+			int d3daddressv;
+			int d3daddressw;
+			int d3dmagfilter;
+			int d3dminfilter;
+			int d3dmipfilter;
+			int d3dmaxmiplevelfilter;
+			int d3dmipmaplodbias;
+			int d3dmaxmiplevel;
+		#endif //#ifdef SUPPORTD3D
+	#endif //#if 0
+	
+	
+	#if !mRTextureNonOpaque
+		// dynamic texture stuff [11/22/2007 Black]
+		updatecallback_t updatecallback;
+		void *updatacallback_data;
+		// --- [11/22/2007 Black]
 
-	// dynamic texture stuff [11/22/2007 Black]
-	updatecallback_t updatecallback;
-	void *updatacallback_data;
-	// --- [11/22/2007 Black]
+		// stores backup copy of texture for deferred texture updates (gl_nopartialtextureupdates cvar)
+		unsigned char *bufferpixels;
+		bool buffermodified;
 
-	// stores backup copy of texture for deferred texture updates (gl_nopartialtextureupdates cvar)
-	unsigned char *bufferpixels;
-	bool buffermodified;
-
-	// pointer to texturepool (check this to see if the texture is allocated)
-	struct gltexturepool_t *pool;
-	// pointer to next texture in texturepool chain
-	struct gltexture_t *chain;
-	// name of the texture (this might be removed someday), no duplicates
-	char identifier[MAX_QPATH + 32];
-	// original data size in *inputtexels
-	int inputwidth, inputheight, inputdepth;
-	// copy of the original texture(s) supplied to the upload function, for
-	// delayed uploads (non-precached)
-	unsigned char *inputtexels;
-	// original data size in *inputtexels
-	int inputdatasize;
-	// flags supplied to the LoadTexture function
-	// (might be altered to remove TEXF_ALPHA), and GLTEXF_ private flags
-	int flags;
-	// picmip level
-	int miplevel;
-	// pointer to one of the textype_ structs
-	textypeinfo_t *textype;
-	// one of the GLTEXTURETYPE_ values
-	int texturetype;
-	// palette if the texture is TEXTYPE_PALETTE
-	const unsigned int *palette;
-	// actual stored texture size after gl_picmip and gl_max_size are applied
-	// (power of 2 if vid.support.arb_texture_non_power_of_two is not supported)
-	int tilewidth, tileheight, tiledepth;
-	// 1 or 6 depending on texturetype
-	int sides;
-	// how many mipmap levels in this texture
-	int miplevels;
-	// bytes per pixel
-	int bytesperpixel;
-	// GL_RGB or GL_RGBA or GL_DEPTH_COMPONENT
-	int glformat;
-	// 3 or 4
-	int glinternalformat;
-	// GL_UNSIGNED_BYTE or GL_UNSIGNED_INT or GL_UNSIGNED_SHORT or GL_FLOAT
-	int gltype;
+		// pointer to texturepool (check this to see if the texture is allocated)
+		struct gltexturepool_t *pool;
+		// pointer to next texture in texturepool chain
+		struct gltexture_t *chain;
+		// name of the texture (this might be removed someday), no duplicates
+		char identifier[MAX_QPATH + 32];
+		// original data size in *inputtexels
+		int inputwidth, inputheight, inputdepth;
+		// copy of the original texture(s) supplied to the upload function, for
+		// delayed uploads (non-precached)
+		unsigned char *inputtexels;
+		// original data size in *inputtexels
+		int inputdatasize;
+		// flags supplied to the LoadTexture function
+		// (might be altered to remove TEXF_ALPHA), and GLTEXF_ private flags
+		int flags;
+		// picmip level
+		int miplevel;
+		// pointer to one of the textype_ structs
+		textypeinfo_t *textype;
+		// one of the GLTEXTURETYPE_ values
+		int texturetype;
+		// palette if the texture is TEXTYPE_PALETTE
+		const unsigned int *palette;
+		// actual stored texture size after gl_picmip and gl_max_size are applied
+		// (power of 2 if vid.support.arb_texture_non_power_of_two is not supported)
+		int tilewidth, tileheight, tiledepth;
+		// 1 or 6 depending on texturetype
+		int sides;
+		// how many mipmap levels in this texture
+		int miplevels;
+		// bytes per pixel
+		int bytesperpixel;
+		// GL_RGB or GL_RGBA or GL_DEPTH_COMPONENT
+		int glformat;
+		// 3 or 4
+		int glinternalformat;
+		// GL_UNSIGNED_BYTE or GL_UNSIGNED_INT or GL_UNSIGNED_SHORT or GL_FLOAT
+		int gltype;
+	#endif // #if !mRTextureNonOpaque
 };
 
 

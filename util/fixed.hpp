@@ -92,3 +92,13 @@ public:
 	}
 
 };
+
+namespace fixed88
+{
+	constexpr uint16 operator"" _fix16(const long double val)
+	__enableIf(val >= .0L && val <= 255.0L, "Enabled if the constant can be represented in 8:8 format.") 
+	{
+		return static_cast<uint16>((val < .0L ? -val : val) * 256.0L);
+	}
+	//fixed point 8:8 format is decently accurate for small numbers
+}

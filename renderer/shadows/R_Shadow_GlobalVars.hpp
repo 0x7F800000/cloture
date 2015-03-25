@@ -13,12 +13,13 @@ float r_shadow_shadowmap_texturescale[2];
 __align(mSimdAlign)
 float r_shadow_shadowmap_parameters[4];
 
-int r_shadow_cullface_front, r_shadow_cullface_back;
-GLuint r_shadow_fbo2d;
+int 		r_shadow_cullface_front;
+int 		r_shadow_cullface_back;
+GLuint 		r_shadow_fbo2d;
 r_shadow_shadowmode_t r_shadow_shadowmode;
-int r_shadow_shadowmapfilterquality;
-int r_shadow_shadowmapdepthbits;
-int r_shadow_shadowmapmaxsize;
+int 		r_shadow_shadowmapfilterquality;
+int 		r_shadow_shadowmapdepthbits;
+int 		r_shadow_shadowmapmaxsize;
 
 
 
@@ -37,43 +38,45 @@ bool r_shadow_usingshadowmap2d;
 bool r_shadow_usingshadowmaportho;
 bool r_shadow_usingdeferredprepass;
 bool r_shadow_shadowmapdepthtexture;
+bool r_editlights_lockcursor;
+bool r_shadow_bouncegriddirectional;
 
 int maxshadowtriangles;
-int *shadowelements;
+int *__pointerAlignment(memory::poolAllocAlign) 	shadowelements;
 
 int maxshadowvertices;
-float *shadowvertex3f;
+float *__pointerAlignment(memory::poolAllocAlign) 	shadowvertex3f;
 
 int maxshadowmark;
 int numshadowmark;
-int *shadowmark;
-int *shadowmarklist;
+int *__pointerAlignment(memory::poolAllocAlign) 	shadowmark;
+int *__pointerAlignment(memory::poolAllocAlign) 	shadowmarklist;
 int shadowmarkcount;
 
 int maxshadowsides;
 int numshadowsides;
-uint8 *shadowsides;
-int *shadowsideslist;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	shadowsides;
+int *__pointerAlignment(memory::poolAllocAlign) 	shadowsideslist;
 
 int maxvertexupdate;
-int *vertexupdate;
-int *vertexremap;
+int *__pointerAlignment(memory::poolAllocAlign) 	vertexupdate;
+int *__pointerAlignment(memory::poolAllocAlign) 	vertexremap;
 int vertexupdatenum;
 
 int r_shadow_buffer_numleafpvsbytes;
-uint8 *r_shadow_buffer_visitingleafpvs;
-uint8 *r_shadow_buffer_leafpvs;
-int *r_shadow_buffer_leaflist;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_visitingleafpvs;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_leafpvs;
+int *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_leaflist;
 
 int r_shadow_buffer_numsurfacepvsbytes;
-uint8 *r_shadow_buffer_surfacepvs;
-int *r_shadow_buffer_surfacelist;
-uint8 *r_shadow_buffer_surfacesides;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_surfacepvs;
+int *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_surfacelist;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_surfacesides;
 
 int r_shadow_buffer_numshadowtrispvsbytes;
-uint8 *r_shadow_buffer_shadowtrispvs;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_shadowtrispvs;
 int r_shadow_buffer_numlighttrispvsbytes;
-uint8 *r_shadow_buffer_lighttrispvs;
+uint8 *__pointerAlignment(memory::poolAllocAlign) 	r_shadow_buffer_lighttrispvs;
 
 rtexturepool_t *r_shadow_texturepool;
 rtexture_t *r_shadow_attenuationgradienttexture;
@@ -115,15 +118,16 @@ r_shadow_bouncegrid_settings_t r_shadow_bouncegridsettings;
 rtexture_t *r_shadow_bouncegridtexture;
 matrix4x4_t r_shadow_bouncegridmatrix;
 vec_t r_shadow_bouncegridintensity;
-bool r_shadow_bouncegriddirectional;
 static double r_shadow_bouncegridtime;
 static int r_shadow_bouncegridresolution[3];
 static int r_shadow_bouncegridnumpixels;
-static uint8 *r_shadow_bouncegridpixels;
-static float *r_shadow_bouncegridhighpixels;
+
+static uint8 *__pointerAlignment(memory::poolAllocAlign)	r_shadow_bouncegridpixels;
+static float *__pointerAlignment(memory::poolAllocAlign)	r_shadow_bouncegridhighpixels;
 
 static float r_shadow_attendividebias; // r_shadow_lightattenuationdividebias
 static float r_shadow_attenlinearscale; // r_shadow_lightattenuationlinearscale
+alignas(mSimdAlign)
 static float r_shadow_attentable[ATTENTABLESIZE+1];
 
 rtlight_t *r_shadow_compilingrtlight;
@@ -131,7 +135,7 @@ static memexpandablearray_t r_shadow_worldlightsarray;
 dlight_t *r_shadow_selectedlight;
 dlight_t r_shadow_bufferlight;
 vec3_t r_editlights_cursorlocation;
-bool r_editlights_lockcursor;
+
 
 extern int con_vislines;
 
@@ -188,6 +192,8 @@ int bboxedges[12][2] =
 
 //#define MAX_MODELSHADOWS 1024
 static constexpr size32 	MAX_MODELSHADOWS = 1024;
+
+
 static int 					r_shadow_nummodelshadows;
 static entity_render_t *	r_shadow_modelshadows[MAX_MODELSHADOWS];
 

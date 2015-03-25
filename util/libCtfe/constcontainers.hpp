@@ -83,34 +83,24 @@ namespace cloture::util::ctfe
 			}
 			return true;
 		}*/
-
-		constexpr bool operator==(const T* const cmp) const
-		{
-			for(size_t i = 0; i < sz; ++i)
-			{
-				if(cmp[i] != this->data[i])
-					return false;
-			}
-			return true;
-		}
-
+/*
 		constexpr bool operator!=(const Array<T, sz>& other) const
 		{
 			return !((*this) == other);
-		}
+		}*/
 
-		template<typename T2> constexpr bool operator ==(T2 other)
+		template<typename T2> constexpr bool operator ==(const T2 other) const
 		{
 			for(size_t i = 0; i < sz; ++i)
 			{
-				if(other[i] != this->data[i])
+				if(other[i] != data[i])
 					return false;
 			}
 			return true;
 		}
-
+	
 		template<typename T2>
-		constexpr bool operator!=(T2 other)
+		constexpr bool operator!=(const T2 other) const 
 		{
 			return !((*this) == other);
 		}
@@ -142,7 +132,7 @@ namespace cloture::util::ctfe
 			return i;
 		}
 
-		explicit constexpr operator const char*() const	{return this->data;}
+		explicit constexpr operator const char*() const	{return &this->data[0];;}
 		constexpr CString() : Array<char, sz>::Array()	{}
 
 
@@ -359,7 +349,7 @@ namespace cloture::util::ctfe
 
 		}__unused;
 		constexpr packedString() {}
-		static constexpr const auto str = PACKED<T_, packedVals_...>::generateCString();
+		static constexpr auto str = PACKED<T_, packedVals_...>::generateCString();
 	};
 
 	#define mStrIndexScale		sizeof(unsigned __int128)

@@ -27,3 +27,14 @@
 #endif
 
 #define		mDebugVectorOps		1
+
+
+constexpr size_t padSizeSimd(size_t insize)
+{
+	//#if mNativeVectorSize == 16
+	while(insize%mSimdAlign != 0) ++insize;
+	return insize;
+	//#else
+	//static_assert(false, "Do something here to make sure that the padding is to the smallest vector size.");
+	//#endif
+}

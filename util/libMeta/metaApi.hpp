@@ -198,3 +198,4 @@ namespace cloture::util
 #define		mMakeMetaFunc(f)			typeof(cloture::util::meta::metaFunctionBuilder<typeof(f)>::buildFunction<f>())
 
 #define		mMakeMetaValue(value)		cloture::util::meta::makeMetaVal<typeof(value)>::metaValue<value>
+#define		mGetMetaValue(metat)		metat::value

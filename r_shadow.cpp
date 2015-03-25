@@ -154,6 +154,8 @@ using namespace math::vector;
 using templates::casts::vector_cast;
 using pointers::isNull;
 using engine::cvars::CVar;
+using namespace engine;
+
 
 #include "renderer/r_common.hpp"
 
@@ -361,12 +363,15 @@ void R_Shadow_PrepareShadowMark(int numtris)
 	if (maxshadowmark < numtris)
 	{
 		maxshadowmark = numtris;
-		if (shadowmark)
-			Mem_Free(shadowmark);
-		if (shadowmarklist)
-			Mem_Free(shadowmarklist);
-		shadowmark = (int *)Mem_Alloc(r_main_mempool, maxshadowmark * sizeof(*shadowmark));
-		shadowmarklist = (int *)Mem_Alloc(r_main_mempool, maxshadowmark * sizeof(*shadowmarklist));
+		
+		if (	!isNull(shadowmark)		)
+			r_main_mempool->dealloc(shadowmark);
+			
+		if (	!isNull(shadowmarklist)	)
+			r_main_mempool->dealloc(shadowmarklist);
+			
+		shadowmark 		= r_main_mempool->alloc<typeof(*shadowmark)>( 		maxshadowmark );
+		shadowmarklist 	= r_main_mempool->alloc<typeof(*shadowmarklist)>( 	maxshadowmark );
 		shadowmarkcount = 0;
 	}
 	shadowmarkcount++;
@@ -384,12 +389,15 @@ void R_Shadow_PrepareShadowSides(int numtris)
 	if (maxshadowsides < numtris)
 	{
 		maxshadowsides = numtris;
-		if (shadowsides)
-			Mem_Free(shadowsides);
-		if (shadowsideslist)
-			Mem_Free(shadowsideslist);
-		shadowsides = (unsigned char *)Mem_Alloc(r_main_mempool, maxshadowsides * sizeof(*shadowsides));
-		shadowsideslist = (int *)Mem_Alloc(r_main_mempool, maxshadowsides * sizeof(*shadowsideslist));
+		
+		if (	!isNull(shadowsides)		)
+			r_main_mempool->dealloc(shadowsides);
+			
+		if (	!isNull(shadowsideslist)	)
+			r_main_mempool->dealloc(shadowsideslist);
+			
+		shadowsides 	= r_main_mempool->alloc<typeof(*shadowsides)>(maxshadowsides);
+		shadowsideslist = r_main_mempool->alloc<typeof(*shadowsideslist)>(maxshadowsides);
 	}
 	numshadowsides = 0;
 }
@@ -468,7 +476,7 @@ void R_Shadow_VolumeFromList(int numverts, int numtris, const float *invertex3f,
 		Con_Printf("R_Shadow_Volume: projectdistance %f\n", projectdistance);
 		return;
 	}
-	if (!numverts || !nummarktris)
+	if (numverts == 0 || nummarktris == 0)
 		return;
 	// make sure shadowelements is big enough for this volume
 	if (maxshadowtriangles < nummarktris*8 || maxshadowvertices < numverts*2)
@@ -477,12 +485,15 @@ void R_Shadow_VolumeFromList(int numverts, int numtris, const float *invertex3f,
 	if (maxvertexupdate < numverts)
 	{
 		maxvertexupdate = numverts;
-		if (vertexupdate)
-			Mem_Free(vertexupdate);
-		if (vertexremap)
-			Mem_Free(vertexremap);
-		vertexupdate = (int *)Mem_Alloc(r_main_mempool, maxvertexupdate * sizeof(int));
-		vertexremap = (int *)Mem_Alloc(r_main_mempool, maxvertexupdate * sizeof(int));
+		
+		if (	!isNull(vertexupdate)	)
+			r_main_mempool->dealloc(vertexupdate);
+			
+		if (	!isNull(vertexremap)	)
+			r_main_mempool->dealloc(vertexremap);
+			
+		vertexupdate 	= r_main_mempool->alloc<int>(maxvertexupdate);
+		vertexremap 	= r_main_mempool->alloc<int>(maxvertexupdate);
 		vertexupdatenum = 0;
 	}
 	vertexupdatenum++;
@@ -1175,16 +1186,20 @@ void R_Shadow_UpdateBounceGridTexture()
 
 	if (!enable)
 	{
-		if (r_shadow_bouncegridtexture)
+		if (	!isNull(r_shadow_bouncegridtexture)		)
 		{
 			R_FreeTexture(r_shadow_bouncegridtexture);
 			r_shadow_bouncegridtexture = nullptr;
 		}
-		if (r_shadow_bouncegridpixels)
+		
+		if (	!isNull(r_shadow_bouncegridpixels)		)
 			Mem_Free(r_shadow_bouncegridpixels);
+			
 		r_shadow_bouncegridpixels = nullptr;
-		if (r_shadow_bouncegridhighpixels)
+		
+		if (	!isNull(r_shadow_bouncegridhighpixels)	)
 			Mem_Free(r_shadow_bouncegridhighpixels);
+			
 		r_shadow_bouncegridhighpixels = nullptr;
 		r_shadow_bouncegridnumpixels = 0;
 		r_shadow_bouncegriddirectional = false;
@@ -1301,7 +1316,9 @@ void R_Shadow_UpdateBounceGridTexture()
 	numpixels = pixelsperband*pixelbands;
 
 	// we're going to update the bouncegrid, update the matrix...
-	memset(m, 0, sizeof(m));
+	//memset(m, 0, sizeof(m));
+	routines::general::zeroArray(m);
+
 	m[0] = 1.0f / size[0];
 	m[3] = -mins[0] * m[0];
 	m[5] = 1.0f / size[1];
@@ -1311,15 +1328,19 @@ void R_Shadow_UpdateBounceGridTexture()
 	m[15] = 1.0f;
 	Matrix4x4_FromArrayFloatD3D(&r_shadow_bouncegridmatrix, m);
 	// reallocate pixels for this update if needed...
-	if (r_shadow_bouncegridnumpixels != numpixels || !r_shadow_bouncegridpixels || !r_shadow_bouncegridhighpixels)
+	if (
+		r_shadow_bouncegridnumpixels != numpixels 
+		|| isNull(r_shadow_bouncegridpixels) 
+		|| isNull(r_shadow_bouncegridhighpixels)
+	)
 	{
 		if (r_shadow_bouncegridtexture)
 		{
 			R_FreeTexture(r_shadow_bouncegridtexture);
 			r_shadow_bouncegridtexture = nullptr;
 		}
-		r_shadow_bouncegridpixels = (unsigned char *)Mem_Realloc(r_main_mempool, r_shadow_bouncegridpixels, numpixels * sizeof(unsigned char[4]));
-		r_shadow_bouncegridhighpixels = (float *)Mem_Realloc(r_main_mempool, r_shadow_bouncegridhighpixels, numpixels * sizeof(float[4]));
+		r_shadow_bouncegridpixels 		= r_main_mempool->realloc<uint8[4]>(r_shadow_bouncegridpixels, 		numpixels);
+		r_shadow_bouncegridhighpixels 	= r_main_mempool->realloc<float[4]>(r_shadow_bouncegridhighpixels, 	numpixels);
 	}
 	r_shadow_bouncegridnumpixels = numpixels;
 	pixels = r_shadow_bouncegridpixels;
@@ -2084,7 +2105,7 @@ void R_Shadow_PrepareLights(int fbo, rtexture_t *depthtexture, rtexture_t *color
 		if (!r_shadow_deferred.integer || r_shadow_shadowmode == R_SHADOW_SHADOWMODE_STENCIL || !vid.support.ext_framebuffer_object || vid.maxdrawbuffers < 2)
 		{
 			r_shadow_usingdeferredprepass = false;
-			if (r_shadow_prepass_width)
+			if (r_shadow_prepass_width != 0)
 				R_Shadow_FreeDeferred();
 			r_shadow_prepass_width = r_shadow_prepass_height = 0;
 			break;

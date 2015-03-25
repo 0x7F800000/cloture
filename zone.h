@@ -92,7 +92,9 @@ namespace memory
 		// should always be MEMPOOL_SENTINEL
 		unsigned int sentinel2;
 		template<typename T, bool stripArrayBounds_ = false> inline auto alloc(const allocsize_t n);
-		template<typename T> inline T* realloc(T* data, const allocsize_t n);
+		
+		template<typename T> inline auto realloc(
+		typename util::generic::stripPointer<typename util::generic::stripArrayBounds<T>::type>::type* data, /*(auto& data*/ const allocsize_t n);
 		template<typename T> inline void dealloc(T* data);
 	};
 }
@@ -125,7 +127,10 @@ using mempool_t = mempool_s;
 	#define Mem_EmptyPool(pool) 				_Mem_EmptyPool(pool)
 #endif
 
-__returns_aligned(cloture::engine::memory::poolAllocAlign) __returns_nonull __returns_unaliased
+__returns_aligned(cloture::engine::memory::poolAllocAlign) 
+__returns_nonull  
+__returns_unaliased 
+__allocSize(3)
 void *_Mem_Alloc(
 	mempool_t 								*pool,
 	void 									*data,
@@ -135,7 +140,7 @@ void *_Mem_Alloc(
 	const char 								*filename,
 	int 									fileline
 #endif
-);
+) noexcept;
 
 void _Mem_Free(
 	void 			*data
@@ -144,7 +149,7 @@ void _Mem_Free(
 	const char 		*filename,
 	int 			fileline
 #endif
-);
+) noexcept;
 
 __returns_unaliased
 mempool_t *_Mem_AllocPool(
@@ -156,7 +161,7 @@ mempool_t *_Mem_AllocPool(
 	const char 		*filename,
 	int 			fileline
 #endif
-);
+) noexcept;
 
 void _Mem_FreePool(
 	mempool_t **pool
@@ -193,22 +198,45 @@ bool Mem_IsAllocated(mempool_t *pool, void *data);
 
 char* Mem_strdup (mempool_t *pool, const char* s);
 
-typedef struct memexpandablearray_array_s
-{
-	unsigned char *data;
-	unsigned char *allocflags;
-	size_t numflaggedrecords;
-}
-memexpandablearray_array_t;
 
-typedef struct memexpandablearray_s
+
+namespace cloture::engine::memory::protostructs
 {
-	mempool_t *mempool;
-	size_t recordsize;
-	size_t numrecordsperarray;
-	size_t numarrays;
-	size_t maxarrays;
-	memexpandablearray_array_t *arrays;
+	struct memExpandableArray_Array_proto
+	{
+		unsigned char *data;
+		unsigned char *allocflags;
+		size_t numflaggedrecords;
+	};
+}
+
+static_assert(mSimdAlign == 16);
+
+//typedef struct memexpandablearray_array_s 
+struct alignas(16) memexpandablearray_array_t
+: public cloture::engine::memory::protostructs::memExpandableArray_Array_proto
+{
+	char padding[padSizeSimd(sizeof(memExpandableArray_Array_proto))];
+};//memexpandablearray_array_t;
+
+static_assert(sizeof(memexpandablearray_array_t) % mSimdAlign == 0);
+
+namespace cloture::engine::memory::protostructs
+{
+	struct memExpandableArray_proto
+	{
+		mempool_t *mempool;
+		size_t recordsize;
+		size_t numrecordsperarray;
+		size_t numarrays;
+		size_t maxarrays;
+		memexpandablearray_array_t *arrays;
+	};
+}
+
+typedef struct memexpandablearray_s : public cloture::engine::memory::protostructs::memExpandableArray_proto
+{
+	char padding[padSizeSimd(sizeof(memExpandableArray_proto))];
 }
 memexpandablearray_t;
 
@@ -265,25 +293,31 @@ namespace memory
 		{
 			return result;
 		}
-		/*
-		return choose_expr
-		(
-			stripArrayBounds_,
-			reinterpret_cast<typename util::generic::stripArrayBounds<T>::type>(result),
-			result
-		);*/
 	}
 
 	template<typename T>
 	__returns_aligned(poolAllocAlign) __returns_nonull __nonull_args(2) __returns_unaliased
-	inline T* Pool::realloc(T* data, const allocsize_t n)
+	inline auto Pool::realloc(typename util::generic::stripPointer<typename util::generic::stripArrayBounds<T>::type>::type* data, const allocsize_t n)
 	{
-		return reinterpret_cast<T*>(Mem_Realloc(this, reinterpret_cast<void*>(data), n * sizeof(T)));
+		static_assert(util::generic::isPointer<typeof(data)>());
+		T* result = reinterpret_cast<T*>(Mem_Realloc(this, reinterpret_cast<void*>(data), n * sizeof(T)));
+		return reinterpret_cast<typeof(data)>(result);
+		
+		/*
+		mIfMetaTrue(stripArrayBounds_)
+		{
+			return
+			reinterpret_cast<typename util::generic::stripArrayBounds<T>::type>(result);
+		}
+		mIfMetaFalse(stripArrayBounds_)
+		{
+			return result;
+		}*/
 	}
 
 	template<>
 	__returns_aligned(poolAllocAlign) __returns_nonull __nonull_args(2) __returns_unaliased
-	inline void* Pool::realloc<void>(void* data, const allocsize_t n)
+	inline auto Pool::realloc<void>(typename util::generic::stripPointer<typename util::generic::stripArrayBounds<void>::type>::type* data, const allocsize_t n)
 	{
 		return reinterpret_cast<void*>(Mem_Realloc(this, data, n));
 	}

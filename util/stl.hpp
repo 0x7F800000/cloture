@@ -169,3 +169,4 @@ public:
 #include	"CString.hpp"
 
 #include	"pointer.hpp"
+#include	"libSTL/routines.hpp"

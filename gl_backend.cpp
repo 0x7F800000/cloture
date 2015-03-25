@@ -6,9 +6,12 @@
 #include "util/common.hpp"
 #include "util/math.hpp"
 
-using namespace cloture::util;
+using namespace cloture;
+using namespace util;
+using namespace routines;
 //basic types
 using namespace common;
+using namespace engine;
 
 #include "renderer/r_common.hpp"
 
@@ -189,49 +192,96 @@ void GL_PrintError(int errornumber, const char *filename, int linenumber)
 
 void SCR_ScreenShot_f ();
 
-typedef struct gltextureunit_s
-{
-	int pointer_texcoord_components;
-	int pointer_texcoord_gltype;
-	size_t pointer_texcoord_stride;
-	const void *pointer_texcoord_pointer;
-	const r_meshbuffer_t *pointer_texcoord_vertexbuffer;
-	size_t pointer_texcoord_offset;
 
-	rtexture_t *texture;
-	int t2d, t3d, tcubemap;
-	int arrayenabled;
-	int rgbscale, alphascale;
-	int combine;
-	int combinergb, combinealpha;
-	// texmatrixenabled exists only to avoid unnecessary texmatrix compares
-	int texmatrixenabled;
-	matrix4x4_t matrix;
+namespace cloture::engine::renderer::protostructs
+{
+	struct gltextureunit_proto
+	{
+		matrix4x4_t matrix;	
+
+		const void *pointer_texcoord_pointer;
+		const r_meshbuffer_t *pointer_texcoord_vertexbuffer;
+		
+		rtexture_t *texture;
+		size_t pointer_texcoord_stride;
+		size_t pointer_texcoord_offset;
+		
+		int pointer_texcoord_components;
+		int pointer_texcoord_gltype;
+
+
+		
+		int t2d;
+		int t3d;
+		int tcubemap;
+		int arrayenabled;
+		int rgbscale;
+		int alphascale;
+		int combine;
+		int combinergb;
+		int combinealpha;
+		// texmatrixenabled exists only to avoid unnecessary texmatrix compares
+		int texmatrixenabled;
+	};
 }
-gltextureunit_t;
 
-typedef struct gl_state_s
+struct alignas(mSimdAlign) gltextureunit_t : public cloture::engine::renderer::protostructs::gltextureunit_proto
 {
+	char padding[padSizeSimd(sizeof(gltextureunit_proto))];
+};
+
+struct alignas(mSimdAlign) gl_state_t
+{
+	alignas(mSimdAlign) 	gltextureunit_t units[MAX_TEXTUREUNITS];
+	alignas(mSimdAlign)		memexpandablearray_t meshbufferarray;
+	
+	size_t 					pointer_vertex_stride;	
+	const void 				*pointer_vertex_pointer;
+	const r_meshbuffer_t 	*pointer_vertex_vertexbuffer;
+	size_t 					pointer_vertex_offset;
+	size_t 					pointer_color_stride;
+	const void 				*pointer_color_pointer;
+	const r_meshbuffer_t 	*pointer_color_vertexbuffer;
+	size_t 					pointer_color_offset;	
+	
+	void *__pointerAlignment(memory::poolAllocAlign) preparevertices_tempdata;
+	size_t 					preparevertices_tempdatamaxsize;
+	r_vertexgeneric_t 		*preparevertices_vertexgeneric;
+	r_vertexmesh_t 			*preparevertices_vertexmesh;
+	
+	#ifdef SUPPORTD3D
+
+		IDirect3DSurface9 *d3drt_depthsurface;
+		IDirect3DSurface9 *d3drt_colorsurfaces[MAX_RENDERTARGETS];
+		IDirect3DSurface9 *d3drt_backbufferdepthsurface;
+		IDirect3DSurface9 *d3drt_backbuffercolorsurface;
+		void *d3dvertexbuffer;
+		void *d3dvertexdata;
+		int d3dvertexsize;
+	#endif	
+	
+	float depthrange[2];
+	float polygonoffset[2];
+	float color4f[4];	
+	
 	int cullface;
 	int cullfaceenable;
 	int blendfunc1;
 	int blendfunc2;
-	bool blend;
-	GLboolean depthmask;
+	
 	int colormask; // stored as bottom 4 bits: r g b a (3 2 1 0 order)
 	int depthtest;
 	int depthfunc;
-	float depthrange[2];
-	float polygonoffset[2];
+
 	int alphatest;
 	int alphafunc;
 	float alphafuncvalue;
-	bool alphatocoverage;
+
 	int scissortest;
 	unsigned int unit;
 	unsigned int clientunit;
-	gltextureunit_t units[MAX_TEXTUREUNITS];
-	float color4f[4];
+	
+	
 	int lockrange_first;
 	int lockrange_count;
 	int vertexbufferobject;
@@ -239,52 +289,135 @@ typedef struct gl_state_s
 	int uniformbufferobject;
 	int framebufferobject;
 	int defaultframebufferobject; // deal with platforms that use a non-zero default fbo
-	bool pointer_color_enabled;
 
 	int pointer_vertex_components;
 	int pointer_vertex_gltype;
-	size_t pointer_vertex_stride;
-	const void *pointer_vertex_pointer;
-	const r_meshbuffer_t *pointer_vertex_vertexbuffer;
-	size_t pointer_vertex_offset;
 
 	int pointer_color_components;
 	int pointer_color_gltype;
-	size_t pointer_color_stride;
-	const void *pointer_color_pointer;
-	const r_meshbuffer_t *pointer_color_vertexbuffer;
-	size_t pointer_color_offset;
 
-	void *preparevertices_tempdata;
-	size_t preparevertices_tempdatamaxsize;
-	r_vertexgeneric_t *preparevertices_vertexgeneric;
-	r_vertexmesh_t *preparevertices_vertexmesh;
+
 	int preparevertices_numvertices;
 
+	bool blend;
+	bool alphatocoverage;
+	bool pointer_color_enabled;
 	bool usevbo_staticvertex;
 	bool usevbo_staticindex;
 	bool usevbo_dynamicvertex;
 	bool usevbo_dynamicindex;
-
-	memexpandablearray_t meshbufferarray;
-
 	bool active;
+	GLboolean depthmask;
 
-#ifdef SUPPORTD3D
-
-	IDirect3DSurface9 *d3drt_depthsurface;
-	IDirect3DSurface9 *d3drt_colorsurfaces[MAX_RENDERTARGETS];
-	IDirect3DSurface9 *d3drt_backbufferdepthsurface;
-	IDirect3DSurface9 *d3drt_backbuffercolorsurface;
-	void *d3dvertexbuffer;
-	void *d3dvertexdata;
-	int d3dvertexsize;
-#endif
-}
-gl_state_t;
+};
 
 static gl_state_t gl_state;
 
+__align(mSimdAlign) float cubeviewmatrix[6][16] =
+{
+    // standard cubemap projections
+    { // +X
+         0, 0,-1, 0,
+         0,-1, 0, 0,
+        -1, 0, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // -X
+         0, 0, 1, 0,
+         0,-1, 0, 0,
+         1, 0, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // +Y
+         1, 0, 0, 0,
+         0, 0,-1, 0,
+         0, 1, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // -Y
+         1, 0, 0, 0,
+         0, 0, 1, 0,
+         0,-1, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // +Z
+         1, 0, 0, 0,
+         0,-1, 0, 0,
+         0, 0,-1, 0,
+         0, 0, 0, 1,
+    },
+    { // -Z
+        -1, 0, 0, 0,
+         0,-1, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1,
+    },
+};
+
+__align(mSimdAlign) float rectviewmatrix[6][16] =
+{
+    // sign-preserving cubemap projections
+    { // +X
+         0, 0,-1, 0,
+         0, 1, 0, 0,
+         1, 0, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // -X
+         0, 0, 1, 0,
+         0, 1, 0, 0,
+         1, 0, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // +Y
+         1, 0, 0, 0,
+         0, 0,-1, 0,
+         0, 1, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // -Y
+         1, 0, 0, 0,
+         0, 0, 1, 0,
+         0, 1, 0, 0,
+         0, 0, 0, 1,
+    },
+    { // +Z
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0,-1, 0,
+         0, 0, 0, 1,
+    },
+    { // -Z
+         1, 0, 0, 0,
+         0, 1, 0, 0,
+         0, 0, 1, 0,
+         0, 0, 0, 1,
+    },
+};
+
+int 			polygonelement3i[(POLYGONELEMENTS_MAXPOINTS-2)*3];
+unsigned short 	polygonelement3s[(POLYGONELEMENTS_MAXPOINTS-2)*3];
+int 			quadelement3i[QUADELEMENTS_MAXQUADS*6];
+unsigned short 	quadelement3s[QUADELEMENTS_MAXQUADS*6];
+
+static int bboxedges[12][2] =
+{
+	// top
+	{0, 1}, // +X
+	{0, 2}, // +Y
+	{1, 3}, // Y, +X
+	{2, 3}, // X, +Y
+	// bottom
+	{4, 5}, // +X
+	{4, 6}, // +Y
+	{5, 7}, // Y, +X
+	{6, 7}, // X, +Y
+	// verticals
+	{0, 4}, // +Z
+	{1, 5}, // X, +Z
+	{2, 6}, // Y, +Z
+	{3, 7}, // XY, +Z
+};
 
 /*
 note: here's strip order for a terrain row:
@@ -339,11 +472,6 @@ for (y = 0;y < rows - 1;y++)
 	}
 }
 */
-
-int polygonelement3i[(POLYGONELEMENTS_MAXPOINTS-2)*3];
-unsigned short polygonelement3s[(POLYGONELEMENTS_MAXPOINTS-2)*3];
-int quadelement3i[QUADELEMENTS_MAXQUADS*6];
-unsigned short quadelement3s[QUADELEMENTS_MAXQUADS*6];
 
 static void GL_VBOStats_f()
 {
@@ -596,16 +724,14 @@ static void gl_backend_devicerestored()
 
 void gl_backend_init()
 {
-	int i;
-
-	for (i = 0;i < POLYGONELEMENTS_MAXPOINTS - 2;i++)
+	for (size32 i = 0; i < POLYGONELEMENTS_MAXPOINTS - 2; i++)
 	{
 		polygonelement3s[i * 3 + 0] = 0;
 		polygonelement3s[i * 3 + 1] = i + 1;
 		polygonelement3s[i * 3 + 2] = i + 2;
 	}
 	// elements for rendering a series of quads as triangles
-	for (i = 0;i < QUADELEMENTS_MAXQUADS;i++)
+	for (size32 i = 0;i < QUADELEMENTS_MAXQUADS;i++)
 	{
 		quadelement3s[i * 6 + 0] = i * 4;
 		quadelement3s[i * 6 + 1] = i * 4 + 1;
@@ -615,9 +741,9 @@ void gl_backend_init()
 		quadelement3s[i * 6 + 5] = i * 4 + 3;
 	}
 
-	for (i = 0;i < (POLYGONELEMENTS_MAXPOINTS - 2)*3;i++)
+	for (size32 i = 0;i < (POLYGONELEMENTS_MAXPOINTS - 2)*3;i++)
 		polygonelement3i[i] = polygonelement3s[i];
-	for (i = 0;i < QUADELEMENTS_MAXQUADS*6;i++)
+	for (size32 i = 0;i < QUADELEMENTS_MAXQUADS*6;i++)
 		quadelement3i[i] = quadelement3s[i];
 
 	Cvar_RegisterVariable(&r_render);
@@ -686,25 +812,6 @@ void GL_Finish()
 	#endif
 	}
 }
-
-static int bboxedges[12][2] =
-{
-	// top
-	{0, 1}, // +X
-	{0, 2}, // +Y
-	{1, 3}, // Y, +X
-	{2, 3}, // X, +Y
-	// bottom
-	{4, 5}, // +X
-	{4, 6}, // +Y
-	{5, 7}, // Y, +X
-	{6, 7}, // X, +Y
-	// verticals
-	{0, 4}, // +Z
-	{1, 5}, // X, +Z
-	{2, 6}, // Y, +Z
-	{3, 7}, // XY, +Z
-};
 
 bool R_ScissorForBBox(const float *mins, const float *maxs, int *scissor)
 {
@@ -1011,87 +1118,6 @@ void R_Viewport_InitPerspectiveInfinite(r_viewport_t *v, const matrix4x4_t *came
 	Matrix4x4_FromArrayFloatGL(&v->projectmatrix, m);
 }
 
-__align(mSimdAlign) float cubeviewmatrix[6][16] =
-{
-    // standard cubemap projections
-    { // +X
-         0, 0,-1, 0,
-         0,-1, 0, 0,
-        -1, 0, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // -X
-         0, 0, 1, 0,
-         0,-1, 0, 0,
-         1, 0, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // +Y
-         1, 0, 0, 0,
-         0, 0,-1, 0,
-         0, 1, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // -Y
-         1, 0, 0, 0,
-         0, 0, 1, 0,
-         0,-1, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // +Z
-         1, 0, 0, 0,
-         0,-1, 0, 0,
-         0, 0,-1, 0,
-         0, 0, 0, 1,
-    },
-    { // -Z
-        -1, 0, 0, 0,
-         0,-1, 0, 0,
-         0, 0, 1, 0,
-         0, 0, 0, 1,
-    },
-};
-
-__align(mSimdAlign) float rectviewmatrix[6][16] =
-{
-    // sign-preserving cubemap projections
-    { // +X
-         0, 0,-1, 0,
-         0, 1, 0, 0,
-         1, 0, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // -X
-         0, 0, 1, 0,
-         0, 1, 0, 0,
-         1, 0, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // +Y
-         1, 0, 0, 0,
-         0, 0,-1, 0,
-         0, 1, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // -Y
-         1, 0, 0, 0,
-         0, 0, 1, 0,
-         0, 1, 0, 0,
-         0, 0, 0, 1,
-    },
-    { // +Z
-         1, 0, 0, 0,
-         0, 1, 0, 0,
-         0, 0,-1, 0,
-         0, 0, 0, 1,
-    },
-    { // -Z
-         1, 0, 0, 0,
-         0, 1, 0, 0,
-         0, 0, 1, 0,
-         0, 0, 0, 1,
-    },
-};
 
 void R_Viewport_InitCubeSideView(r_viewport_t *v, const matrix4x4_t *cameramatrix, int side, int size, float nearclip, float farclip, const float *nearplane)
 {

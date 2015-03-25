@@ -452,6 +452,7 @@ static void R_View_WorldVisibility_CullSurfaces()
 			surfacevisible[surfaceindex] = 0;
 }
 
+#if 0
 void R_View_WorldVisibility(bool forcenovis)
 {
 	int i, j, *mark;
@@ -607,6 +608,186 @@ void R_View_WorldVisibility(bool forcenovis)
 
         R_View_WorldVisibility_CullSurfaces();
 }
+
+#else
+
+__noinline static void R_View_WorldVisibility_CustomPVS()
+{
+	int i, j, *mark;
+	mleaf_t *leaf;
+	mleaf_t *viewleaf;
+	dp_model_t *model = r_refdef.scene.worldmodel;
+	
+	if(model == nullptr)
+		return;
+	
+		// clear the visible surface and leaf flags arrays
+	memset(r_refdef.viewcache.world_surfacevisible, 0, model->num_surfaces);
+	memset(r_refdef.viewcache.world_leafvisible, 0, model->brush.num_leafs);
+	r_refdef.viewcache.world_novis = false;
+
+	// simply cull each marked leaf to the frustum (view pyramid)
+	for (j = 0, leaf = model->brush.data_leafs;j < model->brush.num_leafs;j++, leaf++)
+	{
+		// if leaf is in current pvs and on the screen, mark its surfaces
+		if (CHECKPVSBIT(r_refdef.viewcache.world_pvsbits, leaf->clusterindex) && !R_CullBox(leaf->mins, leaf->maxs))
+		{
+			r_refdef.stats[r_stat_world_leafs]++;
+			r_refdef.viewcache.world_leafvisible[j] = true;
+			if (leaf->numleafsurfaces)
+				for (i = 0, mark = leaf->firstleafsurface;i < leaf->numleafsurfaces;i++, mark++)
+					r_refdef.viewcache.world_surfacevisible[*mark] = true;
+		}
+	}
+	R_View_WorldVisibility_CullSurfaces();
+	return;
+}
+
+void R_View_WorldVisibility(bool forcenovis)
+{
+	int i, j, *mark;
+	mleaf_t *leaf;
+	dp_model_t *model = r_refdef.scene.worldmodel;
+
+	if (unlikely(model == nullptr))
+		return;
+
+	if (unlikely(r_refdef.view.usecustompvs))
+	{
+		R_View_WorldVisibility_CustomPVS();
+		return;
+	}
+
+	// if possible find the leaf the view origin is in
+	mleaf_t *viewleaf = 
+	model->brush.PointInLeaf 
+	? model->brush.PointInLeaf(model, r_refdef.view.origin) 
+	: nullptr;
+	
+	// if possible fetch the visible cluster bits
+	if (!r_lockpvs.integer && model->brush.FatPVS)
+		model->brush.FatPVS(model, r_refdef.view.origin, 2, r_refdef.viewcache.world_pvsbits, (r_refdef.viewcache.world_numclusters+7)>>3, false);
+
+	if (unlikely(r_lockvisibility.integer != 0))
+	{
+		R_View_WorldVisibility_CullSurfaces();
+		return;
+	}
+	
+	// clear the visible surface and leaf flags arrays
+	memset(r_refdef.viewcache.world_surfacevisible, 0, model->num_surfaces);
+	memset(r_refdef.viewcache.world_leafvisible, 0, model->brush.num_leafs);
+
+	r_refdef.viewcache.world_novis = false;
+
+	// if floating around in the void (no pvs data available, and no
+	// portals available), simply use all on-screen leafs.
+	if (unlikely(!viewleaf || viewleaf->clusterindex < 0 || forcenovis || r_trippy.integer))
+	{
+		// no visibility method: (used when floating around in the void)
+		// simply cull each leaf to the frustum (view pyramid)
+		// similar to quake's RecursiveWorldNode but without cache misses
+		r_refdef.viewcache.world_novis = true;
+		for (j = 0, leaf = model->brush.data_leafs;j < model->brush.num_leafs;j++, leaf++)
+		{
+			if (leaf->clusterindex < 0)
+				continue;
+			// if leaf is in current pvs and on the screen, mark its surfaces
+			if (!R_CullBox(leaf->mins, leaf->maxs))
+			{
+				r_refdef.stats[r_stat_world_leafs]++;
+				r_refdef.viewcache.world_leafvisible[j] = true;
+				if (leaf->numleafsurfaces)
+					for (i = 0, mark = leaf->firstleafsurface;i < leaf->numleafsurfaces;i++, mark++)
+						r_refdef.viewcache.world_surfacevisible[*mark] = true;
+			}
+		}
+	}
+	// just check if each leaf in the PVS is on screen
+	// (unless portal culling is enabled)
+	else if (!model->brush.data_portals || r_useportalculling.integer < 1 || (r_useportalculling.integer < 2 && !r_novis.integer))
+	{
+		// pvs method:
+		// simply check if each leaf is in the Potentially Visible Set,
+		// and cull to frustum (view pyramid)
+		// similar to quake's RecursiveWorldNode but without cache misses
+		for (j = 0, leaf = model->brush.data_leafs;j < model->brush.num_leafs;j++, leaf++)
+		{
+			if (leaf->clusterindex < 0)
+				continue;
+			// if leaf is in current pvs and on the screen, mark its surfaces
+			if (CHECKPVSBIT(r_refdef.viewcache.world_pvsbits, leaf->clusterindex) && !R_CullBox(leaf->mins, leaf->maxs))
+			{
+				r_refdef.stats[r_stat_world_leafs]++;
+				r_refdef.viewcache.world_leafvisible[j] = true;
+				if (leaf->numleafsurfaces)
+					for (i = 0, mark = leaf->firstleafsurface;i < leaf->numleafsurfaces;i++, mark++)
+						r_refdef.viewcache.world_surfacevisible[*mark] = true;
+			}
+		}
+	}
+	// if desired use a recursive portal flow, culling each portal to
+	// frustum and checking if the leaf the portal leads to is in the pvs
+	else
+	{
+		mportal_t *p;
+		mleaf_t *leafstack[8192];
+		vec3_t cullmins, cullmaxs;
+		float cullbias = r_nearclip.value * 2.0f; // the nearclip plane can easily end up culling portals in certain perfectly-aligned views, causing view blackouts
+		// simple-frustum portal method:
+		// follows portals leading outward from viewleaf, does not venture
+		// offscreen or into leafs that are not visible, faster than
+		// Quake's RecursiveWorldNode and vastly better in unvised maps,
+		// often culls some surfaces that pvs alone would miss
+		// (such as a room in pvs that is hidden behind a wall, but the
+		//  passage leading to the room is off-screen)
+		leafstack[0] = viewleaf;
+		int leafstackpos = 1;
+		while (leafstackpos != 0)
+		{
+			leaf = leafstack[--leafstackpos];
+			if (r_refdef.viewcache.world_leafvisible[leaf - model->brush.data_leafs])
+				continue;
+			if (leaf->clusterindex < 0)
+				continue;
+			r_refdef.stats[r_stat_world_leafs]++;
+			r_refdef.viewcache.world_leafvisible[leaf - model->brush.data_leafs] = true;
+			// mark any surfaces bounding this leaf
+			if (leaf->numleafsurfaces)
+				for (i = 0, mark = leaf->firstleafsurface;i < leaf->numleafsurfaces;i++, mark++)
+					r_refdef.viewcache.world_surfacevisible[*mark] = true;
+			// follow portals into other leafs
+			// the checks are:
+			// the leaf has not been visited yet
+			// and the leaf is visible in the pvs
+			// the portal polygon's bounding box is on the screen
+			for (p = leaf->portals;p;p = p->next)
+			{
+				r_refdef.stats[r_stat_world_portals]++;
+				if (r_refdef.viewcache.world_leafvisible[p->past - model->brush.data_leafs])
+					continue;
+				if (!CHECKPVSBIT(r_refdef.viewcache.world_pvsbits, p->past->clusterindex))
+					continue;
+				cullmins[0] = p->mins[0] - cullbias;
+				cullmins[1] = p->mins[1] - cullbias;
+				cullmins[2] = p->mins[2] - cullbias;
+				cullmaxs[0] = p->maxs[0] + cullbias;
+				cullmaxs[1] = p->maxs[1] + cullbias;
+				cullmaxs[2] = p->maxs[2] + cullbias;
+				if (R_CullBox(cullmins, cullmaxs))
+					continue;
+				if (leafstackpos >= (int)(sizeof(leafstack) / sizeof(leafstack[0])))
+					break;
+				leafstack[leafstackpos++] = p->past;
+			}
+		}
+	}
+
+	R_View_WorldVisibility_CullSurfaces();
+}
+#endif
+
+
 
 void R_Q1BSP_DrawSky(entity_render_t *ent)
 {

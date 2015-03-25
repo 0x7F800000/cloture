@@ -163,7 +163,7 @@ struct paramPack<void>
 	static constexpr size_t size = 0;
 	using type = void;
 }__unused;
-
+#if 0
 template<typename... list>
 struct MetaList
 {
@@ -188,7 +188,9 @@ struct MetaList
 			using previous	= previousNode;
 			using next		= Node<index + 1, NodeType, dataHolder, NextType, nextOnes...>;
 			using data		= T;
-
+			static constexpr size_t Index=index;
+			using getLast = typename NodeType::next::getLast;
+			
 			static constexpr bool hasPrevious()
 			{
 				return !meta::isMetaNull<previous>;
@@ -228,6 +230,34 @@ struct MetaList
 				current(Args...);
 				next::instantiateForeach<instantiateFor, userData...>(Args...);
 			}
+			template< template<typename next, typename TT, typename... TS> class inheritor, typename... ts> 
+			struct Inherit
+			{
+				#if 0
+				template<typename next, typename T2>
+				//struct pregen : public inheritor<data>, public T2
+				struct pregen : public inheritor< typename NodeType::next::Inherit<pregen, ts...>::gen, T>, public T2
+				{
+					static constexpr bool isLast = false;
+				};
+	
+				template<size_t ix = NodeType::Index>
+				struct dogen
+				{
+					using gen = typename NodeType::next::Inherit<pregen, ts...>::gen;
+				};
+				using gen = typename NodeType::next::Inherit<pregen, ts...>::gen;
+				#endif
+				
+				template<size_t INDEX = NodeType::Index> struct generate
+				{
+					template<typename NEXT_, typename T_T, typename... uhhhh >
+					struct pregen : public NodeType::previous::Inherit<inheritor, ts...>::generate::pregen<pregen
+					{
+						
+					};
+				};
+			};
 		}__unused;
 
 		/*
@@ -244,7 +274,7 @@ struct MetaList
 			using previous = previousNode;
 			using next = meta::metaNull;
 			using data = T;
-
+			using getLast = NodeType;
 			static constexpr bool hasPrevious()
 			{
 				return !meta::isMetaNull<previous>;
@@ -268,6 +298,42 @@ struct MetaList
 			{
 				return false;
 			}
+			
+	
+			template<template<typename next, typename T, typename... TS> class inheritor, typename... ts> 
+			struct Inherit
+			{
+				/*struct gen : public inheritor<data>
+				{
+				};*/
+				//template<typename next>//>
+				//struct pregen : public inheritor<data>, public T2
+				
+				using thisType = NodeType::Inherit<inheritor, ts...>;
+				
+				
+				struct gen : public inheritor< ts...,//meta::metaNull, 
+				T>//, public T2
+				{
+					static constexpr bool isLast = true;
+				};
+				//using gen = pregen<meta::metaNull, //next::Inherit<pregen>::gen;
+				//using gen =
+				
+				
+				
+				
+				template<size_t INDEX = NodeType::Index> struct generate
+				{
+					template<typename NEXT_, typename T_T, typename... uhhhh>
+				struct pregen : public inheritor<NEXT_, NodeType::data::data, ts...>
+				{
+					
+				};
+					//using preg = 
+				};
+				using generated = typename NodeType::previous::Inherit<inheritor, ts...>::generate::pregen;
+			};
 
 		}__unused;
 
@@ -318,6 +384,18 @@ struct MetaList
 		static_assert(!meta::isMetaNull<List>);
 
 	};
+	
+	template< template<typename next, typename T, typename... TS> class inheritor, typename master> 
+	struct inheritList
+	{
+		using lastNode = typename List::getLast;
+		
+		//using inherited = typename ;
+		using inherited = typename List::Inherit<inheritor, master>::gen;//<master>;
+		
+		//static_assert(!inherited::isLast);
+	};
+
 
 }__unused;
 
@@ -335,7 +413,7 @@ struct iteratorTest
 	using type = typename getOne<Ts...>::type;
 };
 using synthesized = typename mListTest::synthesizeList<iteratorTest>::Result;
-
+#endif
 static constexpr paramPack<size_t, 1, 2, 3, 4, 5> ___PARAM_PACK_TEST___;
 
 static_assert(___PARAM_PACK_TEST___[1] == 2);
